@@ -1,10 +1,11 @@
-# Nadeef — Laundry, subscribed
+# Pressed — Laundry, subscribed
 
 A prototype mobile app for a **subscription laundry pickup & delivery service** in
-Kuwait, built from the accompanying lean/phased feasibility study. It pairs the
-study's business model (flat monthly membership tiers, free pickup & delivery,
-KWD pricing) with an interface styled after the reference screens: dark theme,
-red accent, hanging-garment product art, and a schedule-driven basket.
+Kuwait, built from the accompanying lean/phased feasibility study. Members pay a
+flat monthly price for a laundry allowance (in kg) and simply **schedule a
+pickup** — no per-item selection. Styled after the reference screens: dark theme,
+**light-blue** accent, KWD pricing, and a schedule-driven flow. Fully bilingual
+(**English / العربية**) with right-to-left support.
 
 > Prototype only — no backend, payments, or persistence. All data is local mock data.
 
@@ -12,12 +13,17 @@ red accent, hanging-garment product art, and a schedule-driven basket.
 
 | Screen | Description |
 | --- | --- |
-| **Home / Catalog** | Browse items by category (Traditional / Women's / Men's / Household); tap for services |
-| **Item detail** | Per-item services (Wash & press, Dry clean, Press only) with quantity steppers |
-| **Plans** | The core model — four membership tiers (Basic 15 · Standard 28 · Premium 45 · Family Plus 65 KWD) |
-| **Basket** | Address, pick-up & delivery scheduling, contact, hangers toggle, note, live total, checkout |
-| **Checkout** | Order confirmation with pick-up / delivery summary |
-| **Account** | Membership usage (allowance bar), order history, saved addresses, freeze subscription |
+| **Home** | Greeting, active-membership card with monthly allowance bar, "Schedule a pickup" CTA, and a How-it-works walkthrough |
+| **Plans** | The core model — four membership tiers (Basic 15 · Standard 28 · Premium 45 · Family Plus 65 KWD) with monthly kg caps |
+| **Pickup** | Address, pick-up & delivery scheduling, contact, hangers toggle, note, and confirm — covered by the subscription (no basket) |
+| **Confirmation** | Pickup confirmed with pick-up / delivery / plan summary |
+| **Account** | Membership usage, **language toggle**, order history, saved addresses, payment, freeze subscription |
+
+### Language
+
+Tap the **globe** icon on Home, or **Language** in Account, to switch between
+English and Arabic. The whole UI re-renders and flips to RTL, including the
+navigation bar, cards, dividers, badges, and chevrons.
 
 ### From the feasibility study
 - **Tiers & pricing** (Section 5): Basic / Standard / Premium / Family Plus, with monthly kg caps.
@@ -27,8 +33,8 @@ red accent, hanging-garment product art, and a schedule-driven basket.
 ## Tech
 
 - **React 18 + TypeScript + Vite**
-- No UI framework — hand-written CSS (`src/styles.css`) and inline SVG art (`src/components/Garment.tsx`, `Icons.tsx`); fully self-contained, no external assets.
-- Shared state via a small React context (`src/store.tsx`).
+- No UI framework — hand-written CSS (`src/styles.css`) and inline SVG icons; fully self-contained, no external assets.
+- Shared state via a small React context (`src/store.tsx`); i18n via `src/i18n.tsx` (en/ar dictionaries + RTL).
 
 ## Run it
 
@@ -48,9 +54,10 @@ npm run preview
 
 ```
 src/
-  data/        # plans, catalog items & services, time slots (all from the study)
-  components/  # Garment SVGs, icon set, Stepper / Toggle / StatusBar
-  screens/     # Catalog, ItemDetail, Plans, Basket, Success, Account
-  store.tsx    # basket + scheduling + subscription context
-  App.tsx      # phone frame, tab navigation
+  data/        # plans (bilingual) & time slots (from the study)
+  components/  # icon set, StatusBar / Toggle
+  screens/     # Home, Plans, Pickup, Success, Account
+  i18n.tsx     # language context + en/ar translations + direction
+  store.tsx    # scheduling + subscription context
+  App.tsx      # phone frame, tab navigation, RTL wiring
 ```

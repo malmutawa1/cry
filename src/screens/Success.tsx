@@ -1,38 +1,44 @@
-import { useStore, kwd } from '../store'
+import { useStore } from '../store'
+import { useI18n } from '../i18n'
+import { slotLabel } from '../data/slots'
+import { planName } from '../data/plans'
 import { Check } from '../components/Icons'
 
-export default function Success({ orderId, total, onDone }: { orderId: string; total: number; onDone: () => void }) {
-  const { pickup, delivery } = useStore()
+export default function Success({ orderId, onDone }: { orderId: string; onDone: () => void }) {
+  const { pickup, delivery, activePlan } = useStore()
+  const { t, lang } = useI18n()
   return (
     <>
       <div className="topbar" style={{ justifyContent: 'center' }}>
-        <h1>Order confirmed</h1>
+        <h1>{t('success.title')}</h1>
       </div>
       <div className="success">
         <div className="check-ring">
           <Check size={44} />
         </div>
-        <h2>You're all set!</h2>
-        <p>Your driver will collect your laundry during the pick-up window. We'll notify you at each step.</p>
-        <div className="order-pill">Order {orderId}</div>
+        <h2>{t('success.head')}</h2>
+        <p>{t('success.body')}</p>
+        <div className="order-pill">{t('success.order', { id: orderId })}</div>
         <div style={{ width: '100%', maxWidth: 320, marginTop: 12 }}>
           <div className="summary-row">
-            <span style={{ color: 'var(--muted)' }}>Pick-up</span>
-            <span style={{ fontWeight: 700 }}>{pickup}</span>
+            <span style={{ color: 'var(--muted)' }}>{t('success.pickup')}</span>
+            <span style={{ fontWeight: 700 }}>{slotLabel(pickup, lang)}</span>
           </div>
           <div className="summary-row">
-            <span style={{ color: 'var(--muted)' }}>Delivery</span>
-            <span style={{ fontWeight: 700 }}>{delivery}</span>
+            <span style={{ color: 'var(--muted)' }}>{t('success.delivery')}</span>
+            <span style={{ fontWeight: 700 }}>{slotLabel(delivery, lang)}</span>
           </div>
-          <div className="summary-row">
-            <span style={{ color: 'var(--muted)' }}>Paid</span>
-            <span style={{ fontWeight: 700 }}>{kwd(total)}</span>
-          </div>
+          {activePlan && (
+            <div className="summary-row">
+              <span style={{ color: 'var(--muted)' }}>{t('success.plan')}</span>
+              <span style={{ fontWeight: 700 }}>{planName(activePlan, lang)}</span>
+            </div>
+          )}
         </div>
       </div>
       <div className="bottom-cta">
         <button className="btn-primary" onClick={onDone}>
-          Back to home
+          {t('success.home')}
         </button>
       </div>
     </>

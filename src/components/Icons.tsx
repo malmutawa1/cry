@@ -79,3 +79,9 @@ export const Leaf = ({ size = 20, className }: P) => (
 export const Clock = ({ size = 20, className }: P) => (
   <svg {...base(size, className)}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
 )
+export const Globe = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.5 3.5 6 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-6-3.5-9s1-6.5 3.5-9Z" /></svg>
+)
+export const Bag = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><path d="M6 8h12l-1 12a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 8ZM9 8V6a3 3 0 0 1 6 0v2" /></svg>
+)
