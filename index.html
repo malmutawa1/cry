@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#33507C">
+<title>Pressd</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F2F4F3; --surface:#FFFFFF; --surface-2:#EAEDEB;
+    --ink:#1C2430; --muted:#667080; --line:#DCE2DF;
+    --indigo:#33507C; --indigo-dark:#24395C; --indigo-tint:#E7EBF2;
+    --amber:#C98A3E; --amber-tint:#F6E9D6;
+    --teal:#3F8478; --teal-tint:#E1EEEB; --teal-dark:#2F6B5E;
+    --violet:#7C7A9E; --violet-tint:#EBEAF2;
+    --brick:#A6493B; --brick-tint:#F3E3E0;
+    --grey:#8A8F92; --grey-tint:#EDEFEE;
+    --r-sm:8px; --r-md:14px; --r-lg:22px;
+    --shadow-1:0 1px 2px rgba(28,36,48,.06), 0 1px 1px rgba(28,36,48,.04);
+    --shadow-2:0 10px 28px rgba(28,36,48,.10);
+    --sans:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+    --serif:'IBM Plex Serif',Georgia,serif;
+    --mono:'IBM Plex Mono','SF Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--sans);}
+  body{-webkit-font-smoothing:antialiased;}
+  #root{max-width:900px;margin:0 auto;padding:0 16px 64px;min-height:100vh;}
+  a{color:inherit;}
+  button{font-family:var(--sans);cursor:pointer;}
+  input,select,textarea{font-family:var(--sans);font-size:15px;}
+  ::selection{background:var(--indigo-tint);}
+
+  /* ---- Header ---- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 0 18px;flex-wrap:wrap;gap:12px;}
+  .wordmark{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing:-0.01em;color:var(--indigo-dark);}
+  .wordmark small{display:block;font-family:var(--sans);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+  .view-toggle{display:inline-flex;background:var(--surface-2);border-radius:999px;padding:3px;gap:2px;}
+  .toggle-btn{border:none;background:transparent;padding:8px 16px;border-radius:999px;font-size:13.5px;font-weight:600;color:var(--muted);transition:background .15s, color .15s;}
+  .toggle-btn.active{background:var(--surface);color:var(--indigo-dark);box-shadow:var(--shadow-1);}
+
+  /* ---- Layout helpers ---- */
+  .stack{display:flex;flex-direction:column;gap:16px;}
+  .row{display:flex;gap:16px;flex-wrap:wrap;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:640px){.grid-2{grid-template-columns:1fr;}}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px;box-shadow:var(--shadow-1);}
+  .card h2{margin:0 0 4px;font-family:var(--serif);font-weight:600;font-size:18px;}
+  .card .sub{color:var(--muted);font-size:13.5px;margin:0 0 16px;}
+  .eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 6px;}
+
+  /* ---- Buttons ---- */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;padding:10px 18px;font-size:14px;font-weight:600;border:1px solid transparent;transition:transform .1s, box-shadow .15s, background .15s;white-space:nowrap;}
+  .btn:active{transform:scale(.97);}
+  .btn:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:2px solid var(--indigo);outline-offset:2px;}
+  .btn-primary{background:var(--indigo);color:#fff;}
+  .btn-primary:hover{background:var(--indigo-dark);}
+  .btn-ghost{background:transparent;border-color:var(--line);color:var(--ink);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-danger{background:transparent;border-color:var(--brick-tint);color:var(--brick);}
+  .btn-danger:hover{background:var(--brick-tint);}
+  .btn-sm{padding:7px 13px;font-size:12.5px;}
+  .btn-block{width:100%;}
+  .btn[disabled]{opacity:.5;cursor:not-allowed;}
+  .link-btn{background:none;border:none;padding:0;color:var(--indigo);font-weight:600;font-size:13px;text-decoration:underline;text-underline-offset:2px;}
+
+  /* ---- Forms ---- */
+  label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:5px;}
+  .field{margin-bottom:14px;}
+  input[type=text],input[type=tel],input[type=number],input[type=date],select,textarea{
+    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);
+  }
+  textarea{resize:vertical;min-height:64px;}
+  .field-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .field-row > .field{flex:1;min-width:140px;}
+  .error-text{color:var(--brick);font-size:12.5px;margin-top:6px;}
+  .hint{color:var(--muted);font-size:12.5px;margin-top:6px;}
+
+  /* ---- Pills / badges ---- */
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.5;}
+  .dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;}
+
+  /* ---- Drum gauge ---- */
+  .gauge-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+  .drum-gauge{animation:gauge-in .5s ease-out both;}
+  @keyframes gauge-in{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:scale(1);}}
+  .gauge-value{font-family:var(--mono);font-weight:600;}
+  .gauge-cap{font-family:var(--mono);fill:var(--muted);}
+
+  /* ---- KPI strip ---- */
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:16px 18px;}
+  .kpi .num{font-family:var(--serif);font-weight:600;font-size:26px;color:var(--indigo-dark);line-height:1.15;}
+  .kpi .label{font-size:12px;color:var(--muted);margin-top:4px;}
+
+  /* ---- Tier mix bar ---- */
+  .mixbar{height:14px;border-radius:999px;overflow:hidden;display:flex;background:var(--surface-2);}
+  .mix-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:var(--muted);}
+  .mix-legend .sw{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:6px;}
+
+  /* ---- List rows (subscribers / pickups) ---- */
+  .item-row{border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px;background:var(--surface);display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .item-row + .item-row{margin-top:10px;}
+  .item-main{flex:1;min-width:180px;}
+  .item-name{font-weight:600;font-size:14.5px;}
+  .item-meta{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .item-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .mini-gauge-row{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;color:var(--muted);}
+
+  .empty{border:1px dashed var(--line);border-radius:var(--r-md);padding:26px 20px;text-align:center;color:var(--muted);font-size:13.5px;}
+  .empty strong{display:block;color:var(--ink);font-size:14.5px;margin-bottom:4px;}
+
+  .tabs{display:flex;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--line);}
+  .tab-btn{background:none;border:none;padding:10px 4px;margin-right:18px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;}
+  .tab-btn.active{color:var(--indigo-dark);border-bottom-color:var(--indigo);}
+
+  .filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .chip{border:1px solid var(--line);background:var(--surface);padding:6px 13px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--muted);}
+  .chip.active{background:var(--indigo-tint);border-color:var(--indigo-tint);color:var(--indigo-dark);}
+
+  .tier-card{border:1.5px solid var(--line);border-radius:var(--r-md);padding:16px;cursor:pointer;transition:border-color .15s, background .15s;background:var(--surface);}
+  .tier-card:hover{border-color:var(--indigo);}
+  .tier-card .price{font-family:var(--serif);font-weight:600;font-size:22px;margin:4px 0 2px;}
+  .tier-card .cap{font-family:var(--mono);font-size:12.5px;color:var(--muted);}
+
+  /* ---- Item catalog (pay per item) ---- */
+  .item-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;}
+  .item-card{border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);padding:14px;display:flex;flex-direction:column;gap:8px;}
+  .item-card .icon-badge{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;}
+  .item-card .iname{font-weight:600;font-size:13.5px;line-height:1.3;}
+  .item-card .iprice{font-family:var(--mono);font-size:12px;color:var(--muted);}
+  .add-btn{width:30px;height:30px;border-radius:50%;background:var(--indigo);color:#fff;border:none;font-size:17px;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .add-btn:hover{background:var(--indigo-dark);}
+  .service-row{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 8px 8px 14px;background:var(--surface-2);flex-wrap:wrap;}
+  .service-row .slabel{font-size:13px;font-weight:500;}
+  .service-row .sprice{font-family:var(--mono);font-size:12.5px;color:var(--muted);}
+  .qty-stepper{display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:999px;padding:3px 5px;}
+  .qty-stepper button{width:25px;height:25px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:14px;line-height:1;}
+  .qty-stepper button[disabled]{opacity:.4;cursor:not-allowed;}
+  .qty-stepper span{min-width:14px;text-align:center;font-family:var(--mono);font-weight:600;font-size:13px;}
+  .addon-row{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 14px;}
+  .basket-bar{position:sticky;bottom:14px;background:var(--indigo-dark);color:#fff;border-radius:999px;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;box-shadow:var(--shadow-2);flex-wrap:wrap;}
+  .basket-bar button{background:#fff;color:var(--indigo-dark);}
+
+  footer.note{text-align:center;color:var(--muted);font-size:11.5px;margin-top:36px;line-height:1.6;}
+
+  #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--indigo-dark);color:#fff;padding:12px 20px;border-radius:999px;font-size:13.5px;font-weight:500;box-shadow:var(--shadow-2);opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;z-index:50;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (prefers-reduced-motion: reduce){
+    .drum-gauge, #toast{animation:none !important;transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="toast"></div>
+
+<script>
+/* ================= DATA ================= */
+const TIERS = {
+  basic:       {key:'basic',       name:'Basic',       price:15, cap:20,  color:'#8B98A6'},
+  standard:    {key:'standard',    name:'Standard',    price:28, cap:40,  color:'#33507C'},
+  premium:     {key:'premium',     name:'Premium',     price:45, cap:70,  color:'#C98A3E'},
+  familyplus:  {key:'familyplus',  name:'Family Plus', price:65, cap:100, color:'#3F8478'}
+};
+const AREAS = ['Salmiya','Hawally','Jabriya','Farwaniya','Mahboula','Kuwait City'];
+const WINDOWS = ['Morning','Afternoon','Evening'];
+
+const PICKUP_STATUS = {
+  scheduled:  {label:'Scheduled',  color:'#33507C', tint:'#E7EBF2', next:'collected',  action:'Mark collected'},
+  collected:  {label:'Collected',  color:'#C98A3E', tint:'#F6E9D6', next:'at_partner', action:'Send to partner'},
+  at_partner: {label:'At partner', color:'#7C7A9E', tint:'#EBEAF2', next:'ready',       action:'Mark ready'},
+  ready:      {label:'Ready',      color:'#3F8478', tint:'#E1EEEB', next:'delivered',   action:'Mark delivered'},
+  delivered:  {label:'Delivered',  color:'#2F6B5E', tint:'#E1EEEB', next:null,          action:null},
+  cancelled:  {label:'Cancelled',  color:'#8A8F92', tint:'#EDEFEE', next:null,          action:null}
+};
+const SUB_STATUS = {
+  active:    {label:'Active',    color:'#3F8478', tint:'#E1EEEB'},
+  paused:    {label:'Paused',    color:'#C98A3E', tint:'#F6E9D6'},
+  cancelled: {label:'Cancelled', color:'#A6493B', tint:'#F3E3E0'}
+};
+
+const CATEGORIES = [
+  {key:'traditional', label:'Traditional'},
+  {key:'mens', label:"Men's"},
+  {key:'womens', label:"Women's"},
+  {key:'household', label:'Household'}
+];
+
+const ITEM_CATALOG = [
+  {key:'ghutra', name:'Ghutra / Shemagh', category:'traditional', services:[{key:'press_only',label:'Press only',price:0.150},{key:'wash_press',label:'Wash and press',price:0.250},{key:'dry_clean',label:'Dry clean',price:0.300}]},
+  {key:'igal', name:'Igal', category:'traditional', services:[{key:'press_only',label:'Press only',price:0.100},{key:'wash_press',label:'Wash and press',price:0.150},{key:'dry_clean',label:'Dry clean',price:0.200}]},
+  {key:'bisht_cerm', name:'Bisht (Ceremonial)', category:'traditional', services:[{key:'press_only',label:'Press only',price:2.000},{key:'dry_clean',label:'Dry clean',price:3.000}]},
+  {key:'abaya_everyday', name:'Abaya (Everyday)', category:'traditional', services:[{key:'press_only',label:'Press only',price:0.350},{key:'wash_press',label:'Wash and press',price:0.500},{key:'dry_clean',label:'Dry clean',price:0.650}]},
+  {key:'besht', name:'Besht', category:'mens', services:[{key:'press_only',label:'Press only',price:2.000},{key:'dry_clean',label:'Dry clean',price:2.500}]},
+  {key:'besht_winter', name:'Besht (Winter)', category:'mens', services:[{key:'press_only',label:'Press only',price:2.500},{key:'dry_clean',label:'Dry clean',price:3.000}]},
+  {key:'dishdasha_summer', name:'Dishdasha (Summer)', category:'mens', services:[{key:'press_only',label:'Press only',price:0.350},{key:'wash_press',label:'Wash and press',price:0.600},{key:'dry_clean',label:'Dry clean',price:0.750}]},
+  {key:'dishdasha_winter', name:'Dishdasha (Winter)', category:'mens', services:[{key:'press_only',label:'Press only',price:0.400},{key:'wash_press',label:'Wash and press',price:0.650},{key:'dry_clean',label:'Dry clean',price:0.800}]},
+  {key:'formal_shirt', name:'Formal Shirt', category:'mens', services:[{key:'press_only',label:'Press only',price:0.200},{key:'wash_press',label:'Wash and press',price:0.300},{key:'dry_clean',label:'Dry clean',price:0.400}]},
+  {key:'trousers', name:'Trousers', category:'mens', services:[{key:'press_only',label:'Press only',price:0.250},{key:'wash_press',label:'Wash and press',price:0.350},{key:'dry_clean',label:'Dry clean',price:0.450}]},
+  {key:'abaya_embroidered', name:'Abaya (Embroidered)', category:'womens', services:[{key:'press_only',label:'Press only',price:0.500},{key:'dry_clean',label:'Dry clean',price:0.700}]},
+  {key:'jalabiya', name:'Jalabiya', category:'womens', services:[{key:'press_only',label:'Press only',price:0.300},{key:'wash_press',label:'Wash and press',price:0.400},{key:'dry_clean',label:'Dry clean',price:0.500}]},
+  {key:'blouse', name:'Blouse', category:'womens', services:[{key:'press_only',label:'Press only',price:0.150},{key:'wash_press',label:'Wash and press',price:0.250},{key:'dry_clean',label:'Dry clean',price:0.350}]},
+  {key:'evening_dress', name:'Evening Dress', category:'womens', services:[{key:'press_only',label:'Press only',price:0.700},{key:'dry_clean',label:'Dry clean',price:0.900}]},
+  {key:'bedsheet_single', name:'Bedsheet Set (Single)', category:'household', services:[{key:'wash_fold',label:'Wash and fold',price:0.600}]},
+  {key:'bedsheet_king', name:'Bedsheet Set (Double/King)', category:'household', services:[{key:'wash_fold',label:'Wash and fold',price:0.900}]},
+  {key:'duvet_cover', name:'Duvet Cover', category:'household', services:[{key:'wash_fold',label:'Wash and fold',price:1.200}]},
+  {key:'bath_towel', name:'Bath Towel (Large)', category:'household', services:[{key:'wash_fold',label:'Wash and fold',price:0.250}]}
+];
+
+const ADDONS = [
+  {key:'rush', label:'Rush service', hint:'Ready in 24 hours instead of the standard 48', price:1.000},
+  {key:'fragrance_free', label:'Fragrance-free detergent', hint:'For sensitive skin', price:0.200}
+];
+
+function categoryColor(cat){
+  return {traditional:'#7C7A9E', mens:'#33507C', womens:'#C98A3E', household:'#3F8478'}[cat] || '#667080';
+}
+function categoryIcon(cat){
+  const paths = {
+    mens: `<path d="M9 3 L12 5 L15 3 L18 8 L15.5 9.5 L15.5 21 L8.5 21 L8.5 9.5 L6 8 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>`,
+    womens: `<path d="M9 3 L12 5 L15 3 L17.5 7.5 L15.5 9 L16.5 21 L7.5 21 L8.5 9 L6.5 7.5 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 3 Q12 1.3 15 3" fill="none" stroke="currentColor" stroke-width="1.2"/>`,
+    traditional: `<path d="M7 4 L12 2 L17 4 L20 20 L15 18 L15 8 L12 6 L9 8 L9 18 L4 20 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>`,
+    household: `<rect x="3.5" y="11" width="17" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3.5 14 h17" stroke="currentColor" stroke-width="1.4"/><path d="M6 11 v-2.5 a2 2 0 0 1 4 0 V11" fill="none" stroke="currentColor" stroke-width="1.4"/>`
+  };
+  return `<svg width="22" height="22" viewBox="0 0 24 24">${paths[cat]||''}</svg>`;
+}
+function basketTotal(basket){
+  return (basket||[]).reduce((sum,l)=>sum+l.unitPrice*l.qty,0);
+}
+
+const STORAGE_KEY = 'app-state';
+
+/* ================= STATE ================= */
+let state = null;
+let storageOK = true;
+
+function todayISO(offsetDays){
+  const d = new Date();
+  d.setDate(d.getDate() + (offsetDays||0));
+  return d.toISOString().slice(0,10);
+}
+function addMonths(iso, n){
+  const d = new Date(iso);
+  d.setMonth(d.getMonth()+n);
+  return d.toISOString().slice(0,10);
+}
+function fmtDate(iso){
+  const d = new Date(iso+'T00:00:00');
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function fmtKWD(n){
+  return n.toFixed(3) + ' KWD';
+}
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function uid(prefix){
+  return prefix + Math.random().toString(36).slice(2,8);
+}
+
+function seedData(){
+  const subs = [
+    {id:'s1', name:'Layla Al-Fahad', phone:'+965 6011 2233', area:'Salmiya', tier:'standard', status:'active', joinDate:todayISO(-40), cycleStart:todayISO(-10), usedKg:26},
+    {id:'s2', name:'Ahmad Karam', phone:'+965 6544 9981', area:'Hawally', tier:'basic', status:'active', joinDate:todayISO(-70), cycleStart:todayISO(-5), usedKg:9},
+    {id:'s3', name:'Reem Al-Sabah', phone:'+965 6602 4471', area:'Jabriya', tier:'premium', status:'active', joinDate:todayISO(-100), cycleStart:todayISO(-20), usedKg:41},
+    {id:'s4', name:'Yousef Al-Mutairi', phone:'+965 6099 3320', area:'Salmiya', tier:'familyplus', status:'active', joinDate:todayISO(-130), cycleStart:todayISO(-2), usedKg:12},
+    {id:'s5', name:'Dana Al-Rashidi', phone:'+965 6712 5590', area:'Farwaniya', tier:'standard', status:'paused', joinDate:todayISO(-60), cycleStart:todayISO(-15), usedKg:18},
+    {id:'s6', name:'Fahad Al-Enezi', phone:'+965 6321 7742', area:'Mahboula', tier:'basic', status:'active', joinDate:todayISO(-25), cycleStart:todayISO(-25), usedKg:15},
+    {id:'s7', name:'Noura Al-Qattan', phone:'+965 6488 1105', area:'Kuwait City', tier:'premium', status:'active', joinDate:todayISO(-90), cycleStart:todayISO(-8), usedKg:52},
+    {id:'s8', name:'Salem Boushehri', phone:'+965 6650 8834', area:'Hawally', tier:'standard', status:'cancelled', joinDate:todayISO(-150), cycleStart:todayISO(-45), usedKg:22}
+  ];
+  const pickups = [
+    {id:'p1', subscriberId:'s1', date:todayISO(0), window:'Morning', bags:2, instructions:'', status:'scheduled', weightKg:null, createdAt:todayISO(-1)},
+    {id:'p2', subscriberId:'s3', date:todayISO(0), window:'Afternoon', bags:3, instructions:'Delicate blouse inside, please flag for hand wash', status:'collected', weightKg:9.5, createdAt:todayISO(-2)},
+    {id:'p3', subscriberId:'s4', date:todayISO(0), window:'Evening', bags:4, instructions:'', status:'scheduled', weightKg:null, createdAt:todayISO(-1)},
+    {id:'p4', subscriberId:'s2', date:todayISO(-2), window:'Morning', bags:1, instructions:'', status:'delivered', weightKg:9, createdAt:todayISO(-4)},
+    {id:'p5', subscriberId:'s7', date:todayISO(1), window:'Morning', bags:3, instructions:'', status:'scheduled', weightKg:null, createdAt:todayISO(0)},
+    {id:'p6', subscriberId:'s6', date:todayISO(-5), window:'Afternoon', bags:1, instructions:'', status:'delivered', weightKg:6.5, createdAt:todayISO(-6)}
+  ];
+  const itemOrders = [
+    {id:'o1', name:'Huda Al-Ansari', phone:'+965 6690 1122', address:'Block 4, Street 12, Salmiya', pickupDate:todayISO(0), pickupWindow:'Afternoon', deliveryDate:todayISO(2), deliveryWindow:'Morning', hangers:true, notes:'', addons:['rush'],
+      items:[{itemKey:'dishdasha_summer', itemName:'Dishdasha (Summer)', serviceKey:'dry_clean', serviceLabel:'Dry clean', unitPrice:0.750, qty:4}], total:4.000, status:'collected', createdAt:todayISO(-1)},
+    {id:'o2', name:'Omar Al-Fadhli', phone:'+965 6321 8890', address:'Block 1, Street 5, Jabriya', pickupDate:todayISO(1), pickupWindow:'Morning', deliveryDate:todayISO(3), deliveryWindow:'Afternoon', hangers:false, notes:'', addons:[],
+      items:[{itemKey:'besht', itemName:'Besht', serviceKey:'dry_clean', serviceLabel:'Dry clean', unitPrice:2.500, qty:1},{itemKey:'formal_shirt', itemName:'Formal Shirt', serviceKey:'wash_press', serviceLabel:'Wash and press', unitPrice:0.300, qty:3}], total:3.400, status:'scheduled', createdAt:todayISO(0)}
+  ];
+  return {
+    subscribers: subs,
+    pickups: pickups,
+    itemOrders: itemOrders,
+    view: 'customer',
+    customer: {subscriberId:null},
+    admin: {staffName:'', screen:'dashboard'},
+    routeFilter: 'today',
+    orderFilter: 'today',
+    ui: {}
+  };
+}
+
+async function loadState(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, true);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      parsed.ui = {};
+      if(!parsed.view) parsed.view = 'customer';
+      if(!parsed.customer) parsed.customer = {subscriberId:null};
+      if(!parsed.admin) parsed.admin = {staffName:'', screen:'dashboard'};
+      if(!parsed.routeFilter) parsed.routeFilter = 'today';
+      if(!parsed.itemOrders) parsed.itemOrders = [];
+      if(!parsed.orderFilter) parsed.orderFilter = 'today';
+      state = parsed;
+      return;
+    }
+  }catch(e){ /* key doesn't exist yet, or storage unavailable */ }
+  state = seedData();
+  await saveState();
+}
+
+async function saveState(){
+  const toSave = {
+    subscribers: state.subscribers, pickups: state.pickups, view: state.view,
+    customer: state.customer, admin: state.admin, routeFilter: state.routeFilter
+  };
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(toSave), true);
+    storageOK = true;
+  }catch(e){
+    storageOK = false;
+  }
+}
+
+/* ================= HELPERS ================= */
+function findSub(id){ return state.subscribers.find(s=>s.id===id); }
+function findPickup(id){ return state.pickups.find(p=>p.id===id); }
+function subPickups(id){
+  return state.pickups.filter(p=>p.subscriberId===id).sort((a,b)=> (b.date+b.window).localeCompare(a.date+a.window));
+}
+function activeSubs(){ return state.subscribers.filter(s=>s.status!=='cancelled'); }
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(()=> t.classList.remove('show'), 2600);
+}
+
+function drumGauge(used, cap, opts){
+  opts = opts || {};
+  const size = opts.size || 116;
+  const stroke = opts.stroke || (size < 60 ? 6 : 10);
+  const showText = opts.showText !== false;
+  const over = used > cap;
+  const color = over ? '#A6493B' : (opts.color || '#C98A3E');
+  const pct = cap > 0 ? Math.min(used/cap, 1) : 0;
+  const r = (size - stroke)/2;
+  const c = 2*Math.PI*r;
+  const dash = c*pct;
+  const mid = size/2;
+  let inner = '';
+  if(showText){
+    inner = `<text x="50%" y="47%" text-anchor="middle" class="gauge-value" font-size="${size*0.19}" fill="var(--ink)">${used}</text>
+      <text x="50%" y="66%" text-anchor="middle" class="gauge-cap" font-size="${size*0.10}">/ ${cap} kg</text>`;
+  }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="drum-gauge" role="img" aria-label="${used} of ${cap} kilograms used this cycle">
+    <circle cx="${mid}" cy="${mid}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${stroke}"/>
+    <circle cx="${mid}" cy="${mid}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round"
+      stroke-dasharray="${dash} ${c}" transform="rotate(-90 ${mid} ${mid})"/>
+    ${inner}
+  </svg>`;
+}
+
+function pill(label, color, tint){
+  return `<span class="pill" style="color:${color};background:${tint}"><span class="dot"></span>${esc(label)}</span>`;
+}
+function tierPill(tierKey){
+  const t = TIERS[tierKey];
+  return pill(t.name, t.color, t.color+'22');
+}
+function subStatusPill(status){
+  const s = SUB_STATUS[status];
+  return pill(s.label, s.color, s.tint);
+}
+function pickupStatusPill(status){
+  const s = PICKUP_STATUS[status];
+  return pill(s.label, s.color, s.tint);
+}
+
+/* ================= RENDER ROOT ================= */
+function render(){
+  const root = document.getElementById('root');
+  root.innerHTML = renderHeader() + (state.view==='customer' ? renderCustomerView() : renderAdminView()) + renderFooter();
+}
+
+function renderHeader(){
+  return `<header class="topbar">
+    <div class="wordmark">Pressd<small>Wash, press, repeat</small></div>
+    <div class="view-toggle">
+      <button class="toggle-btn ${state.view==='customer'?'active':''}" onclick="App.setView('customer')">Customer</button>
+      <button class="toggle-btn ${state.view==='admin'?'active':''}" onclick="App.setView('admin')">Business</button>
+    </div>
+  </header>`;
+}
+function renderFooter(){
+  return `<footer class="note">Prototype for Pressd &mdash; subscriber, pickup, and order data is shared and saved to this app link, for demo purposes. No real payments are processed.${storageOK?'':' <br>Could not reach saved storage right now &mdash; changes will only last this session.'}</footer>`;
+}
+
+/* ================= CUSTOMER VIEW ================= */
+function renderCustomerView(){
+  const id = state.customer.subscriberId;
+  const sub = id ? findSub(id) : null;
+  if(!sub){ return renderCustomerLogin(); }
+  return renderCustomerDashboard(sub);
+}
+
+function renderCustomerLogin(){
+  const signupTier = state.ui.signupTier;
+  let tierCards = Object.values(TIERS).map(t => `
+    <div class="tier-card" onclick="App.pickSignupTier('${t.key}')" style="${signupTier===t.key?'border-color:var(--indigo)':''}">
+      <div class="eyebrow">${esc(t.name)}</div>
+      <div class="price">${t.price.toFixed(2)} <span style="font-size:13px;color:var(--muted);font-family:var(--sans);font-weight:500;">KWD/mo</span></div>
+      <div class="cap">up to ${t.cap} kg / month</div>
+    </div>`).join('');
+
+  let signupForm = '';
+  if(signupTier){
+    signupForm = `<div class="card" style="margin-top:14px;">
+      <h2>Set up your ${esc(TIERS[signupTier].name)} plan</h2>
+      <p class="sub">Takes a minute &mdash; you can change plans anytime.</p>
+      <div class="field-row">
+        <div class="field"><label>Full name</label><input type="text" id="su-name" placeholder="e.g. Layla Al-Fahad"></div>
+        <div class="field"><label>Phone</label><input type="tel" id="su-phone" placeholder="+965 ..."></div>
+      </div>
+      <div class="field">
+        <label>Area</label>
+        <select id="su-area">${AREAS.map(a=>`<option>${a}</option>`).join('')}</select>
+      </div>
+      <div id="su-error" class="error-text" style="display:none;"></div>
+      <button class="btn btn-primary btn-block" onclick="App.completeSignup()">Start subscription</button>
+    </div>`;
+  }
+
+  return `
+  <div class="stack">
+    <div class="card">
+      <h2>Welcome back</h2>
+      <p class="sub">Find your account with your phone number.</p>
+      <div class="field-row">
+        <div class="field" style="flex:2;"><label>Phone number</label><input type="tel" id="login-phone" placeholder="+965 ..."></div>
+        <div style="align-self:flex-end;"><button class="btn btn-primary" onclick="App.customerLogin()">Continue</button></div>
+      </div>
+      <div id="login-error" class="error-text" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <h2>New here?</h2>
+      <p class="sub">Choose a plan to get started.</p>
+      <div class="row">
+        ${tierCards}
+      </div>
+      ${signupForm}
+    </div>
+  </div>`;
+}
+
+function renderCustomerDashboard(sub){
+  const tier = TIERS[sub.tier];
+  const nextBilling = addMonths(sub.cycleStart, 1);
+  const pickups = subPickups(sub.id);
+
+  let statusBanner = '';
+  if(sub.status === 'cancelled'){
+    statusBanner = `<div class="card" style="border-color:var(--brick-tint);background:var(--brick-tint);">
+      <h2 style="color:var(--brick);">Subscription cancelled</h2>
+      <p class="sub" style="margin-bottom:14px;">You can restart anytime &mdash; your account and history are still here.</p>
+      <div class="row">${Object.values(TIERS).map(t=>`<button class="btn btn-ghost btn-sm" onclick="App.restart('${sub.id}','${t.key}')">Restart on ${esc(t.name)}</button>`).join('')}</div>
+    </div>`;
+  } else if(sub.status === 'paused'){
+    statusBanner = `<div class="card" style="border-color:var(--amber-tint);background:var(--amber-tint);">
+      <h2 style="color:#8a5c1f;">Subscription paused</h2>
+      <p class="sub" style="margin-bottom:14px;">You won't be billed or scheduled for pickups while paused.</p>
+      <button class="btn btn-primary btn-sm" onclick="App.resume('${sub.id}')">Resume subscription</button>
+    </div>`;
+  }
+
+  const changePlanOpen = state.ui.showChangePlan;
+  let planCard = '';
+  if(sub.status !== 'cancelled'){
+    planCard = `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div class="eyebrow">Current plan</div>
+          <h2>${esc(tier.name)} &middot; ${tier.price.toFixed(2)} KWD/mo</h2>
+          <p class="sub">Next billing ${fmtDate(nextBilling)}</p>
+        </div>
+        ${subStatusPill(sub.status)}
+      </div>
+      <div class="gauge-wrap">
+        ${drumGauge(sub.usedKg, tier.cap, {color:'#C98A3E'})}
+        <div>
+          <div style="font-family:var(--mono);font-weight:600;font-size:15px;">${sub.usedKg} / ${tier.cap} kg used this cycle</div>
+          <div class="hint">Cycle started ${fmtDate(sub.cycleStart)}${sub.usedKg>tier.cap?'<br><span style="color:var(--brick);">Over allowance &mdash; extra usage may be billed separately.</span>':''}</div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:16px;">
+        <button class="btn btn-ghost btn-sm" onclick="App.toggleChangePlan()">${changePlanOpen?'Close':'Change plan'}</button>
+        ${sub.status==='active' ? `<button class="btn btn-ghost btn-sm" onclick="App.pause('${sub.id}')">Pause subscription</button>` : ''}
+        ${state.ui.confirmingCancelSubId===sub.id
+          ? `<span style="font-size:13px;color:var(--brick);align-self:center;">Cancel for good? <button class="link-btn" style="color:var(--brick);" onclick="App.cancelSub('${sub.id}')">Yes, cancel</button> &middot; <button class="link-btn" onclick="App.dismissConfirm()">No</button></span>`
+          : `<button class="btn btn-danger btn-sm" onclick="App.askCancelSub('${sub.id}')">Cancel subscription</button>`}
+      </div>
+      ${changePlanOpen ? `
+      <div class="row" style="margin-top:16px;border-top:1px solid var(--line);padding-top:16px;">
+        ${Object.values(TIERS).filter(t=>t.key!==sub.tier).map(t=>`
+          <div class="tier-card" onclick="App.changeTier('${sub.id}','${t.key}')">
+            <div class="eyebrow">${esc(t.name)}</div>
+            <div class="price">${t.price.toFixed(2)}</div>
+            <div class="cap">up to ${t.cap} kg</div>
+          </div>`).join('')}
+      </div>` : ''}
+    </div>`;
+  }
+
+  let bookCard = '';
+  if(sub.status === 'active'){
+    bookCard = `
+    <div class="card">
+      <h2>Book a pickup</h2>
+      <p class="sub">A driver will collect from your address in the window you choose.</p>
+      <div class="field-row">
+        <div class="field"><label>Date</label><input type="date" id="pk-date" min="${todayISO(0)}" value="${todayISO(1)}"></div>
+        <div class="field"><label>Window</label><select id="pk-window">${WINDOWS.map(w=>`<option>${w}</option>`).join('')}</select></div>
+        <div class="field" style="max-width:110px;"><label>Bags</label><input type="number" id="pk-bags" min="1" max="10" value="1"></div>
+      </div>
+      <div class="field"><label>Notes for the driver (optional)</label><textarea id="pk-notes" placeholder="e.g. delicate items inside, gate code, etc."></textarea></div>
+      <div id="pk-error" class="error-text" style="display:none;"></div>
+      <button class="btn btn-primary" onclick="App.bookPickup('${sub.id}')">Book pickup</button>
+    </div>`;
+  }
+
+  let pickupList = '';
+  if(pickups.length === 0){
+    pickupList = `<div class="empty"><strong>No pickups yet</strong>Book your first one above and it'll show up here.</div>`;
+  } else {
+    pickupList = pickups.map(p => {
+      const st = PICKUP_STATUS[p.status];
+      return `<div class="item-row">
+        <div class="item-main">
+          <div class="item-name">${fmtDate(p.date)} &middot; ${esc(p.window)}</div>
+          <div class="item-meta">${p.bags} bag${p.bags==1?'':'s'}${p.weightKg?` &middot; ${p.weightKg} kg logged`:''}${p.instructions?` &middot; "${esc(p.instructions)}"`:''}</div>
+        </div>
+        <div class="item-actions">
+          ${pickupStatusPill(p.status)}
+          ${p.status==='scheduled' ? `<button class="btn btn-ghost btn-sm" onclick="App.cancelPickup('${p.id}')">Cancel</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  return `
+  <div class="stack">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div class="eyebrow">${esc(sub.area)}</div>
+        <h2 style="font-family:var(--serif);font-size:20px;margin:0;">Hi, ${esc(sub.name.split(' ')[0])}</h2>
+      </div>
+      <button class="link-btn" onclick="App.customerLogout()">Switch account</button>
+    </div>
+    ${statusBanner}
+    ${planCard}
+    ${bookCard}
+    <div class="card">
+      <h2>My pickups</h2>
+      <div class="stack" style="gap:10px;">${pickupList}</div>
+    </div>
+  </div>`;
+}
+
+/* ================= ADMIN VIEW ================= */
+function renderAdminView(){
+  const tabs = [['dashboard','Dashboard'],['route','Route'],['subscribers','Subscribers']];
+  const tabHtml = tabs.map(([key,label]) => `<button class="tab-btn ${state.admin.screen===key?'active':''}" onclick="App.setAdminScreen('${key}')">${label}</button>`).join('');
+  let body;
+  if(state.admin.screen==='route') body = renderAdminRoute();
+  else if(state.admin.screen==='subscribers') body = renderAdminSubscribers();
+  else body = renderAdminDashboard();
+  return `<div class="tabs">${tabHtml}</div>${body}`;
+}
+
+function renderAdminDashboard(){
+  const actives = state.subscribers.filter(s=>s.status==='active');
+  const paused = state.subscribers.filter(s=>s.status==='paused');
+  const mrr = actives.reduce((sum,s)=>sum+TIERS[s.tier].price,0);
+  const todays = state.pickups.filter(p=>p.date===todayISO(0) && p.status!=='cancelled');
+  const billable = actives.concat(paused);
+  const mix = Object.values(TIERS).map(t=>({t, count: billable.filter(s=>s.tier===t.key).length}));
+  const total = billable.length || 1;
+
+  const mixBars = mix.map(m => `<div style="width:${(m.count/total*100).toFixed(1)}%;background:${m.t.color};"></div>`).join('');
+  const legend = mix.map(m => `<span><span class="sw" style="background:${m.t.color}"></span>${esc(m.t.name)} &middot; ${m.count}</span>`).join('');
+
+  return `
+  <div class="stack">
+    <div class="kpi-grid">
+      <div class="kpi"><div class="num">${actives.length}</div><div class="label">Active subscribers</div></div>
+      <div class="kpi"><div class="num">${fmtKWD(mrr)}</div><div class="label">Monthly recurring revenue</div></div>
+      <div class="kpi"><div class="num">${todays.length}</div><div class="label">Pickups today</div></div>
+      <div class="kpi"><div class="num">${paused.length}</div><div class="label">Paused</div></div>
+    </div>
+    <div class="card">
+      <h2>Subscriber mix by tier</h2>
+      <p class="sub">Active and paused subscribers, ${total===1&&billable.length===0?'no data yet':'by plan'}.</p>
+      <div class="mixbar">${mixBars}</div>
+      <div class="mix-legend">${legend}</div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2 style="margin:0;">Today's route</h2>
+        <button class="link-btn" onclick="App.setAdminScreen('route')">Open route board &rarr;</button>
+      </div>
+      <p class="sub">${todays.length} stop${todays.length==1?'':'s'} scheduled for ${fmtDate(todayISO(0))}.</p>
+    </div>
+    <div style="text-align:center;">
+      <button class="link-btn" style="color:var(--muted);" onclick="App.resetDemo()">Reset to demo data</button>
+    </div>
+  </div>`;
+}
+
+function renderAdminRoute(){
+  const filter = state.routeFilter;
+  const filters = [['today','Today'],['upcoming','Upcoming'],['all','All']];
+  let list = state.pickups.slice();
+  if(filter==='today') list = list.filter(p=>p.date===todayISO(0));
+  else if(filter==='upcoming') list = list.filter(p=>p.date>=todayISO(0));
+  list.sort((a,b)=> (a.date+a.window).localeCompare(b.date+b.window));
+
+  const filterChips = filters.map(([key,label]) => `<button class="chip ${filter===key?'active':''}" onclick="App.setRouteFilter('${key}')">${label}</button>`).join('');
+
+  let rows;
+  if(list.length===0){
+    rows = `<div class="empty"><strong>No pickups here</strong>Nothing matches this filter right now.</div>`;
+  } else {
+    rows = list.map(p => {
+      const sub = findSub(p.subscriberId);
+      const st = PICKUP_STATUS[p.status];
+      const collecting = state.ui.collectingPickupId === p.id;
+      let actionArea;
+      if(collecting){
+        actionArea = `<div class="field-row" style="align-items:flex-end;">
+          <div class="field" style="max-width:110px;"><label>Weight (kg)</label><input type="number" id="wt-${p.id}" step="0.1" min="0.1" placeholder="e.g. 6.5"></div>
+          <button class="btn btn-primary btn-sm" onclick="App.confirmCollected('${p.id}')">Confirm</button>
+          <button class="btn btn-ghost btn-sm" onclick="App.dismissConfirm()">Cancel</button>
+        </div>`;
+      } else if(st.action === 'Mark collected'){
+        actionArea = `<button class="btn btn-ghost btn-sm" onclick="App.startCollect('${p.id}')">${st.action}</button>`;
+      } else if(st.action){
+        actionArea = `<button class="btn btn-ghost btn-sm" onclick="App.advanceStatus('${p.id}')">${st.action}</button>`;
+      } else {
+        actionArea = '';
+      }
+      const confirmingCancel = state.ui.confirmingCancelPickupId === p.id;
+      return `<div class="item-row">
+        <div class="item-main">
+          <div class="item-name">${sub?esc(sub.name):'Unknown'} &middot; ${esc(p.window)}</div>
+          <div class="item-meta">${sub?esc(sub.area):''} &middot; ${fmtDate(p.date)} &middot; ${p.bags} bag${p.bags==1?'':'s'}${p.weightKg?` &middot; ${p.weightKg} kg`:''}</div>
+        </div>
+        <div class="item-actions">
+          ${pickupStatusPill(p.status)}
+          ${actionArea}
+          ${p.status!=='delivered' && p.status!=='cancelled' && !collecting ? (
+            confirmingCancel
+              ? `<span style="font-size:12.5px;color:var(--brick);">Cancel this? <button class="link-btn" style="color:var(--brick);" onclick="App.cancelPickupAdmin('${p.id}')">Yes</button> &middot; <button class="link-btn" onclick="App.dismissConfirm()">No</button></span>`
+              : `<button class="link-btn" style="color:var(--muted);" onclick="App.askCancelPickup('${p.id}')">Cancel</button>`
+          ) : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  return `
+  <div class="stack">
+    <div class="filter-row">${filterChips}</div>
+    <div class="stack" style="gap:10px;">${rows}</div>
+  </div>`;
+}
+
+function renderAdminSubscribers(){
+  const search = (state.ui.subscriberSearch||'').toLowerCase();
+  const addOpen = state.ui.addSubscriberOpen;
+
+  let addForm = '';
+  if(addOpen){
+    addForm = `<div class="card" style="margin-bottom:16px;">
+      <h2>Add subscriber</h2>
+      <div class="field-row">
+        <div class="field"><label>Full name</label><input type="text" id="add-name" placeholder="e.g. Mona Al-Sabah"></div>
+        <div class="field"><label>Phone</label><input type="tel" id="add-phone" placeholder="+965 ..."></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Area</label><select id="add-area">${AREAS.map(a=>`<option>${a}</option>`).join('')}</select></div>
+        <div class="field"><label>Tier</label><select id="add-tier">${Object.values(TIERS).map(t=>`<option value="${t.key}">${t.name}</option>`).join('')}</select></div>
+      </div>
+      <div id="add-error" class="error-text" style="display:none;"></div>
+      <div class="row">
+        <button class="btn btn-primary btn-sm" onclick="App.addSubscriber()">Add subscriber</button>
+        <button class="btn btn-ghost btn-sm" onclick="App.toggleAddSubscriber()">Cancel</button>
+      </div>
+    </div>`;
+  }
+
+  return `
+  <div class="stack">
+    <div class="row" style="justify-content:space-between;align-items:center;">
+      <div class="field" style="flex:1;min-width:200px;margin-bottom:0;">
+        <input type="text" id="sub-search" value="${esc(state.ui.subscriberSearch||'')}" placeholder="Search by name or phone" oninput="App.filterSubscribers(this.value)">
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="App.toggleAddSubscriber()">${addOpen?'Close':'+ Add subscriber'}</button>
+    </div>
+    ${addForm}
+    <div id="subscriber-list" class="stack" style="gap:10px;">${renderSubscriberRows(search)}</div>
+  </div>`;
+}
+
+function renderSubscriberRows(search){
+  let list = state.subscribers.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  if(search){
+    list = list.filter(s => s.name.toLowerCase().includes(search) || s.phone.toLowerCase().includes(search));
+  }
+  if(list.length===0){
+    return `<div class="empty"><strong>No subscribers match</strong>Try a different search, or add a new subscriber above.</div>`;
+  }
+  return list.map(s => {
+    const tier = TIERS[s.tier];
+    const confirmingCancel = state.ui.confirmingCancelSubId === s.id;
+    return `<div class="item-row">
+      <div class="item-main">
+        <div class="item-name">${esc(s.name)}</div>
+        <div class="item-meta">${esc(s.area)} &middot; ${esc(s.phone)} &middot; joined ${fmtDate(s.joinDate)}</div>
+        <div class="mini-gauge-row" style="margin-top:6px;">${drumGauge(s.usedKg, tier.cap, {size:34, stroke:5, showText:false, color:tier.color})} ${s.usedKg}/${tier.cap} kg</div>
+      </div>
+      <div class="item-actions">
+        ${tierPill(s.tier)}
+        ${subStatusPill(s.status)}
+        ${s.status!=='cancelled' ? `
+          <select onchange="App.changeTierAdmin('${s.id}', this.value)" style="width:auto;padding:6px 8px;font-size:12.5px;">
+            ${Object.values(TIERS).map(t=>`<option value="${t.key}" ${t.key===s.tier?'selected':''}>${t.name}</option>`).join('')}
+          </select>
+          ${s.status==='active'
+            ? `<button class="btn btn-ghost btn-sm" onclick="App.pause('${s.id}')">Pause</button>`
+            : `<button class="btn btn-ghost btn-sm" onclick="App.resume('${s.id}')">Resume</button>`}
+          <button class="btn btn-ghost btn-sm" onclick="App.resetCycle('${s.id}')">Reset cycle</button>
+          ${confirmingCancel
+            ? `<span style="font-size:12.5px;color:var(--brick);">Sure? <button class="link-btn" style="color:var(--brick);" onclick="App.cancelSub('${s.id}')">Yes</button> &middot; <button class="link-btn" onclick="App.dismissConfirm()">No</button></span>`
+            : `<button class="btn btn-danger btn-sm" onclick="App.askCancelSub('${s.id}')">Cancel</button>`}
+        ` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ================= ACTIONS ================= */
+const App = {
+  async setView(v){ state.view=v; state.ui={}; await saveState(); render(); },
+  async setAdminScreen(s){ state.admin.screen=s; state.ui={}; await saveState(); render(); },
+  async setRouteFilter(f){ state.routeFilter=f; render(); },
+
+  dismissConfirm(){ state.ui.confirmingCancelSubId=null; state.ui.confirmingCancelPickupId=null; state.ui.collectingPickupId=null; render(); },
+
+  /* --- customer login / signup --- */
+  customerLogin(){
+    const val = document.getElementById('login-phone').value.trim();
+    const errEl = document.getElementById('login-error');
+    if(!val){ errEl.style.display='block'; errEl.textContent='Enter the phone number you signed up with.'; return; }
+    const norm = val.replace(/[\s-]/g,'');
+    const found = state.subscribers.find(s => s.phone.replace(/[\s-]/g,'') === norm);
+    if(!found){ errEl.style.display='block'; errEl.textContent="We couldn't find an account with that number."; return; }
+    state.customer.subscriberId = found.id;
+    saveState(); render();
+  },
+  pickSignupTier(key){ state.ui.signupTier = key; render(); },
+  completeSignup(){
+    const name = document.getElementById('su-name').value.trim();
+    const phone = document.getElementById('su-phone').value.trim();
+    const area = document.getElementById('su-area').value;
+    const errEl = document.getElementById('su-error');
+    if(!name || !phone){ errEl.style.display='block'; errEl.textContent='Name and phone are both required.'; return; }
+    const id = uid('s');
+    state.subscribers.push({id, name, phone, area, tier: state.ui.signupTier, status:'active', joinDate: todayISO(0), cycleStart: todayISO(0), usedKg:0});
+    state.customer.subscriberId = id;
+    state.ui = {};
+    saveState(); render();
+    showToast('Welcome to FreshCycle!');
+  },
+  customerLogout(){ state.customer.subscriberId=null; state.ui={}; saveState(); render(); },
+  restart(id, tierKey){
+    const s = findSub(id);
+    s.status='active'; s.tier=tierKey; s.cycleStart=todayISO(0); s.usedKg=0;
+    saveState(); render(); showToast('Subscription restarted');
+  },
+
+  /* --- plan management (shared by customer + admin) --- */
+  toggleChangePlan(){ state.ui.showChangePlan = !state.ui.showChangePlan; render(); },
+  changeTier(id, tierKey){
+    const s = findSub(id); s.tier = tierKey; state.ui.showChangePlan=false;
+    saveState(); render(); showToast('Plan updated to '+TIERS[tierKey].name);
+  },
+  changeTierAdmin(id, tierKey){ this.changeTier(id, tierKey); },
+  pause(id){ findSub(id).status='paused'; saveState(); render(); showToast('Subscription paused'); },
+  resume(id){ findSub(id).status='active'; saveState(); render(); showToast('Subscription resumed'); },
+  askCancelSub(id){ state.ui.confirmingCancelSubId=id; render(); },
+  cancelSub(id){ findSub(id).status='cancelled'; state.ui.confirmingCancelSubId=null; saveState(); render(); showToast('Subscription cancelled'); },
+  resetCycle(id){ const s=findSub(id); s.usedKg=0; s.cycleStart=todayISO(0); saveState(); render(); showToast('Cycle reset'); },
+
+  /* --- booking (customer) --- */
+  bookPickup(subscriberId){
+    const date = document.getElementById('pk-date').value;
+    const win = document.getElementById('pk-window').value;
+    const bags = parseInt(document.getElementById('pk-bags').value,10);
+    const notes = document.getElementById('pk-notes').value.trim();
+    const errEl = document.getElementById('pk-error');
+    if(!date || date < todayISO(0)){ errEl.style.display='block'; errEl.textContent='Choose today or a future date.'; return; }
+    if(!bags || bags<1){ errEl.style.display='block'; errEl.textContent='Enter at least 1 bag.'; return; }
+    state.pickups.push({id:uid('p'), subscriberId, date, window:win, bags, instructions:notes, status:'scheduled', weightKg:null, createdAt:todayISO(0)});
+    saveState(); render();
+    showToast('Pickup booked for '+fmtDate(date)+', '+win.toLowerCase());
+  },
+  cancelPickup(id){ findPickup(id).status='cancelled'; saveState(); render(); showToast('Pickup cancelled'); },
+
+  /* --- route board (admin) --- */
+  startCollect(id){ state.ui.collectingPickupId=id; render(); },
+  confirmCollected(id){
+    const input = document.getElementById('wt-'+id);
+    const val = parseFloat(input.value);
+    if(!val || val<=0){ input.style.borderColor='var(--brick)'; showToast('Enter a valid weight in kg'); return; }
+    const p = findPickup(id);
+    p.weightKg = val; p.status='collected';
+    const sub = findSub(p.subscriberId);
+    if(sub){ sub.usedKg = Math.round((sub.usedKg + val)*10)/10; }
+    state.ui.collectingPickupId=null;
+    saveState(); render(); showToast('Marked collected');
+  },
+  advanceStatus(id){
+    const p = findPickup(id);
+    const next = PICKUP_STATUS[p.status].next;
+    if(next){ p.status = next; saveState(); render(); showToast('Marked '+PICKUP_STATUS[next].label.toLowerCase()); }
+  },
+  askCancelPickup(id){ state.ui.confirmingCancelPickupId=id; render(); },
+  cancelPickupAdmin(id){ findPickup(id).status='cancelled'; state.ui.confirmingCancelPickupId=null; saveState(); render(); showToast('Pickup cancelled'); },
+
+  /* --- subscribers (admin) --- */
+  toggleAddSubscriber(){ state.ui.addSubscriberOpen = !state.ui.addSubscriberOpen; render(); },
+  addSubscriber(){
+    const name = document.getElementById('add-name').value.trim();
+    const phone = document.getElementById('add-phone').value.trim();
+    const area = document.getElementById('add-area').value;
+    const tier = document.getElementById('add-tier').value;
+    const errEl = document.getElementById('add-error');
+    if(!name || !phone){ errEl.style.display='block'; errEl.textContent='Name and phone are both required.'; return; }
+    state.subscribers.push({id:uid('s'), name, phone, area, tier, status:'active', joinDate:todayISO(0), cycleStart:todayISO(0), usedKg:0});
+    state.ui.addSubscriberOpen=false;
+    saveState(); render(); showToast('Subscriber added');
+  },
+  filterSubscribers(val){
+    state.ui.subscriberSearch = val;
+    document.getElementById('subscriber-list').innerHTML = renderSubscriberRows(val.toLowerCase());
+  },
+
+  async resetDemo(){
+    state = seedData();
+    await saveState();
+    render();
+    showToast('Demo data reset');
+  }
+};
+
+/* ================= INIT ================= */
+(async function init(){
+  await loadState();
+  render();
+})();
+</script>
+</body>
+</html>
