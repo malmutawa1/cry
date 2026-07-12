@@ -1,4 +1,4 @@
-# Pressed — Laundry, subscribed
+# Pressd — Laundry, subscribed
 
 A prototype mobile app for a **subscription laundry pickup & delivery service** in
 Kuwait, built from the accompanying lean/phased feasibility study. Members pay a

@@ -5,7 +5,7 @@ export type Lang = 'en' | 'ar'
 type Dict = Record<string, string>
 
 const en: Dict = {
-  brand: 'Pressed',
+  brand: 'Pressd',
 
   'nav.home': 'Home',
   'nav.plans': 'Plans',
@@ -24,7 +24,7 @@ const en: Dict = {
   'home.step1.t': 'Book a pickup window',
   'home.step1.s': 'Choose a time that suits you in the app.',
   'home.step2.t': 'We collect at your door',
-  'home.step2.s': 'A driver picks up your laundry in a Pressed bag.',
+  'home.step2.s': 'A driver picks up your laundry in a Pressd bag.',
   'home.step3.t': 'Washed, pressed & returned',
   'home.step3.s': 'Delivered back on hangers within your window.',
 
@@ -91,7 +91,7 @@ const en: Dict = {
 }
 
 const ar: Dict = {
-  brand: 'Pressed',
+  brand: 'Pressd',
 
   'nav.home': 'الرئيسية',
   'nav.plans': 'الباقات',
@@ -110,7 +110,7 @@ const ar: Dict = {
   'home.step1.t': 'احجز موعد الاستلام',
   'home.step1.s': 'اختر الوقت المناسب لك من التطبيق.',
   'home.step2.t': 'نستلم من باب منزلك',
-  'home.step2.s': 'يستلم السائق غسيلك في كيس Pressed.',
+  'home.step2.s': 'يستلم السائق غسيلك في كيس Pressd.',
   'home.step3.t': 'نغسل ونكوي ونعيد',
   'home.step3.s': 'يُعاد إليك على علاقات ضمن الموعد المحدد.',
 
