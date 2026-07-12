@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { StatusBar } from './components/Common'
 import { Bag, Cards, Home as HomeIcon, User } from './components/Icons'
-import { StoreProvider } from './store'
+import { StoreProvider, useStore } from './store'
 import { I18nProvider, useI18n } from './i18n'
+import Auth from './screens/Auth'
 import Home from './screens/Home'
 import Plans from './screens/Plans'
 import Pickup from './screens/Pickup'
@@ -11,12 +12,11 @@ import Success from './screens/Success'
 
 type Tab = 'home' | 'plans' | 'pickup' | 'account'
 
-const USER_EMAIL = 'r8s2pw7hj4@privaterelay.appleid.com'
-
 function Shell() {
   const [tab, setTab] = useState<Tab>('home')
   const [order, setOrder] = useState<string | null>(null)
   const { t, dir } = useI18n()
+  const { user } = useStore()
 
   function confirmPickup() {
     setOrder('PRS-' + Math.floor(1000 + Math.random() * 9000))
@@ -34,7 +34,9 @@ function Shell() {
       <div className="phone" dir={dir}>
         <StatusBar />
 
-        {order ? (
+        {!user ? (
+          <Auth />
+        ) : order ? (
           <Success
             orderId={order}
             onDone={() => {
@@ -53,7 +55,7 @@ function Shell() {
                 onSeePlans={() => setTab('plans')}
               />
             )}
-            {tab === 'account' && <Account email={USER_EMAIL} onSeePlans={() => setTab('plans')} />}
+            {tab === 'account' && <Account onSeePlans={() => setTab('plans')} />}
 
             <nav className="nav">
               {nav.map((n) => (

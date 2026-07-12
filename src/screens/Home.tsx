@@ -10,9 +10,10 @@ export default function Home({
   onSchedule: () => void
   onSeePlans: () => void
 }) {
-  const { activePlan } = useStore()
+  const { activePlan, user } = useStore()
   const { t, lang, toggle } = useI18n()
   const used = activePlan ? Math.round(activePlan.capKg * 0.42) : 0
+  const firstName = user?.name?.trim().split(/\s+/)[0]
 
   const steps = [
     { icon: <CalendarIn />, t: t('home.step1.t'), s: t('home.step1.s') },
@@ -34,7 +35,9 @@ export default function Home({
 
       <div className="screen">
         <div className="pad" style={{ paddingTop: 6, paddingBottom: 18 }}>
-          <div className="greeting">{t('home.greeting')}</div>
+          <div className="greeting">
+            {firstName ? `${lang === 'ar' ? 'مرحباً، ' : 'Hello, '}${firstName}` : t('home.greeting')}
+          </div>
           <div className="greeting-sub">{t('home.subtitle')}</div>
         </div>
 
