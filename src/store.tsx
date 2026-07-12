@@ -13,6 +13,25 @@ export interface Card {
   last4: string
 }
 
+export interface Order {
+  id: string
+  createdAt: number
+  pickup: Slot
+  delivery: Slot
+  address: string
+  phone: string
+}
+
+/** Seconds each tracking stage takes in this prototype (demo-paced). */
+export const STAGE_SECONDS = 9
+export const STAGE_COUNT = 6
+
+/** Current stage index (0..STAGE_COUNT-1) for an order at time `now`. */
+export function orderStage(order: Order, now: number): number {
+  const elapsed = (now - order.createdAt) / 1000
+  return Math.min(STAGE_COUNT - 1, Math.floor(elapsed / STAGE_SECONDS))
+}
+
 /** 'applepay' | 'knet' | `card:<id>` */
 export type PayMethod = string
 
@@ -49,6 +68,11 @@ interface Store {
   setPayment: (m: PayMethod) => void
   cards: Card[]
   addCard: (number: string) => void
+
+  // tracking
+  activeOrder: Order | null
+  createOrder: () => string
+  cancelOrder: () => void
 }
 
 const Ctx = createContext<Store | null>(null)
@@ -72,6 +96,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [delivery, setDelivery] = useState<Slot>(defaultDelivery)
   const [payment, setPayment] = useState<PayMethod>('applepay')
   const [cards, setCards] = useState<Card[]>([])
+  const [activeOrder, setActiveOrder] = useState<Order | null>(null)
 
   function addCard(number: string) {
     const digits = number.replace(/\D/g, '')
@@ -108,6 +133,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setPayment,
     cards,
     addCard,
+    activeOrder,
+    createOrder: () => {
+      const id = 'PRS-' + Math.floor(1000 + Math.random() * 9000)
+      setActiveOrder({ id, createdAt: Date.now(), pickup, delivery, address, phone })
+      return id
+    },
+    cancelOrder: () => setActiveOrder(null),
   }
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
