@@ -1,19 +1,24 @@
-import { useStore } from '../store'
+import { useStore, orderStage } from '../store'
 import { useI18n } from '../i18n'
+import { useNow } from '../useNow'
 import { planName } from '../data/plans'
-import { Bag, CalendarIn, Globe, Hanger } from '../components/Icons'
+import { Bag, CalendarIn, Chevron, Globe, Hanger, Route } from '../components/Icons'
 
 export default function Home({
   onSchedule,
   onSeePlans,
+  onTrack,
 }: {
   onSchedule: () => void
   onSeePlans: () => void
+  onTrack: () => void
 }) {
-  const { activePlan, user } = useStore()
+  const { activePlan, user, activeOrder } = useStore()
   const { t, lang, toggle } = useI18n()
+  const now = useNow(1000)
   const used = activePlan ? Math.round(activePlan.capKg * 0.42) : 0
   const firstName = user?.name?.trim().split(/\s+/)[0]
+  const orderStageIdx = activeOrder ? orderStage(activeOrder, now) : -1
 
   const steps = [
     { icon: <CalendarIn />, t: t('home.step1.t'), s: t('home.step1.s') },
@@ -40,6 +45,18 @@ export default function Home({
           </div>
           <div className="greeting-sub">{t('home.subtitle')}</div>
         </div>
+
+        {activeOrder && (
+          <button className="track-card" onClick={onTrack}>
+            <span className="tc-ic"><Route size={22} /></span>
+            <span className="tc-body">
+              <span className="tc-title">{t('home.track.title')}</span>
+              <span className="tc-status">{t(`st.${orderStageIdx}.t`)}</span>
+            </span>
+            <span className="tc-live">{t('track.live')}</span>
+            <Chevron className="chev" />
+          </button>
+        )}
 
         {activePlan ? (
           <div className="hero-card">

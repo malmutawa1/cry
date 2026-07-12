@@ -121,3 +121,12 @@ export const KnetMark = ({ className }: { className?: string }) => (
 export const CardIcon = ({ size = 22, className }: P) => (
   <svg {...base(size, className)}><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 10h18M7 15h4" /></svg>
 )
+export const Store = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><path d="M4 9 5 4h14l1 5M4 9h16M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9M4 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0M9 20v-5h6v5" /></svg>
+)
+export const Car = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><path d="M5 11l1.5-4A2 2 0 0 1 8.4 6h7.2a2 2 0 0 1 1.9 1L19 11M4 11h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1M4 11a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h1M6 17h12M7 17a1.5 1.5 0 0 0 3 0M14 17a1.5 1.5 0 0 0 3 0" /></svg>
+)
+export const Route = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><circle cx="6" cy="19" r="2.5" /><circle cx="18" cy="5" r="2.5" /><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5" /></svg>
+)

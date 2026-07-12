@@ -4,7 +4,15 @@ import { slotLabel } from '../data/slots'
 import { planName } from '../data/plans'
 import { Check } from '../components/Icons'
 
-export default function Success({ orderId, onDone }: { orderId: string; onDone: () => void }) {
+export default function Success({
+  orderId,
+  onDone,
+  onTrack,
+}: {
+  orderId: string
+  onDone: () => void
+  onTrack: () => void
+}) {
   const { pickup, delivery, activePlan } = useStore()
   const { t, lang } = useI18n()
   return (
@@ -37,7 +45,10 @@ export default function Success({ orderId, onDone }: { orderId: string; onDone: 
         </div>
       </div>
       <div className="bottom-cta">
-        <button className="btn-primary" onClick={onDone}>
+        <button className="btn-primary" onClick={onTrack}>
+          {t('success.track')}
+        </button>
+        <button className="btn-ghost" style={{ marginTop: 10 }} onClick={onDone}>
           {t('success.home')}
         </button>
       </div>
