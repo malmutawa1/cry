@@ -1,11 +1,14 @@
+import { useState } from 'react'
 import { plans, planName, planTagline, planPerks } from '../data/plans'
-import { Check, Leaf } from '../components/Icons'
+import { Check, Chevron, Leaf } from '../components/Icons'
+import { PaymentSheet, PaymentValue } from '../components/Payment'
 import { useStore } from '../store'
 import { useI18n } from '../i18n'
 
 export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
   const { activePlan, setActivePlan } = useStore()
   const { t, lang } = useI18n()
+  const [payOpen, setPayOpen] = useState(false)
 
   return (
     <>
@@ -51,6 +54,20 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
             </button>
           )
         })}
+
+        {activePlan && (
+          <>
+            <div className="section-title" style={{ fontSize: 20 }}>{t('pay.title')}</div>
+            <div className="card-group">
+              <button className="row" onClick={() => setPayOpen(true)}>
+                <span className="pay-current">
+                  <PaymentValue />
+                </span>
+                <Chevron className="chev" />
+              </button>
+            </div>
+          </>
+        )}
         <div style={{ height: 8 }} />
       </div>
 
@@ -60,6 +77,8 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
           {activePlan && <span className="sub">{t('plans.cancel', { price: activePlan.priceKwd })}</span>}
         </button>
       </div>
+
+      {payOpen && <PaymentSheet onClose={() => setPayOpen(false)} />}
     </>
   )
 }

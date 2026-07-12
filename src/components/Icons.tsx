@@ -85,3 +85,39 @@ export const Globe = ({ size = 22, className }: P) => (
 export const Bag = ({ size = 22, className }: P) => (
   <svg {...base(size, className)}><path d="M6 8h12l-1 12a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 8ZM9 8V6a3 3 0 0 1 6 0v2" /></svg>
 )
+export const Mail = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
+)
+export const Lock = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
+)
+export const Logout = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11" /></svg>
+)
+
+// Filled Apple logo (uses currentColor).
+export const Apple = ({ size = 18, className }: { size?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+    <path d="M16.365 1.43c0 1.14-.417 2.2-1.253 3.02-.836.82-1.84 1.29-2.87 1.21-.12-1.09.44-2.24 1.2-2.98.84-.83 2.02-1.4 2.92-1.25zM20.9 17.1c-.55 1.27-.82 1.83-1.53 2.96-.99 1.56-2.39 3.5-4.12 3.51-1.54.02-1.94-1-4.03-.99-2.09.01-2.53 1.01-4.07.99-1.73-.02-3.05-1.77-4.04-3.33-2.77-4.36-3.06-9.48-1.35-12.2 1.21-1.93 3.13-3.06 4.93-3.06 1.84 0 3 .99 4.52.99 1.48 0 2.38-1 4.51-1 1.61 0 3.31.88 4.53 2.39-3.98 2.18-3.33 7.86.65 9.28z" />
+  </svg>
+)
+
+// Apple Pay mark: white rounded pill with black apple + "Pay".
+export const ApplePayMark = ({ className }: { className?: string }) => (
+  <span className={`pay-mark applepay ${className || ''}`}>
+    <Apple size={14} />
+    <span>Pay</span>
+  </span>
+)
+
+// Simplified KNET badge (Kuwait's national payment network).
+export const KnetMark = ({ className }: { className?: string }) => (
+  <span className={`pay-mark knet ${className || ''}`}>
+    <span className="k">K</span>
+    <span className="net">net</span>
+  </span>
+)
+
+export const CardIcon = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 10h18M7 15h4" /></svg>
+)

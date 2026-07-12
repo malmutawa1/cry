@@ -1,13 +1,17 @@
+import { useState } from 'react'
 import { useStore } from '../store'
 import { useI18n } from '../i18n'
 import { planName } from '../data/plans'
-import { Cards, Chevron, Clock, Globe, Leaf, Pin, Receipt, User } from '../components/Icons'
+import { PaymentSheet } from '../components/Payment'
+import { Cards, Chevron, Clock, Globe, Leaf, Logout, Pin, Receipt, User } from '../components/Icons'
 
-export default function Account({ email, onSeePlans }: { email: string; onSeePlans: () => void }) {
-  const { activePlan } = useStore()
+export default function Account({ onSeePlans }: { onSeePlans: () => void }) {
+  const { activePlan, user, logout } = useStore()
   const { t, lang, toggle } = useI18n()
+  const [payOpen, setPayOpen] = useState(false)
   const usedKg = activePlan ? Math.round(activePlan.capKg * 0.42) : 0
   const pct = activePlan ? Math.min(100, (usedKg / activePlan.capKg) * 100) : 0
+  const initial = (user?.name || 'A').trim().charAt(0).toUpperCase()
 
   return (
     <>
@@ -16,10 +20,10 @@ export default function Account({ email, onSeePlans }: { email: string; onSeePla
       </div>
       <div className="screen">
         <div className="acct-head">
-          <div className="acct-avatar">A</div>
-          <div>
-            <div className="acct-name">{t('account.name')}</div>
-            <div className="acct-mail">{email}</div>
+          <div className="acct-avatar">{initial}</div>
+          <div style={{ minWidth: 0 }}>
+            <div className="acct-name">{user?.name || t('account.name')}</div>
+            <div className="acct-mail">{user?.email}</div>
           </div>
         </div>
 
@@ -51,9 +55,9 @@ export default function Account({ email, onSeePlans }: { email: string; onSeePla
 
         <div className="card-group">
           <AcctRow icon={<Globe />} label={t('account.language')} value={t('account.lang.value')} onClick={toggle} />
+          <AcctRow icon={<Cards />} label={t('account.payment')} onClick={() => setPayOpen(true)} />
           <AcctRow icon={<Receipt />} label={t('account.orders')} />
           <AcctRow icon={<Pin />} label={t('account.addresses')} />
-          <AcctRow icon={<Cards />} label={t('account.payment')} />
           <AcctRow icon={<Clock />} label={t('account.freeze')} />
         </div>
 
@@ -61,8 +65,14 @@ export default function Account({ email, onSeePlans }: { email: string; onSeePla
           <AcctRow icon={<User />} label={t('account.personal')} />
           <AcctRow icon={<Leaf />} label={t('account.refer')} />
         </div>
+
+        <div className="card-group">
+          <AcctRow icon={<Logout />} label={t('account.logout')} danger onClick={logout} />
+        </div>
         <div style={{ height: 12 }} />
       </div>
+
+      {payOpen && <PaymentSheet onClose={() => setPayOpen(false)} />}
     </>
   )
 }
@@ -72,20 +82,24 @@ function AcctRow({
   label,
   value,
   onClick,
+  danger,
 }: {
   icon: React.ReactNode
   label: string
   value?: string
   onClick?: () => void
+  danger?: boolean
 }) {
   return (
     <button className="row" onClick={onClick}>
-      <span className="row-ic">{icon}</span>
+      <span className={`row-ic ${danger ? 'danger' : ''}`}>{icon}</span>
       <span className="row-body">
-        <span className="value" style={{ fontWeight: 600 }}>{label}</span>
+        <span className="value" style={{ fontWeight: 600, color: danger ? '#f0595d' : undefined }}>
+          {label}
+        </span>
       </span>
       {value && <span className="row-value">{value}</span>}
-      <Chevron className="chev" />
+      {!danger && <Chevron className="chev" />}
     </button>
   )
 }
