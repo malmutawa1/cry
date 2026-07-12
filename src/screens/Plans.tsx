@@ -1,14 +1,25 @@
 import { useState } from 'react'
-import { plans, planName, planTagline, planPerks } from '../data/plans'
+import {
+  plans,
+  planName,
+  planTagline,
+  planPerks,
+  planPrice,
+  ANNUAL_MONTHS,
+  ANNUAL_SAVING_PCT,
+} from '../data/plans'
 import { Check, Chevron, Leaf } from '../components/Icons'
 import { PaymentSheet, PaymentValue } from '../components/Payment'
 import { useStore } from '../store'
 import { useI18n } from '../i18n'
 
 export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
-  const { activePlan, setActivePlan } = useStore()
+  const { activePlan, setActivePlan, billing, setBilling } = useStore()
   const { t, lang } = useI18n()
   const [payOpen, setPayOpen] = useState(false)
+
+  const annual = billing === 'annual'
+  const perMonthEquivalent = (m: number) => ((m * ANNUAL_MONTHS) / 12).toFixed(1)
 
   return (
     <>
@@ -20,6 +31,16 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
         <div className="hero" style={{ paddingTop: 0 }}>
           <h2>{t('plans.heroTitle')}</h2>
           <p>{t('plans.heroSub')}</p>
+        </div>
+
+        <div className="segmented">
+          <button className={`seg ${!annual ? 'on' : ''}`} onClick={() => setBilling('monthly')}>
+            {t('billing.monthly')}
+          </button>
+          <button className={`seg ${annual ? 'on' : ''}`} onClick={() => setBilling('annual')}>
+            {t('billing.annual')}
+            <span className="seg-save">{t('billing.save', { pct: ANNUAL_SAVING_PCT })}</span>
+          </button>
         </div>
 
         <div className="info-banner leaf">
@@ -38,11 +59,12 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
                   <div className="plan-tag">{planTagline(p, lang)}</div>
                 </div>
                 <div className="plan-price">
-                  <div className="amt">{p.priceKwd}</div>
-                  <div className="per">{t('plans.per')}</div>
+                  <div className="amt">{planPrice(p, billing)}</div>
+                  <div className="per">{t(annual ? 'plans.perYear' : 'plans.per')}</div>
                 </div>
               </div>
               <span className="plan-cap">{t('plans.cap', { kg: p.capKg })}</span>
+              {annual && <div className="annual-note">{t('plans.annualNote', { perMonth: perMonthEquivalent(p.priceKwd) })}</div>}
               <ul className="perks">
                 {planPerks(p, lang).map((perk) => (
                   <li key={perk}>
@@ -74,7 +96,11 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
       <div className="bottom-cta">
         <button className="btn-primary" disabled={!activePlan} onClick={onSubscribed}>
           {activePlan ? t('plans.subscribe', { name: planName(activePlan, lang) }) : t('plans.select')}
-          {activePlan && <span className="sub">{t('plans.cancel', { price: activePlan.priceKwd })}</span>}
+          {activePlan && (
+            <span className="sub">
+              {t(annual ? 'plans.cancelYear' : 'plans.cancel', { price: planPrice(activePlan, billing) })}
+            </span>
+          )}
         </button>
       </div>
 

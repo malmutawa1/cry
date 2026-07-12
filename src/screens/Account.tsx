@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useStore } from '../store'
 import { useI18n } from '../i18n'
-import { planName } from '../data/plans'
+import { planName, planPrice } from '../data/plans'
 import { PaymentSheet } from '../components/Payment'
 import { Cards, Chevron, Clock, Globe, Leaf, Logout, Pin, Receipt, User } from '../components/Icons'
 
 export default function Account({ onSeePlans }: { onSeePlans: () => void }) {
-  const { activePlan, user, logout } = useStore()
+  const { activePlan, billing, user, logout } = useStore()
   const { t, lang, toggle } = useI18n()
   const [payOpen, setPayOpen] = useState(false)
   const usedKg = activePlan ? Math.round(activePlan.capKg * 0.42) : 0
@@ -32,7 +32,11 @@ export default function Account({ onSeePlans }: { onSeePlans: () => void }) {
             <div className="u-top">
               <div>
                 <div className="u-plan">{t('home.plan.active', { name: planName(activePlan, lang) })}</div>
-                <div className="u-sub">{t('account.renews', { price: activePlan.priceKwd })}</div>
+                <div className="u-sub">
+                  {t(billing === 'annual' ? 'account.renewsYear' : 'account.renews', {
+                    price: planPrice(activePlan, billing),
+                  })}
+                </div>
               </div>
             </div>
             <div className="bar">

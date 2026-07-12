@@ -64,6 +64,17 @@ export const plans: Plan[] = [
   },
 ]
 
+export type Billing = 'monthly' | 'annual'
+
+// Annual billing charges for 10 months (2 months free) → ~17% saving.
+export const ANNUAL_MONTHS = 10
+export const ANNUAL_SAVING_PCT = Math.round((1 - ANNUAL_MONTHS / 12) * 100)
+
+/** Amount charged per billing period. */
+export function planPrice(p: Plan, billing: Billing): number {
+  return billing === 'annual' ? p.priceKwd * ANNUAL_MONTHS : p.priceKwd
+}
+
 export function planName(p: Plan, lang: Lang): string {
   return lang === 'ar' ? p.nameAr : p.name
 }

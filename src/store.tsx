@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import type { Plan } from './data/plans'
+import type { Billing, Plan } from './data/plans'
 import { defaultDelivery, defaultPickup, type Slot } from './data/slots'
 
 export interface User {
@@ -27,6 +27,8 @@ interface Store {
   // subscription
   activePlan: Plan | null
   setActivePlan: (p: Plan | null) => void
+  billing: Billing
+  setBilling: (b: Billing) => void
 
   // scheduling
   hangers: boolean
@@ -61,6 +63,7 @@ function nameFromEmail(email: string): string {
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [activePlan, setActivePlan] = useState<Plan | null>(null)
+  const [billing, setBilling] = useState<Billing>('monthly')
   const [hangers, setHangers] = useState(true)
   const [note, setNote] = useState('')
   const [address, setAddress] = useState('Zahra, Hawalli Governorate, Kuwait')
@@ -87,6 +90,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     logout: () => setUser(null),
     activePlan,
     setActivePlan,
+    billing,
+    setBilling,
     hangers,
     setHangers,
     note,

@@ -1316,3 +1316,48 @@ textarea.field {
 .row-ic.danger {
   color: #f0595d;
 }
+
+/* ---------- Billing toggle (monthly / annual) ---------- */
+.segmented {
+  display: flex;
+  gap: 4px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 4px;
+  margin: 0 18px 14px;
+}
+.seg {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 10px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 15px;
+  transition: background 0.15s, color 0.15s;
+}
+.seg.on {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.seg-save {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--green);
+  color: #06210f;
+}
+.seg.on .seg-save {
+  background: rgba(5, 36, 58, 0.22);
+  color: var(--accent-ink);
+}
+.annual-note {
+  margin-top: 10px;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 13px;
+}
