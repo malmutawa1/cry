@@ -9,6 +9,15 @@ pickup** — no per-item selection. Styled after the reference screens: dark the
 
 > Prototype only — no backend, payments, or persistence. All data is local mock data.
 
+## Live app
+
+Deployed via GitHub Pages at **https://malmutawa1.github.io/cry/** — auto-redeploys
+on every push through `.github/workflows/deploy.yml`.
+
+**One-time setup** (repo owner): go to **Settings → Pages → Build and deployment**
+and set **Source: GitHub Actions**. The next push (or a manual run of the
+"Deploy to GitHub Pages" workflow under the Actions tab) publishes the site.
+
 ## What's inside
 
 | Screen | Description |
