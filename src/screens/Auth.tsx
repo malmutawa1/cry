@@ -37,13 +37,11 @@ function Otp({ value, onChange }: { value: string; onChange: (v: string) => void
 }
 
 export default function Auth({ onStaff }: { onStaff: () => void }) {
-  const { signup, login, loginWithApple, setPhone, setAddress, accent, setAccent, mode: appMode, setMode: setAppMode } = useStore()
+  const { signup, login, loginWithApple, setPhone, setAddress, setAccent, setMode: setAppMode } = useStore()
   const { t, toggle } = useI18n()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [step, setStep] = useState<Step>('gender')
-  const [gender, setGender] = useState<'male' | 'female' | null>(
-    appMode !== 'dark' ? (accent === 'pink' ? 'female' : 'male') : null,
-  )
+  const [gender, setGender] = useState<'male' | 'female' | null>(null)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -65,7 +63,7 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
     if (m === 'login') {
       setGender(null)
       setAccent('blue')
-      setAppMode('dark')
+      setAppMode('light')
     }
   }
   function selectGender(g: 'male' | 'female') {

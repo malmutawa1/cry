@@ -104,7 +104,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [needsPlan, setNeedsPlan] = useState(false)
   const [accent, setAccent] = useState<Accent>('blue')
-  const [mode, setMode] = useState<Mode>('dark')
+  const [mode, setMode] = useState<Mode>('light')
   const [activePlan, setActivePlan] = useState<Plan | null>(null)
   const [billing, setBilling] = useState<Billing>('monthly')
   const [extraKg, setExtraKg] = useState(0)
@@ -147,7 +147,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     logout: () => {
       setUser(null)
       setAccent('blue')
-      setMode('dark')
+      setMode('light')
     },
     needsPlan,
     clearNeedsPlan: () => setNeedsPlan(false),
