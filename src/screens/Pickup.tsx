@@ -4,6 +4,7 @@ import { useI18n } from '../i18n'
 import { pickupSlots, deliverySlots, slotLabel, type Slot } from '../data/slots'
 import { Toggle } from '../components/Common'
 import LocationPicker from '../components/LocationPicker'
+import { ExtraKgSlots, useAllowance } from '../components/ExtraKg'
 import {
   CalendarIn,
   CalendarOut,
@@ -29,6 +30,7 @@ export default function Pickup({
 }) {
   const s = useStore()
   const { t, lang } = useI18n()
+  const { atLimit } = useAllowance()
   const [sheet, setSheet] = useState<Sheet>(null)
 
   if (!s.activePlan) {
@@ -124,6 +126,8 @@ export default function Pickup({
             <Chevron className="chev" />
           </button>
         </div>
+
+        {atLimit && <ExtraKgSlots />}
 
         <div className="info-banner">
           <Info />
