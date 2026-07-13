@@ -8,15 +8,20 @@ export default function Home({
   onSchedule,
   onSeePlans,
   onTrack,
+  onManage,
 }: {
   onSchedule: () => void
   onSeePlans: () => void
   onTrack: () => void
+  onManage: () => void
 }) {
-  const { activePlan, user, activeOrder } = useStore()
+  const { activePlan, extraKg, user, activeOrder } = useStore()
   const { t, lang, toggle } = useI18n()
   const now = useNow(1000)
-  const used = activePlan ? Math.round(activePlan.capKg * 0.42) : 0
+  const baseCap = activePlan?.capKg ?? 0
+  const allowance = baseCap + extraKg
+  const used = baseCap
+  const atLimit = activePlan != null && allowance - used <= 0
   const firstName = user?.name?.trim().split(/\s+/)[0]
   const orderStageIdx = activeOrder ? orderStage(activeOrder, now) : -1
 
@@ -64,14 +69,20 @@ export default function Home({
               <div>
                 <div className="hc-plan">{t('home.plan.active', { name: planName(activePlan, lang) })}</div>
                 <div className="hc-allow">
-                  {t('home.plan.allowance', { used, cap: activePlan.capKg })}
+                  {t('home.plan.allowance', { used, cap: allowance })}
                 </div>
               </div>
               <div className="hc-price">{activePlan.priceKwd}</div>
             </div>
-            <div className="bar">
-              <span style={{ width: `${(used / activePlan.capKg) * 100}%` }} />
+            <div className={`bar ${atLimit ? 'full' : ''}`}>
+              <span style={{ width: `${allowance ? (used / allowance) * 100 : 0}%` }} />
             </div>
+            {atLimit && (
+              <button className="hc-limit" onClick={onManage}>
+                <span>{t('extra.limit')}</span>
+                <span className="hc-limit-cta">{t('extra.manage')} ›</span>
+              </button>
+            )}
           </div>
         ) : (
           <div className="hero-card">

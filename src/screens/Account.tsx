@@ -2,19 +2,26 @@ import { useState } from 'react'
 import { useStore } from '../store'
 import { useI18n } from '../i18n'
 import { planName, planPrice } from '../data/plans'
+import { extras } from '../data/extras'
 import { PaymentSheet } from '../components/Payment'
-import { Cards, Chevron, Clock, Globe, Leaf, Logout, Pin, Receipt, User } from '../components/Icons'
+import { Cards, Chevron, Clock, Globe, Leaf, Logout, Pin, Plus, Receipt, User } from '../components/Icons'
 import History from './History'
 
 export default function Account({ onSeePlans, onTrack }: { onSeePlans: () => void; onTrack: () => void }) {
-  const { activePlan, billing, user, logout } = useStore()
+  const { activePlan, billing, extraKg, addExtraKg, user, logout } = useStore()
   const { t, lang, toggle } = useI18n()
   const [payOpen, setPayOpen] = useState(false)
   const [view, setView] = useState<'main' | 'history'>('main')
 
   if (view === 'history') return <History onBack={() => setView('main')} onTrack={onTrack} />
-  const usedKg = activePlan ? Math.round(activePlan.capKg * 0.42) : 0
-  const pct = activePlan ? Math.min(100, (usedKg / activePlan.capKg) * 100) : 0
+  // Demo: the current month's usage sits at the plan's base cap, so the
+  // allowance is spent until extra kg are bought (which grow the allowance).
+  const baseCap = activePlan?.capKg ?? 0
+  const allowance = baseCap + extraKg
+  const usedKg = baseCap
+  const remaining = allowance - usedKg
+  const atLimit = activePlan != null && remaining <= 0
+  const pct = allowance ? Math.min(100, (usedKg / allowance) * 100) : 0
   const initial = (user?.name || 'A').trim().charAt(0).toUpperCase()
 
   return (
@@ -43,12 +50,15 @@ export default function Account({ onSeePlans, onTrack }: { onSeePlans: () => voi
                 </div>
               </div>
             </div>
-            <div className="bar">
+            <div className={`bar ${atLimit ? 'full' : ''}`}>
               <span style={{ width: `${pct}%` }} />
             </div>
             <div className="u-legend">
-              <span>{t('account.used', { kg: usedKg })}</span>
-              <span>{t('account.allow', { kg: activePlan.capKg })}</span>
+              <span>
+                {t('account.used', { kg: usedKg })}
+                {atLimit && <span className="limit-tag">{t('usage.limit')}</span>}
+              </span>
+              <span>{t('account.allow', { kg: allowance })}</span>
             </div>
           </div>
         ) : (
@@ -58,6 +68,27 @@ export default function Account({ onSeePlans, onTrack }: { onSeePlans: () => voi
             <button className="btn-primary" onClick={onSeePlans}>
               {t('account.none.cta')}
             </button>
+          </div>
+        )}
+
+        {atLimit && (
+          <div className="extra-block">
+            <div className="extra-head">
+              <div className="extra-title">{t('extra.title')}</div>
+              <div className="extra-sub">{t('extra.limit')} · {t('extra.sub')}</div>
+            </div>
+            <div className="extra-grid">
+              {extras.map((e) => (
+                <div key={e.kg} className="extra-card">
+                  <div className="ex-kg">+{e.kg} kg</div>
+                  <div className="ex-price">{e.priceKwd}.000 KWD</div>
+                  <button className="ex-add" onClick={() => addExtraKg(e.kg)}>
+                    <Plus size={16} />
+                    {t('extra.add')}
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

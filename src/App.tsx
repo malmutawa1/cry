@@ -57,6 +57,7 @@ function Shell() {
                 onSchedule={() => setTab('pickup')}
                 onSeePlans={() => setTab('plans')}
                 onTrack={() => setTab('track')}
+                onManage={() => setTab('account')}
               />
             )}
             {tab === 'plans' && <Plans onSubscribed={() => setTab('home')} />}
