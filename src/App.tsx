@@ -14,12 +14,29 @@ import Staff from './screens/Staff'
 
 type Tab = 'home' | 'plans' | 'pickup' | 'track' | 'account'
 
+function useSystemDark() {
+  const [dark, setDark] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+      : true,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const on = () => setDark(mq.matches)
+    mq.addEventListener?.('change', on)
+    return () => mq.removeEventListener?.('change', on)
+  }, [])
+  return dark
+}
+
 function Shell() {
   const [tab, setTab] = useState<Tab>('home')
   const [order, setOrder] = useState<string | null>(null)
   const [staff, setStaff] = useState(false)
   const { t, dir } = useI18n()
-  const { user, createOrder, needsPlan, clearNeedsPlan, theme } = useStore()
+  const { user, createOrder, needsPlan, clearNeedsPlan, accent, mode } = useStore()
+  const systemDark = useSystemDark()
+  const effMode = mode === 'system' ? (systemDark ? 'dark' : 'light') : mode
 
   // After a fresh sign-up, open the subscriptions screen automatically.
   useEffect(() => {
@@ -42,7 +59,7 @@ function Shell() {
   ]
 
   return (
-    <div className={`app-shell ${theme === 'dark' ? '' : 'light'}`} data-theme={theme}>
+    <div className="app-shell" data-mode={effMode} data-accent={accent}>
       <div className="phone" dir={dir}>
         <StatusBar />
 

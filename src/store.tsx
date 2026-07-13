@@ -7,7 +7,8 @@ export interface User {
   email: string
 }
 
-export type Theme = 'dark' | 'male' | 'female'
+export type Accent = 'blue' | 'pink'
+export type Mode = 'dark' | 'light' | 'system'
 
 export interface Card {
   id: string
@@ -47,9 +48,12 @@ interface Store {
   /** true right after a fresh sign-up, so the app can open the plans screen */
   needsPlan: boolean
   clearNeedsPlan: () => void
-  /** visual theme, chosen by gender at sign-up */
-  theme: Theme
-  setTheme: (t: Theme) => void
+  /** accent colour (blue = male/default, pink = female), chosen at sign-up */
+  accent: Accent
+  setAccent: (a: Accent) => void
+  /** appearance mode toggle */
+  mode: Mode
+  setMode: (m: Mode) => void
 
   // subscription
   activePlan: Plan | null
@@ -99,7 +103,8 @@ function nameFromEmail(email: string): string {
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [needsPlan, setNeedsPlan] = useState(false)
-  const [theme, setTheme] = useState<Theme>('dark')
+  const [accent, setAccent] = useState<Accent>('blue')
+  const [mode, setMode] = useState<Mode>('dark')
   const [activePlan, setActivePlan] = useState<Plan | null>(null)
   const [billing, setBilling] = useState<Billing>('monthly')
   const [extraKg, setExtraKg] = useState(0)
@@ -141,12 +146,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     loginWithApple: () => setUser(APPLE_RELAY),
     logout: () => {
       setUser(null)
-      setTheme('dark')
+      setAccent('blue')
+      setMode('dark')
     },
     needsPlan,
     clearNeedsPlan: () => setNeedsPlan(false),
-    theme,
-    setTheme,
+    accent,
+    setAccent,
+    mode,
+    setMode,
     activePlan,
     setActivePlan,
     billing,

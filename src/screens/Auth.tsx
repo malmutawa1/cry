@@ -37,11 +37,13 @@ function Otp({ value, onChange }: { value: string; onChange: (v: string) => void
 }
 
 export default function Auth({ onStaff }: { onStaff: () => void }) {
-  const { signup, login, loginWithApple, setPhone, setAddress, theme, setTheme } = useStore()
+  const { signup, login, loginWithApple, setPhone, setAddress, accent, setAccent, mode: appMode, setMode: setAppMode } = useStore()
   const { t, toggle } = useI18n()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [step, setStep] = useState<Step>('gender')
-  const [gender, setGender] = useState<'male' | 'female' | null>(theme === 'dark' ? null : theme)
+  const [gender, setGender] = useState<'male' | 'female' | null>(
+    appMode !== 'dark' ? (accent === 'pink' ? 'female' : 'male') : null,
+  )
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -62,12 +64,14 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
     setStep('gender')
     if (m === 'login') {
       setGender(null)
-      setTheme('dark')
+      setAccent('blue')
+      setAppMode('dark')
     }
   }
   function selectGender(g: 'male' | 'female') {
     setGender(g)
-    setTheme(g) // theme (white + pink/blue) applies live
+    setAccent(g === 'female' ? 'pink' : 'blue') // pink / light-blue accent
+    setAppMode('light') // gender defaults to a light look; changeable in Display settings
   }
   function goNext() {
     const i = STEPS.indexOf(step)

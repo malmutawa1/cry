@@ -4,21 +4,28 @@ import { useI18n } from '../i18n'
 import { planName, planPrice } from '../data/plans'
 import { PaymentSheet } from '../components/Payment'
 import { ExtraKgBanner, ExtraKgSheet, useAllowance } from '../components/ExtraKg'
-import { Cards, Chevron, Clock, Globe, Leaf, Logout, Pin, Receipt, User } from '../components/Icons'
+import { Cards, Chevron, Clock, Globe, Leaf, Logout, Pin, Receipt, Sun, User } from '../components/Icons'
 import History from './History'
+import Display from './Display'
 
 export default function Account({ onSeePlans, onTrack }: { onSeePlans: () => void; onTrack: () => void }) {
-  const { activePlan, billing, user, logout } = useStore()
+  const { activePlan, billing, user, logout, mode } = useStore()
   const { t, lang, toggle } = useI18n()
   const [payOpen, setPayOpen] = useState(false)
   const [extraOpen, setExtraOpen] = useState(false)
-  const [view, setView] = useState<'main' | 'history'>('main')
+  const [view, setView] = useState<'main' | 'history' | 'display'>('main')
   const { usedKg, allowance, atLimit, pct } = useAllowance()
 
   if (view === 'history')
     return (
       <div className="anim-in" key="history">
         <History onBack={() => setView('main')} onTrack={onTrack} />
+      </div>
+    )
+  if (view === 'display')
+    return (
+      <div className="anim-in" key="display">
+        <Display onBack={() => setView('main')} />
       </div>
     )
   const initial = (user?.name || 'A').trim().charAt(0).toUpperCase()
@@ -74,6 +81,7 @@ export default function Account({ onSeePlans, onTrack }: { onSeePlans: () => voi
 
         <div className="card-group">
           <AcctRow icon={<Globe />} label={t('account.language')} value={t('account.lang.value')} onClick={toggle} />
+          <AcctRow icon={<Sun />} label={t('account.display')} value={t(`display.${mode}`)} onClick={() => setView('display')} />
           <AcctRow icon={<Cards />} label={t('account.payment')} onClick={() => setPayOpen(true)} />
           <AcctRow icon={<Receipt />} label={t('account.orders')} onClick={() => setView('history')} />
           <AcctRow icon={<Pin />} label={t('account.addresses')} />

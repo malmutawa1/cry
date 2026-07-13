@@ -2760,8 +2760,10 @@ button {
   box-shadow: 0 0 0 2px var(--accent-tint);
 }
 
-/* ---------- Gender themes (light) ---------- */
-.app-shell.light {
+/* ---------- Appearance: mode (dark/light) × accent (blue/pink) ---------- */
+/* light mode surfaces (independent of accent) */
+.app-shell[data-mode='light'] {
+  --bg: #ffffff;
   --surface: #f3f4f7;
   --surface-2: #eceef2;
   --surface-3: #e1e4ea;
@@ -2772,16 +2774,23 @@ button {
   --info: #e6edf7;
   background: radial-gradient(circle at 50% 0%, #eef1f6 0%, #dde1e8 60%);
 }
-.app-shell[data-theme='male'] {
-  --bg: #ffffff;
+/* accent = blue */
+.app-shell[data-accent='blue'][data-mode='light'] {
   --accent: #2ba6f0;
   --accent-strong: #1f8fd8;
   --accent-ink: #ffffff;
   --accent-tint: #e6f4fe;
   --accent-glow: rgba(43, 166, 240, 0.3);
 }
-.app-shell[data-theme='female'] {
-  --bg: #ffffff;
+/* accent = pink */
+.app-shell[data-accent='pink'][data-mode='dark'] {
+  --accent: #f2589e;
+  --accent-strong: #db3f88;
+  --accent-ink: #ffffff;
+  --accent-tint: #2a1622;
+  --accent-glow: rgba(242, 88, 158, 0.32);
+}
+.app-shell[data-accent='pink'][data-mode='light'] {
   --accent: #f2589e;
   --accent-strong: #db3f88;
   --accent-ink: #ffffff;
@@ -2789,33 +2798,139 @@ button {
   --accent-glow: rgba(242, 88, 158, 0.32);
 }
 
-/* light-theme component fixes (dark-only surfaces) */
-.app-shell.light .hero-card,
-.app-shell.light .track-card,
-.app-shell.light .checkout-card {
+/* light-mode component fixes (dark-only surfaces) */
+.app-shell[data-mode='light'] .hero-card,
+.app-shell[data-mode='light'] .track-card,
+.app-shell[data-mode='light'] .checkout-card {
   background: var(--surface);
   border-color: var(--line);
 }
-.app-shell.light .info-banner {
+.app-shell[data-mode='light'] .info-banner {
   color: #3a4a63;
 }
-.app-shell.light .info-banner.leaf {
+.app-shell[data-mode='light'] .info-banner.leaf {
   background: #e4f6ea;
   color: #1e7a45;
 }
-.app-shell.light .perks li {
+.app-shell[data-mode='light'] .perks li {
   color: #3a3b42;
 }
-.app-shell.light .btn-apple {
+.app-shell[data-mode='light'] .btn-apple {
   background: #111214;
   color: #fff;
 }
-.app-shell.light .grabber {
+.app-shell[data-mode='light'] .grabber {
   background: #cfd3da;
 }
-.app-shell.light .chip.active {
+.app-shell[data-mode='light'] .chip.active {
   background: var(--accent);
   color: var(--accent-ink);
+}
+
+/* ---------- Display / appearance settings ---------- */
+.disp-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  padding: 6px 20px 10px;
+}
+.disp-card-group {
+  padding: 20px 14px 6px;
+}
+.disp-grid-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 0 6px 14px;
+}
+.disp-grid-cards.dim {
+  opacity: 0.5;
+}
+.disp-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.disp-preview {
+  width: 100%;
+  aspect-ratio: 0.62;
+  max-width: 118px;
+  border-radius: 16px;
+  border: 1px solid;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+.dp-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 9px;
+}
+.dp-mark {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 900;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.dp-lines {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+}
+.dp-lines > span {
+  height: 4px;
+  border-radius: 999px;
+  width: 100%;
+}
+.dp-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 3px;
+  padding: 3px;
+}
+.dp-grid > span {
+  border-radius: 3px;
+}
+.disp-name {
+  font-weight: 800;
+  font-size: 17px;
+}
+.disp-radio {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--faint);
+}
+.disp-radio.on {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: inset 0 0 0 4px var(--surface);
+}
+.disp-device {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 6px 8px;
+  border-top: 1px solid var(--line);
+}
+.dd-title {
+  font-weight: 800;
+  font-size: 16px;
+}
+.dd-sub {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 2px;
 }
 
 /* ---------- Gender picker cards ---------- */
