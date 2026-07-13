@@ -201,6 +201,9 @@ const en: Dict = {
   'auth.loc.choose': 'Choose on map',
   'auth.loc.change': 'Change location',
   'auth.finish': 'Create account',
+  'done.title': "We're finally done here! 🎉",
+  'done.sub': "Welcome to Pressd, {name}. Your account is all set — now let's find your perfect plan.",
+  'done.cta': 'Choose my plan',
 
   'pay.title': 'Payment',
   'pay.sheet': 'Pay With',
@@ -413,6 +416,9 @@ const ar: Dict = {
   'auth.loc.choose': 'اختر على الخريطة',
   'auth.loc.change': 'تغيير الموقع',
   'auth.finish': 'إنشاء حساب',
+  'done.title': 'انتهينا أخيراً! 🎉',
+  'done.sub': 'أهلاً بك في Pressd يا {name}. حسابك جاهز تماماً — لنختر الآن باقتك المثالية.',
+  'done.cta': 'اختر باقتي',
 
   'pay.title': 'الدفع',
   'pay.sheet': 'ادفع بواسطة',

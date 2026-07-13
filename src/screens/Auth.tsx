@@ -50,6 +50,7 @@ export default function Auth() {
   const [phoneCode, setPhoneCode] = useState('')
   const [locAddress, setLocAddress] = useState('')
   const [showMap, setShowMap] = useState(false)
+  const [celebrate, setCelebrate] = useState(false)
 
   const emailOk = /.+@.+\..+/.test(email)
   const phoneOk = phone.replace(/\D/g, '').length >= 8
@@ -68,10 +69,37 @@ export default function Auth() {
     if (i > 0) setStep(STEPS[i - 1])
     else switchMode('login')
   }
-  function finish() {
+  function completeSignup() {
     setPhone(phone)
     if (locAddress) setAddress(locAddress)
     signup(name, email) // sets user + flags needsPlan → plans screen opens
+  }
+
+  const firstName = name.trim().split(/\s+/)[0] || name.trim()
+
+  if (celebrate) {
+    return (
+      <>
+        <div className="topbar" style={{ justifyContent: 'center' }}>
+          <div className="brand">
+            <span className="brand-mark">P</span>
+            {t('brand')}
+          </div>
+        </div>
+        <div className="success">
+          <div className="check-ring">
+            <Check size={44} />
+          </div>
+          <h2>{t('done.title')}</h2>
+          <p>{t('done.sub', { name: firstName })}</p>
+        </div>
+        <div className="bottom-cta">
+          <button className="btn-primary" onClick={completeSignup}>
+            {t('done.cta')}
+          </button>
+        </div>
+      </>
+    )
   }
 
   if (showMap) {
@@ -252,7 +280,7 @@ export default function Auth() {
                 {locAddress && <span className="lc-sub">{t('auth.loc.change')}</span>}
               </span>
             </button>
-            <button className="btn-primary" disabled={!locAddress} onClick={finish} style={{ marginTop: 6 }}>
+            <button className="btn-primary" disabled={!locAddress} onClick={() => setCelebrate(true)} style={{ marginTop: 6 }}>
               {t('auth.finish')}
             </button>
           </div>
