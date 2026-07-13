@@ -1857,3 +1857,90 @@ textarea.field {
   font-variant-numeric: tabular-nums;
   margin-top: 2px;
 }
+
+/* ---------- Extra kg / limit reached ---------- */
+.bar.full > span {
+  background: linear-gradient(90deg, #f0a23a, #f0595d);
+}
+.limit-tag {
+  margin-inline-start: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #f0595d;
+  background: rgba(240, 89, 93, 0.14);
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+.hc-limit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(240, 89, 93, 0.12);
+  color: #f0a7a9;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: start;
+}
+.hc-limit-cta {
+  color: var(--accent);
+  font-weight: 800;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.extra-block {
+  margin: 0 18px 16px;
+}
+.extra-head {
+  margin-bottom: 12px;
+}
+.extra-title {
+  font-size: 20px;
+  font-weight: 800;
+}
+.extra-sub {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 3px;
+}
+.extra-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.extra-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+.ex-kg {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.ex-price {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 14px;
+  margin-top: 2px;
+}
+.ex-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 11px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 800;
+  font-size: 15px;
+}

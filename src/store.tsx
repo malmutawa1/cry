@@ -48,6 +48,9 @@ interface Store {
   setActivePlan: (p: Plan | null) => void
   billing: Billing
   setBilling: (b: Billing) => void
+  /** extra kg bought on top of the plan's monthly cap */
+  extraKg: number
+  addExtraKg: (kg: number) => void
 
   // scheduling
   hangers: boolean
@@ -89,6 +92,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [activePlan, setActivePlan] = useState<Plan | null>(null)
   const [billing, setBilling] = useState<Billing>('monthly')
+  const [extraKg, setExtraKg] = useState(0)
   const [hangers, setHangers] = useState(true)
   const [note, setNote] = useState('')
   const [address, setAddress] = useState('Zahra, Hawalli Governorate, Kuwait')
@@ -127,6 +131,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setActivePlan,
     billing,
     setBilling,
+    extraKg,
+    addExtraKg: (kg) => setExtraKg((n) => n + kg),
     hangers,
     setHangers,
     note,
