@@ -48,7 +48,7 @@ const en: Dict = {
   'checkout.total': 'Total due today',
   'checkout.method': 'Payment method',
   'checkout.pay': 'Pay {price}.000 KWD',
-  'checkout.secure': 'Secured payment · cancel anytime',
+  'checkout.secure': 'Secured payment',
   'checkout.update': 'Confirm {price}.000 KWD',
 
   // active membership on the Plans screen
@@ -440,7 +440,7 @@ const ar: Dict = {
   'checkout.total': 'الإجمالي المستحق اليوم',
   'checkout.method': 'طريقة الدفع',
   'checkout.pay': 'ادفع {price}٫٠٠٠ د.ك',
-  'checkout.secure': 'دفع آمن · إلغاء في أي وقت',
+  'checkout.secure': 'دفع آمن',
   'checkout.update': 'تأكيد {price}٫٠٠٠ د.ك',
 
   // active membership on the Plans screen
