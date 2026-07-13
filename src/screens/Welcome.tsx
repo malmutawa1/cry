@@ -11,17 +11,17 @@ interface Bubble {
 function makeBubbles(count: number): Bubble[] {
   const rnd = (min: number, max: number) => min + Math.random() * (max - min)
   return Array.from({ length: count }, () => ({
-    size: Math.round(rnd(16, 84)),
+    size: Math.round(rnd(20, 96)),
     left: Math.round(rnd(-4, 100)),
-    delay: +rnd(0, 3).toFixed(2),
-    dur: +rnd(6, 12).toFixed(2),
-    sway: Math.round(rnd(-40, 40)),
+    delay: +rnd(0, 2.2).toFixed(2),
+    dur: +rnd(5, 10).toFixed(2),
+    sway: Math.round(rnd(-46, 46)),
   }))
 }
 
 export default function Welcome({ onStart }: { onStart: () => void }) {
   // Stable random bubbles for the lifetime of the splash.
-  const bubbles = useMemo(() => makeBubbles(18), [])
+  const bubbles = useMemo(() => makeBubbles(36), [])
   const [leaving, setLeaving] = useState(false)
 
   // Auto-advance: play the splash, fade out, then continue.
