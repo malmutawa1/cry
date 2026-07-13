@@ -1,6 +1,4 @@
-import { useMemo } from 'react'
-import { useI18n } from '../i18n'
-import { Globe } from '../components/Icons'
+import { useEffect, useMemo, useState } from 'react'
 
 interface Bubble {
   size: number
@@ -15,24 +13,30 @@ function makeBubbles(count: number): Bubble[] {
   return Array.from({ length: count }, () => ({
     size: Math.round(rnd(16, 84)),
     left: Math.round(rnd(-4, 100)),
-    delay: +rnd(0, 9).toFixed(2),
-    dur: +rnd(7, 15).toFixed(2),
+    delay: +rnd(0, 3).toFixed(2),
+    dur: +rnd(6, 12).toFixed(2),
     sway: Math.round(rnd(-40, 40)),
   }))
 }
 
 export default function Welcome({ onStart }: { onStart: () => void }) {
-  const { t, toggle } = useI18n()
   // Stable random bubbles for the lifetime of the splash.
   const bubbles = useMemo(() => makeBubbles(18), [])
+  const [leaving, setLeaving] = useState(false)
+
+  // Auto-advance: play the splash, fade out, then continue.
+  useEffect(() => {
+    const fadeOut = setTimeout(() => setLeaving(true), 2600)
+    const done = setTimeout(onStart, 3300)
+    return () => {
+      clearTimeout(fadeOut)
+      clearTimeout(done)
+    }
+  }, [onStart])
 
   return (
-    <div className="welcome">
-      <button className="welcome-lang round-btn" onClick={toggle} aria-label="Language">
-        <Globe />
-      </button>
-
-      <div className="bubbles" aria-hidden="true">
+    <div className={`welcome${leaving ? ' leaving' : ''}`} aria-hidden="true">
+      <div className="bubbles">
         {bubbles.map((b, i) => (
           <span
             key={i}
@@ -51,15 +55,9 @@ export default function Welcome({ onStart }: { onStart: () => void }) {
       </div>
 
       <div className="welcome-content">
-        <div className="welcome-mark" aria-hidden="true">
+        <div className="welcome-mark">
           <span>P</span>
         </div>
-        <p className="welcome-hi">{t('welcome.hi')}</p>
-        <h1 className="welcome-brand">Pressd</h1>
-        <p className="welcome-tagline">{t('welcome.tagline')}</p>
-        <button className="welcome-cta" onClick={onStart}>
-          {t('welcome.cta')}
-        </button>
       </div>
     </div>
   )
