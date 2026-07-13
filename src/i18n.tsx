@@ -210,6 +210,9 @@ const en: Dict = {
   'display.device': 'Use device settings',
   'display.device.sub': "Match appearance to your device's display & brightness settings.",
 
+  'welcome.hi': 'Welcome to',
+  'welcome.tagline': 'Fresh laundry, picked up and delivered to your door.',
+  'welcome.cta': 'Get started',
   'auth.login.title': 'Welcome back',
   'auth.login.sub': 'Log in to manage your laundry membership.',
   'auth.signup.title': 'Create your account',
@@ -519,6 +522,9 @@ const ar: Dict = {
   'display.device': 'استخدام إعدادات الجهاز',
   'display.device.sub': 'مطابقة المظهر لإعدادات جهازك.',
 
+  'welcome.hi': 'مرحباً بك في',
+  'welcome.tagline': 'غسيل نظيف يصلك إلى باب منزلك.',
+  'welcome.cta': 'ابدأ الآن',
   'auth.login.title': 'مرحباً بعودتك',
   'auth.login.sub': 'سجّل الدخول لإدارة عضوية الغسيل.',
   'auth.signup.title': 'أنشئ حسابك',
