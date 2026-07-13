@@ -183,6 +183,25 @@ export const qcSeed: QcRecord[] = [
   },
 ]
 
+// A small fleet of orders that continuously cycle through the pipeline, so the
+// live order board is never static in the demo. Each order's `phase` (0..1)
+// offsets where it currently sits in the pickup → delivery journey; the board
+// advances them in real time using the same stage logic as the customer app.
+export interface LiveOrder {
+  id: string
+  kg: number
+  address: Bi
+  phase: number
+}
+
+export const liveFleet: LiveOrder[] = [
+  { id: 'PRS-9031', kg: 5.2, address: { en: 'Salmiya, Block 10', ar: 'السالمية، قطعة ١٠' }, phase: 0.06 },
+  { id: 'PRS-9024', kg: 7.8, address: { en: 'Jabriya, Block 3', ar: 'الجابرية، قطعة ٣' }, phase: 0.28 },
+  { id: 'PRS-9019', kg: 3.6, address: { en: 'Mishref, Block 6', ar: 'مشرف، قطعة ٦' }, phase: 0.5 },
+  { id: 'PRS-9012', kg: 9.4, address: { en: 'Rumaithiya, Block 2', ar: 'الرميثية، قطعة ٢' }, phase: 0.72 },
+  { id: 'PRS-9007', kg: 6.1, address: { en: 'Bayan, Block 7', ar: 'بيان، قطعة ٧' }, phase: 0.9 },
+]
+
 // The per-order quality checklist inspectors run before dispatch.
 export const qcChecklist: Bi[] = [
   { en: 'Item count matches order', ar: 'عدد القطع مطابق للطلب' },
