@@ -11,7 +11,7 @@ export const rewards: Reward[] = [
 ]
 
 export interface Tier {
-  key: 'bronze' | 'silver' | 'gold'
+  key: 'bronze' | 'silver' | 'gold' | 'platinum'
   min: number
 }
 
@@ -19,12 +19,14 @@ export const TIERS: Tier[] = [
   { key: 'bronze', min: 0 },
   { key: 'silver', min: 500 },
   { key: 'gold', min: 1500 },
+  { key: 'platinum', min: 3000 },
 ]
 
 export const TIER_PERKS: Record<Tier['key'], string[]> = {
   bronze: ['tier.perk.earn', 'tier.perk.birthday'],
   silver: ['tier.perk.allBronze', 'tier.perk.bonus5', 'tier.perk.priority'],
   gold: ['tier.perk.allSilver', 'tier.perk.bonus10', 'tier.perk.freeDelivery', 'tier.perk.early'],
+  platinum: ['tier.perk.allGold', 'tier.perk.bonus15', 'tier.perk.concierge', 'tier.perk.giftAnnual'],
 }
 
 export function tierInfo(points: number): { current: Tier; next: Tier | null; progress: number } {
