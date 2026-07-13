@@ -1,14 +1,62 @@
 import { useState } from 'react'
 import { useStore, POINTS_PER_PICKUP } from '../store'
 import { useI18n } from '../i18n'
-import { rewards, tierInfo } from '../data/rewards'
-import { Bag, Check, Close, Gift, Leaf, Star } from '../components/Icons'
+import { rewards, tierInfo, TIERS, TIER_PERKS } from '../data/rewards'
+import { Bag, Check, Chevron, Close, Gift, Leaf, Star } from '../components/Icons'
+
+function Tiers({ onBack, currentKey }: { onBack: () => void; currentKey: string }) {
+  const { t } = useI18n()
+  return (
+    <>
+      <div className="topbar">
+        <button className="round-btn" onClick={onBack} aria-label="Back">
+          <Close />
+        </button>
+        <h1>{t('tiers.title')}</h1>
+        <span style={{ width: 42 }} />
+      </div>
+      <div className="screen">
+        {TIERS.map((tier) => {
+          const isCurrent = tier.key === currentKey
+          return (
+            <div key={tier.key} className={`tier-card ${tier.key} ${isCurrent ? 'current' : ''}`}>
+              <div className="tier-head">
+                <span className="tier-badge">
+                  <Star size={14} /> {t(`loyalty.tier.${tier.key}`)}
+                </span>
+                {isCurrent && <span className="tier-cur">{t('tiers.current')}</span>}
+                <span className="tier-from">{t('tiers.from', { n: tier.min })}</span>
+              </div>
+              <ul className="perks">
+                {TIER_PERKS[tier.key].map((p) => (
+                  <li key={p}>
+                    <span className="tick"><Check size={16} /></span>
+                    {t(p)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        })}
+        <div style={{ height: 12 }} />
+      </div>
+    </>
+  )
+}
 
 export default function Loyalty({ onBack }: { onBack: () => void }) {
   const { points, redeem } = useStore()
   const { t } = useI18n()
   const { current, next, progress } = tierInfo(points)
   const [done, setDone] = useState<string[]>([])
+  const [view, setView] = useState<'main' | 'tiers'>('main')
+
+  if (view === 'tiers')
+    return (
+      <div className="anim-in" key="tiers">
+        <Tiers onBack={() => setView('main')} currentKey={current.key} />
+      </div>
+    )
 
   const earn = [
     { icon: <Bag size={20} />, label: t('loyalty.earn.pickup'), pts: POINTS_PER_PICKUP },
@@ -27,8 +75,8 @@ export default function Loyalty({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className="screen">
-        {/* balance card */}
-        <div className="loy-hero">
+        {/* balance card — tap to view all tiers */}
+        <button className="loy-hero" onClick={() => setView('tiers')}>
           <div className="loy-top">
             <span className="loy-tier">
               <Star size={14} /> {t(`loyalty.tier.${current.key}`)}
@@ -42,9 +90,16 @@ export default function Loyalty({ onBack }: { onBack: () => void }) {
             <span style={{ width: `${progress * 100}%` }} />
           </div>
           <div className="loy-next">
-            {next ? t('loyalty.toNext', { n: next.min - points, tier: t(`loyalty.tier.${next.key}`) }) : t('loyalty.maxTier')}
+            <span>
+              {next
+                ? t('loyalty.toNext', { n: next.min - points, tier: t(`loyalty.tier.${next.key}`) })
+                : t('loyalty.maxTier')}
+            </span>
+            <span className="loy-view">
+              {t('loyalty.viewTiers')} <Chevron size={16} />
+            </span>
           </div>
-        </div>
+        </button>
 
         {/* ways to earn */}
         <div className="section-title" style={{ fontSize: 20 }}>{t('loyalty.earn')}</div>

@@ -102,7 +102,7 @@ export default function Home({
           </button>
         </div>
 
-        <button className="loy-card" onClick={onRewards}>
+        <button className="loy-card" style={{ marginTop: 14 }} onClick={onRewards}>
           <span className="loy-card-ic"><Gift size={22} /></span>
           <span className="loy-card-body">
             <span className="loy-card-title">{t('home.rewards.title')}</span>

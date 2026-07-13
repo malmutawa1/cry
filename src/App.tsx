@@ -11,6 +11,7 @@ import Track from './screens/Track'
 import Account from './screens/Account'
 import Success from './screens/Success'
 import Staff from './screens/Staff'
+import Loyalty from './screens/Loyalty'
 
 type Tab = 'home' | 'plans' | 'pickup' | 'track' | 'account'
 
@@ -33,6 +34,7 @@ function Shell() {
   const [tab, setTab] = useState<Tab>('home')
   const [order, setOrder] = useState<string | null>(null)
   const [staff, setStaff] = useState(false)
+  const [rewards, setRewards] = useState(false)
   const { t, dir } = useI18n()
   const { user, createOrder, needsPlan, clearNeedsPlan, accent, mode } = useStore()
   const systemDark = useSystemDark()
@@ -79,6 +81,8 @@ function Shell() {
               setTab('track')
             }}
           />
+        ) : rewards ? (
+          <Loyalty onBack={() => setRewards(false)} />
         ) : (
           <>
             <div className="anim-in" key={tab}>
@@ -87,7 +91,7 @@ function Shell() {
                   onSchedule={() => setTab('pickup')}
                   onSeePlans={() => setTab('plans')}
                   onTrack={() => setTab('track')}
-                  onRewards={() => setTab('account')}
+                  onRewards={() => setRewards(true)}
                 />
               )}
               {tab === 'plans' && <Plans onSubscribed={() => setTab('home')} />}
@@ -99,7 +103,9 @@ function Shell() {
                 />
               )}
               {tab === 'track' && <Track onSchedule={() => setTab('pickup')} />}
-              {tab === 'account' && <Account onSeePlans={() => setTab('plans')} onTrack={() => setTab('track')} />}
+              {tab === 'account' && (
+                <Account onSeePlans={() => setTab('plans')} onTrack={() => setTab('track')} onRewards={() => setRewards(true)} />
+              )}
             </div>
 
             <nav className="nav">
