@@ -4,11 +4,15 @@ import { useI18n } from '../i18n'
 import { planName, planPrice } from '../data/plans'
 import { PaymentSheet } from '../components/Payment'
 import { Cards, Chevron, Clock, Globe, Leaf, Logout, Pin, Receipt, User } from '../components/Icons'
+import History from './History'
 
-export default function Account({ onSeePlans }: { onSeePlans: () => void }) {
+export default function Account({ onSeePlans, onTrack }: { onSeePlans: () => void; onTrack: () => void }) {
   const { activePlan, billing, user, logout } = useStore()
   const { t, lang, toggle } = useI18n()
   const [payOpen, setPayOpen] = useState(false)
+  const [view, setView] = useState<'main' | 'history'>('main')
+
+  if (view === 'history') return <History onBack={() => setView('main')} onTrack={onTrack} />
   const usedKg = activePlan ? Math.round(activePlan.capKg * 0.42) : 0
   const pct = activePlan ? Math.min(100, (usedKg / activePlan.capKg) * 100) : 0
   const initial = (user?.name || 'A').trim().charAt(0).toUpperCase()
@@ -60,7 +64,7 @@ export default function Account({ onSeePlans }: { onSeePlans: () => void }) {
         <div className="card-group">
           <AcctRow icon={<Globe />} label={t('account.language')} value={t('account.lang.value')} onClick={toggle} />
           <AcctRow icon={<Cards />} label={t('account.payment')} onClick={() => setPayOpen(true)} />
-          <AcctRow icon={<Receipt />} label={t('account.orders')} />
+          <AcctRow icon={<Receipt />} label={t('account.orders')} onClick={() => setView('history')} />
           <AcctRow icon={<Pin />} label={t('account.addresses')} />
           <AcctRow icon={<Clock />} label={t('account.freeze')} />
         </div>

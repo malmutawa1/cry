@@ -5,10 +5,9 @@ import {
   planTagline,
   planPerks,
   planPrice,
-  ANNUAL_MONTHS,
   ANNUAL_SAVING_PCT,
 } from '../data/plans'
-import { Check, Chevron, Leaf } from '../components/Icons'
+import { Check, Chevron, Close, Leaf } from '../components/Icons'
 import { PaymentSheet, PaymentValue } from '../components/Payment'
 import { useStore } from '../store'
 import { useI18n } from '../i18n'
@@ -17,10 +16,61 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
   const { activePlan, setActivePlan, billing, setBilling } = useStore()
   const { t, lang } = useI18n()
   const [payOpen, setPayOpen] = useState(false)
+  const [view, setView] = useState<'select' | 'checkout'>('select')
 
   const annual = billing === 'annual'
-  const perMonthEquivalent = (m: number) => ((m * ANNUAL_MONTHS) / 12).toFixed(1)
 
+  // ---------- Checkout (payment) step ----------
+  if (view === 'checkout' && activePlan) {
+    const price = planPrice(activePlan, billing)
+    return (
+      <>
+        <div className="topbar">
+          <button className="round-btn" onClick={() => setView('select')} aria-label="Back">
+            <Close />
+          </button>
+          <h1>{t('checkout.title')}</h1>
+          <span style={{ width: 42 }} />
+        </div>
+
+        <div className="screen">
+          <div className="checkout-card">
+            <div className="co-top">
+              <div>
+                <div className="co-plan">{planName(activePlan, lang)}</div>
+                <div className="co-period">{t(annual ? 'checkout.period.annual' : 'checkout.period.monthly')}</div>
+              </div>
+              <span className="plan-cap">{t('plans.cap', { kg: activePlan.capKg })}</span>
+            </div>
+            <div className="co-total">
+              <span>{t('checkout.total')}</span>
+              <strong>{price}.000 KWD</strong>
+            </div>
+          </div>
+
+          <div className="section-title" style={{ fontSize: 20 }}>{t('checkout.method')}</div>
+          <div className="card-group">
+            <button className="row" onClick={() => setPayOpen(true)}>
+              <span className="pay-current"><PaymentValue /></span>
+              <Chevron className="chev" />
+            </button>
+          </div>
+          <div style={{ height: 8 }} />
+        </div>
+
+        <div className="bottom-cta">
+          <button className="btn-primary" onClick={onSubscribed}>
+            {t('checkout.pay', { price })}
+            <span className="sub">{t('checkout.secure')}</span>
+          </button>
+        </div>
+
+        {payOpen && <PaymentSheet onClose={() => setPayOpen(false)} />}
+      </>
+    )
+  }
+
+  // ---------- Plan selection ----------
   return (
     <>
       <div className="topbar">
@@ -64,7 +114,6 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
                 </div>
               </div>
               <span className="plan-cap">{t('plans.cap', { kg: p.capKg })}</span>
-              {annual && <div className="annual-note">{t('plans.annualNote', { perMonth: perMonthEquivalent(p.priceKwd) })}</div>}
               <ul className="perks">
                 {planPerks(p, lang).map((perk) => (
                   <li key={perk}>
@@ -76,25 +125,11 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
             </button>
           )
         })}
-
-        {activePlan && (
-          <>
-            <div className="section-title" style={{ fontSize: 20 }}>{t('pay.title')}</div>
-            <div className="card-group">
-              <button className="row" onClick={() => setPayOpen(true)}>
-                <span className="pay-current">
-                  <PaymentValue />
-                </span>
-                <Chevron className="chev" />
-              </button>
-            </div>
-          </>
-        )}
         <div style={{ height: 8 }} />
       </div>
 
       <div className="bottom-cta">
-        <button className="btn-primary" disabled={!activePlan} onClick={onSubscribed}>
+        <button className="btn-primary" disabled={!activePlan} onClick={() => setView('checkout')}>
           {activePlan ? t('plans.subscribe', { name: planName(activePlan, lang) }) : t('plans.select')}
           {activePlan && (
             <span className="sub">
@@ -103,8 +138,6 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
           )}
         </button>
       </div>
-
-      {payOpen && <PaymentSheet onClose={() => setPayOpen(false)} />}
     </>
   )
 }

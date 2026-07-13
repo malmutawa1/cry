@@ -68,7 +68,7 @@ function Shell() {
               />
             )}
             {tab === 'track' && <Track onSchedule={() => setTab('pickup')} />}
-            {tab === 'account' && <Account onSeePlans={() => setTab('plans')} />}
+            {tab === 'account' && <Account onSeePlans={() => setTab('plans')} onTrack={() => setTab('track')} />}
 
             <nav className="nav">
               {nav.map((n) => (
