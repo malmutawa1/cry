@@ -73,6 +73,7 @@ interface Store {
   activeOrder: Order | null
   createOrder: () => string
   cancelOrder: () => void
+  orders: Order[]
 }
 
 const Ctx = createContext<Store | null>(null)
@@ -97,6 +98,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [payment, setPayment] = useState<PayMethod>('applepay')
   const [cards, setCards] = useState<Card[]>([])
   const [activeOrder, setActiveOrder] = useState<Order | null>(null)
+  const DAY = 86400000
+  const [orders, setOrders] = useState<Order[]>(() => {
+    const base = { pickup: defaultPickup, delivery: defaultDelivery, address, phone }
+    return [
+      { id: 'PRS-8842', createdAt: Date.now() - 3 * DAY, ...base },
+      { id: 'PRS-8177', createdAt: Date.now() - 9 * DAY, ...base },
+      { id: 'PRS-7431', createdAt: Date.now() - 16 * DAY, ...base },
+    ]
+  })
 
   function addCard(number: string) {
     const digits = number.replace(/\D/g, '')
@@ -136,10 +146,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     activeOrder,
     createOrder: () => {
       const id = 'PRS-' + Math.floor(1000 + Math.random() * 9000)
-      setActiveOrder({ id, createdAt: Date.now(), pickup, delivery, address, phone })
+      const o: Order = { id, createdAt: Date.now(), pickup, delivery, address, phone }
+      setActiveOrder(o)
+      setOrders((prev) => [o, ...prev])
       return id
     },
     cancelOrder: () => setActiveOrder(null),
+    orders,
   }
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

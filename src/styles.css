@@ -1660,3 +1660,69 @@ textarea.field {
 .nav button {
   font-size: 10.5px;
 }
+
+/* ---------- Order history ---------- */
+.row-ic.ok {
+  background: rgba(52, 199, 89, 0.15);
+  color: var(--green);
+}
+.row-ic.live {
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+.hist-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.hist-badge.done {
+  background: rgba(52, 199, 89, 0.16);
+  color: var(--green);
+}
+.hist-badge.live {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ---------- Checkout ---------- */
+.checkout-card {
+  margin: 4px 18px 8px;
+  padding: 18px;
+  border-radius: var(--radius);
+  background: linear-gradient(160deg, #16232c, var(--surface));
+  border: 1px solid #21323d;
+}
+.co-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.co-plan {
+  font-weight: 800;
+  font-size: 20px;
+}
+.co-period {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 2px;
+}
+.co-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-top: 14px;
+}
+.co-total > span {
+  color: var(--muted);
+  font-size: 15px;
+}
+.co-total > strong {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}

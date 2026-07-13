@@ -15,10 +15,17 @@ function formatClock(ts: number, lang: string): string {
   return `${h}:${m} ${suffix}`
 }
 
+function formatCountdown(ms: number): string {
+  const total = Math.max(0, Math.round(ms / 1000))
+  const m = Math.floor(total / 60)
+  const s = total % 60
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
+
 export default function Track({ onSchedule }: { onSchedule: () => void }) {
   const { activeOrder } = useStore()
   const { t, lang } = useI18n()
-  const now = useNow(1000)
+  const now = useNow(250)
 
   if (!activeOrder) {
     return (
@@ -64,8 +71,8 @@ export default function Track({ onSchedule }: { onSchedule: () => void }) {
           </div>
           <div className="th-desc">{t(`st.${stage}.d`, { driver })}</div>
           <div className="th-eta">
-            <span>{delivered ? t('track.done') : t('track.eta')}</span>
-            <strong>{formatClock(etaTs, lang)}</strong>
+            <span>{delivered ? t('track.done') : t('track.arriving')}</span>
+            <strong>{delivered ? formatClock(etaTs, lang) : formatCountdown(etaTs - now)}</strong>
           </div>
         </div>
 
