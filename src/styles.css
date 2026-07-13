@@ -3143,3 +3143,78 @@ button {
   font-size: 14px;
   flex-shrink: 0;
 }
+
+/* loyalty hero as a tappable button + view-tiers link */
+.loy-hero {
+  display: block;
+  width: calc(100% - 36px);
+  text-align: start;
+}
+.loy-next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.loy-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* ---------- Tiers page ---------- */
+.tier-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin: 0 18px 14px;
+  padding: 18px;
+}
+.tier-card.current {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+}
+.tier-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 15px;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+.tier-card.bronze .tier-badge {
+  background: rgba(205, 127, 50, 0.16);
+  color: #b06a2c;
+}
+.tier-card.silver .tier-badge {
+  background: rgba(150, 160, 170, 0.2);
+  color: #7a8794;
+}
+.tier-card.gold .tier-badge {
+  background: rgba(212, 175, 55, 0.2);
+  color: #b8901f;
+}
+.tier-cur {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+.tier-from {
+  margin-inline-start: auto;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 13px;
+}

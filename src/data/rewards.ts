@@ -21,6 +21,12 @@ export const TIERS: Tier[] = [
   { key: 'gold', min: 1500 },
 ]
 
+export const TIER_PERKS: Record<Tier['key'], string[]> = {
+  bronze: ['tier.perk.earn', 'tier.perk.birthday'],
+  silver: ['tier.perk.allBronze', 'tier.perk.bonus5', 'tier.perk.priority'],
+  gold: ['tier.perk.allSilver', 'tier.perk.bonus10', 'tier.perk.freeDelivery', 'tier.perk.early'],
+}
+
 export function tierInfo(points: number): { current: Tier; next: Tier | null; progress: number } {
   let idx = 0
   for (let i = 0; i < TIERS.length; i++) if (points >= TIERS[i].min) idx = i
