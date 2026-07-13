@@ -3,6 +3,7 @@ import { useI18n } from '../i18n'
 import { useNow } from '../useNow'
 import { planName } from '../data/plans'
 import { Bag, CalendarIn, Chevron, Globe, Hanger, Route } from '../components/Icons'
+import { useAllowance } from '../components/ExtraKg'
 
 export default function Home({
   onSchedule,
@@ -15,13 +16,10 @@ export default function Home({
   onTrack: () => void
   onManage: () => void
 }) {
-  const { activePlan, extraKg, user, activeOrder } = useStore()
+  const { activePlan, user, activeOrder } = useStore()
   const { t, lang, toggle } = useI18n()
   const now = useNow(1000)
-  const baseCap = activePlan?.capKg ?? 0
-  const allowance = baseCap + extraKg
-  const used = baseCap
-  const atLimit = activePlan != null && allowance - used <= 0
+  const { usedKg: used, allowance, atLimit } = useAllowance()
   const firstName = user?.name?.trim().split(/\s+/)[0]
   const orderStageIdx = activeOrder ? orderStage(activeOrder, now) : -1
 
