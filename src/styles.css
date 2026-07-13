@@ -3203,6 +3203,10 @@ button {
   background: rgba(212, 175, 55, 0.2);
   color: #b8901f;
 }
+.tier-card.platinum .tier-badge {
+  background: rgba(100, 116, 139, 0.18);
+  color: #5b6b82;
+}
 .tier-cur {
   font-size: 10px;
   font-weight: 800;
@@ -3286,6 +3290,11 @@ button {
   --loy-fg: #4a3608;
   --loy-glow: rgba(214, 175, 55, 0.5);
 }
+.loy-hero.tier-platinum {
+  background-image: linear-gradient(135deg, #7a869a, #3c4655 50%, #232a35);
+  --loy-fg: #f4f7fb;
+  --loy-glow: rgba(120, 140, 170, 0.5);
+}
 
 @keyframes loy-shine {
   0% { left: -60%; }
@@ -3307,6 +3316,8 @@ button {
 .loy-card.tier-silver .loy-card-ic { background: rgba(150, 162, 178, 0.18); color: #6f7a89; }
 .loy-card.tier-gold .loy-card-pts { color: #b8901f; }
 .loy-card.tier-gold .loy-card-ic { background: rgba(214, 175, 55, 0.18); color: #b8901f; }
+.loy-card.tier-platinum .loy-card-pts { color: #5b6b82; }
+.loy-card.tier-platinum .loy-card-ic { background: rgba(100, 116, 139, 0.18); color: #5b6b82; }
 
 @media (prefers-reduced-motion: reduce) {
   .loy-hero { animation: none !important; }
