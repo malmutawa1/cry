@@ -6,22 +6,29 @@ interface Bubble {
   delay: number
   dur: number
   sway: number
+  hue: number
+  tilt: number
 }
 
-function makeBubbles(count: number): Bubble[] {
-  const rnd = (min: number, max: number) => min + Math.random() * (max - min)
+const rnd = (min: number, max: number) => min + Math.random() * (max - min)
+
+function makeBubbles(): Bubble[] {
+  // Random count too, so every app entry looks different.
+  const count = Math.round(rnd(26, 42))
   return Array.from({ length: count }, () => ({
     size: Math.round(rnd(20, 96)),
     left: Math.round(rnd(-4, 100)),
     delay: +rnd(0, 2.2).toFixed(2),
     dur: +rnd(5, 10).toFixed(2),
     sway: Math.round(rnd(-46, 46)),
+    hue: Math.round(rnd(-14, 14)),
+    tilt: Math.round(rnd(-45, 45)),
   }))
 }
 
 export default function Welcome({ onStart }: { onStart: () => void }) {
   // Stable random bubbles for the lifetime of the splash.
-  const bubbles = useMemo(() => makeBubbles(36), [])
+  const bubbles = useMemo(() => makeBubbles(), [])
   const [leaving, setLeaving] = useState(false)
 
   // Auto-advance: play the splash, fade out, then continue.
@@ -48,6 +55,8 @@ export default function Welcome({ onStart }: { onStart: () => void }) {
                 '--delay': `${b.delay}s`,
                 '--dur': `${b.dur}s`,
                 '--sway': `${b.sway}px`,
+                '--hue': `${b.hue}deg`,
+                '--tilt': `${b.tilt}deg`,
               } as React.CSSProperties
             }
           />

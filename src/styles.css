@@ -3376,6 +3376,8 @@ button {
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.8),
     0 4px 14px rgba(96, 172, 230, 0.28);
+  /* per-bubble colour shift so each entry looks unique */
+  filter: hue-rotate(var(--hue, 0deg));
   opacity: 0;
   animation: bubble-rise var(--dur) linear var(--delay) infinite;
 }
@@ -3389,7 +3391,7 @@ button {
   height: 24%;
   border-radius: 50%;
   background: #ffffff;
-  transform: rotate(-30deg);
+  transform: rotate(var(--tilt, -30deg));
 }
 /* small sparkle dot (opposite side) */
 .bubble::before {
