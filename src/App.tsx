@@ -38,7 +38,7 @@ function Shell() {
   const [staff, setStaff] = useState(false)
   const [rewards, setRewards] = useState(false)
   const { t, dir } = useI18n()
-  const { user, createOrder, needsPlan, clearNeedsPlan, accent, mode } = useStore()
+  const { user, createOrder, needsPlan, clearNeedsPlan, accent, mode, toast } = useStore()
   const systemDark = useSystemDark()
   const effMode = mode === 'system' ? (systemDark ? 'dark' : 'light') : mode
 
@@ -66,6 +66,7 @@ function Shell() {
     <div className="app-shell" data-mode={effMode} data-accent={accent}>
       <div className="phone" dir={dir}>
         <StatusBar />
+        {toast && <div className="toast" key={toast}>{toast}</div>}
 
         {!welcomed ? (
           <Welcome onStart={() => setWelcomed(true)} />

@@ -32,11 +32,12 @@ export function ExtraKgBanner({ onClick }: { onClick: () => void }) {
 
 /** Bottom-sheet popup with the +5 kg / +8 kg top-up slots. */
 export function ExtraKgSheet({ onClose }: { onClose: () => void }) {
-  const { addExtraKg } = useStore()
+  const { addExtraKg, showToast } = useStore()
   const { t } = useI18n()
 
   function buy(kg: number) {
     addExtraKg(kg)
+    showToast(t('toast.extraAdded', { kg }))
     onClose()
   }
 

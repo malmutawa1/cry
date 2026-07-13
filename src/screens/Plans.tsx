@@ -13,7 +13,7 @@ import { useStore } from '../store'
 import { useI18n } from '../i18n'
 
 export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
-  const { activePlan, setActivePlan, billing, setBilling } = useStore()
+  const { activePlan, setActivePlan, billing, setBilling, showToast } = useStore()
   const { t, lang } = useI18n()
   const [payOpen, setPayOpen] = useState(false)
   const [view, setView] = useState<'select' | 'checkout'>('select')
@@ -59,7 +59,13 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
         </div>
 
         <div className="bottom-cta">
-          <button className="btn-primary" onClick={onSubscribed}>
+          <button
+            className="btn-primary"
+            onClick={() => {
+              showToast(t('toast.subscribed', { name: planName(activePlan, lang) }))
+              onSubscribed()
+            }}
+          >
             {t('checkout.pay', { price })}
             <span className="sub">{t('checkout.secure')}</span>
           </button>

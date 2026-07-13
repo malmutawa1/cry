@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useRef, useState, type ReactNode } from 'react'
 import type { Billing, Plan } from './data/plans'
 import { defaultDelivery, defaultPickup, type Slot } from './data/slots'
 
@@ -45,6 +45,8 @@ interface Store {
   signup: (name: string, email: string) => void
   loginWithApple: () => void
   logout: () => void
+  /** edit the signed-in user's profile fields */
+  updateProfile: (p: { name?: string; email?: string }) => void
   /** true right after a fresh sign-up, so the app can open the plans screen */
   needsPlan: boolean
   clearNeedsPlan: () => void
@@ -63,6 +65,9 @@ interface Store {
   /** extra kg bought on top of the plan's monthly cap */
   extraKg: number
   addExtraKg: (kg: number) => void
+  /** membership paused */
+  frozen: boolean
+  setFrozen: (v: boolean) => void
 
   // scheduling
   hangers: boolean
@@ -93,6 +98,16 @@ interface Store {
   // loyalty
   points: number
   redeem: (cost: number) => boolean
+  /** redeem a specific reward — deducts points AND applies its perk */
+  redeemReward: (id: string, cost: number) => boolean
+  /** KWD account credit earned from rewards/referrals */
+  credit: number
+  /** free months banked from rewards */
+  freeMonths: number
+
+  // ephemeral feedback
+  toast: string | null
+  showToast: (msg: string) => void
 }
 
 export const POINTS_PER_PICKUP = 50
@@ -124,6 +139,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [cards, setCards] = useState<Card[]>([])
   const [activeOrder, setActiveOrder] = useState<Order | null>(null)
   const [points, setPoints] = useState(320)
+  const [credit, setCredit] = useState(0)
+  const [freeMonths, setFreeMonths] = useState(0)
+  const [frozen, setFrozen] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  function showToast(msg: string) {
+    setToast(msg)
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToast(null), 2400)
+  }
   const DAY = 86400000
   const [orders, setOrders] = useState<Order[]>(() => {
     const base = { pickup: defaultPickup, delivery: defaultDelivery, address, phone }
@@ -156,6 +181,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setAccent('blue')
       setMode('light')
     },
+    updateProfile: (p) =>
+      setUser((u) => (u ? { name: p.name?.trim() || u.name, email: p.email?.trim() || u.email } : u)),
     needsPlan,
     clearNeedsPlan: () => setNeedsPlan(false),
     accent,
@@ -168,6 +195,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setBilling,
     extraKg,
     addExtraKg: (kg) => setExtraKg((n) => n + kg),
+    frozen,
+    setFrozen,
     hangers,
     setHangers,
     note,
@@ -201,6 +230,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setPoints((p) => p - cost)
       return true
     },
+    redeemReward: (id, cost) => {
+      if (points < cost) return false
+      setPoints((p) => p - cost)
+      // apply the actual perk so redeeming a reward really does something
+      if (id === 'extra5') setExtraKg((n) => n + 5)
+      else if (id === 'credit5') setCredit((c) => c + 5)
+      else if (id === 'freemonth') setFreeMonths((n) => n + 1)
+      return true
+    },
+    credit,
+    freeMonths,
+    toast,
+    showToast,
   }
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

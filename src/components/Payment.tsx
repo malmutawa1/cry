@@ -23,7 +23,7 @@ function Radio({ on }: { on: boolean }) {
 }
 
 export function PaymentSheet({ onClose }: { onClose: () => void }) {
-  const { payment, setPayment, cards } = useStore()
+  const { payment, setPayment, cards, showToast } = useStore()
   const { t } = useI18n()
   const [adding, setAdding] = useState(false)
 
@@ -31,6 +31,7 @@ export function PaymentSheet({ onClose }: { onClose: () => void }) {
 
   function pick(m: PayMethod) {
     setPayment(m)
+    showToast(t('toast.paySaved'))
     onClose()
   }
 

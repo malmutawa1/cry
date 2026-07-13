@@ -45,7 +45,7 @@ function Tiers({ onBack, currentKey }: { onBack: () => void; currentKey: string 
 }
 
 export default function Loyalty({ onBack }: { onBack: () => void }) {
-  const { points, redeem } = useStore()
+  const { points, redeemReward, showToast } = useStore()
   const { t } = useI18n()
   const { current, next, progress } = tierInfo(points)
   const [done, setDone] = useState<string[]>([])
@@ -135,7 +135,10 @@ export default function Loyalty({ onBack }: { onBack: () => void }) {
                     className="rw-btn"
                     disabled={!enough}
                     onClick={() => {
-                      if (redeem(r.pts)) setDone((d) => [...d, r.id])
+                      if (redeemReward(r.id, r.pts)) {
+                        setDone((d) => [...d, r.id])
+                        showToast(t(`toast.redeemed.${r.id}`))
+                      }
                     }}
                   >
                     {enough ? t('loyalty.redeem') : t('loyalty.need', { n: r.pts - points })}

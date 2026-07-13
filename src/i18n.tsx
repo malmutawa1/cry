@@ -185,6 +185,59 @@ const en: Dict = {
   'reward.extra5': 'Free extra 5 kg',
   'reward.credit5': '5 KWD account credit',
   'reward.freemonth': 'One free month',
+
+  // reward redemption feedback
+  'toast.redeemed.extra5': 'Added +5 kg to your allowance',
+  'toast.redeemed.credit5': 'Added 5 KWD account credit',
+  'toast.redeemed.freemonth': 'One free month applied',
+  'toast.extraAdded': '+{kg} kg added to your allowance',
+  'toast.subscribed': 'Subscribed to {name}',
+  'toast.frozen': 'Subscription frozen',
+  'toast.unfrozen': 'Subscription resumed',
+  'toast.referCopied': 'Referral code copied',
+  'toast.profileSaved': 'Details saved',
+  'toast.addressSaved': 'Address updated',
+  'toast.paySaved': 'Payment method updated',
+
+  // account credit / free months
+  'account.credit': 'Account credit',
+  'account.credit.value': '{n}.000 KWD',
+  'account.freeMonths': 'Free months banked',
+  'account.freeMonths.value': '{n} month(s)',
+
+  // remember me
+  'auth.remember': 'Remember me',
+
+  // personal details
+  'personal.title': 'Personal details',
+  'personal.name': 'Full name',
+  'personal.email': 'Email address',
+  'personal.phone': 'Phone number',
+  'personal.save': 'Save changes',
+
+  // saved addresses
+  'addresses.title': 'Saved addresses',
+  'addresses.label': 'Delivery address',
+  'addresses.change': 'Change on map',
+  'addresses.save': 'Save address',
+  'addresses.home': 'Home',
+
+  // refer a friend
+  'refer.title': 'Refer a friend',
+  'refer.sub': 'Share your code — you both get 5 KWD when they subscribe.',
+  'refer.code': 'Your referral code',
+  'refer.copy': 'Copy code',
+  'refer.copied': 'Copied',
+  'refer.share': 'Share invite',
+
+  // freeze subscription
+  'freeze.title': 'Freeze subscription',
+  'freeze.sub': 'Pause pickups and billing. You can resume anytime.',
+  'freeze.cta': 'Freeze now',
+  'freeze.resume': 'Resume subscription',
+  'freeze.status': 'Frozen',
+  'freeze.banner': 'Your subscription is frozen',
+  'freeze.banner.cta': 'Resume',
   'loyalty.viewTiers': 'View all tiers',
   'tiers.title': 'Membership tiers',
   'tiers.current': 'CURRENT',
@@ -497,6 +550,59 @@ const ar: Dict = {
   'reward.extra5': '5 كجم إضافية مجاناً',
   'reward.credit5': 'رصيد 5 د.ك',
   'reward.freemonth': 'شهر مجاني',
+
+  // reward redemption feedback
+  'toast.redeemed.extra5': 'تمت إضافة 5 كجم إلى سعتك',
+  'toast.redeemed.credit5': 'تمت إضافة رصيد 5 د.ك',
+  'toast.redeemed.freemonth': 'تم تفعيل شهر مجاني',
+  'toast.extraAdded': 'تمت إضافة {kg} كجم إلى سعتك',
+  'toast.subscribed': 'تم الاشتراك في {name}',
+  'toast.frozen': 'تم إيقاف الاشتراك مؤقتاً',
+  'toast.unfrozen': 'تم استئناف الاشتراك',
+  'toast.referCopied': 'تم نسخ رمز الدعوة',
+  'toast.profileSaved': 'تم حفظ البيانات',
+  'toast.addressSaved': 'تم تحديث العنوان',
+  'toast.paySaved': 'تم تحديث طريقة الدفع',
+
+  // account credit / free months
+  'account.credit': 'رصيد الحساب',
+  'account.credit.value': '{n}.000 د.ك',
+  'account.freeMonths': 'أشهر مجانية مدّخرة',
+  'account.freeMonths.value': '{n} شهر',
+
+  // remember me
+  'auth.remember': 'تذكّرني',
+
+  // personal details
+  'personal.title': 'البيانات الشخصية',
+  'personal.name': 'الاسم الكامل',
+  'personal.email': 'البريد الإلكتروني',
+  'personal.phone': 'رقم الهاتف',
+  'personal.save': 'حفظ التغييرات',
+
+  // saved addresses
+  'addresses.title': 'العناوين المحفوظة',
+  'addresses.label': 'عنوان التوصيل',
+  'addresses.change': 'التغيير على الخريطة',
+  'addresses.save': 'حفظ العنوان',
+  'addresses.home': 'المنزل',
+
+  // refer a friend
+  'refer.title': 'ادعُ صديقاً',
+  'refer.sub': 'شارك رمزك — يحصل كلاكما على 5 د.ك عند اشتراكه.',
+  'refer.code': 'رمز الدعوة الخاص بك',
+  'refer.copy': 'نسخ الرمز',
+  'refer.copied': 'تم النسخ',
+  'refer.share': 'مشاركة الدعوة',
+
+  // freeze subscription
+  'freeze.title': 'إيقاف الاشتراك مؤقتاً',
+  'freeze.sub': 'أوقف عمليات الاستلام والفوترة. يمكنك الاستئناف في أي وقت.',
+  'freeze.cta': 'إيقاف الآن',
+  'freeze.resume': 'استئناف الاشتراك',
+  'freeze.status': 'موقوف',
+  'freeze.banner': 'اشتراكك موقوف مؤقتاً',
+  'freeze.banner.cta': 'استئناف',
   'loyalty.viewTiers': 'عرض جميع الفئات',
   'tiers.title': 'فئات العضوية',
   'tiers.current': 'الحالية',
