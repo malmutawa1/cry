@@ -3,7 +3,7 @@ import { useStore } from '../store'
 import { useI18n } from '../i18n'
 import { planName, planPrice } from '../data/plans'
 import { PaymentSheet } from '../components/Payment'
-import { ExtraKgSlots, useAllowance } from '../components/ExtraKg'
+import { ExtraKgBanner, ExtraKgSheet, useAllowance } from '../components/ExtraKg'
 import { Cards, Chevron, Clock, Globe, Leaf, Logout, Pin, Receipt, User } from '../components/Icons'
 import History from './History'
 
@@ -11,6 +11,7 @@ export default function Account({ onSeePlans, onTrack }: { onSeePlans: () => voi
   const { activePlan, billing, user, logout } = useStore()
   const { t, lang, toggle } = useI18n()
   const [payOpen, setPayOpen] = useState(false)
+  const [extraOpen, setExtraOpen] = useState(false)
   const [view, setView] = useState<'main' | 'history'>('main')
   const { usedKg, allowance, atLimit, pct } = useAllowance()
 
@@ -64,7 +65,7 @@ export default function Account({ onSeePlans, onTrack }: { onSeePlans: () => voi
           </div>
         )}
 
-        {atLimit && <ExtraKgSlots />}
+        {atLimit && <ExtraKgBanner onClick={() => setExtraOpen(true)} />}
 
         <div className="card-group">
           <AcctRow icon={<Globe />} label={t('account.language')} value={t('account.lang.value')} onClick={toggle} />
@@ -86,6 +87,7 @@ export default function Account({ onSeePlans, onTrack }: { onSeePlans: () => voi
       </div>
 
       {payOpen && <PaymentSheet onClose={() => setPayOpen(false)} />}
+      {extraOpen && <ExtraKgSheet onClose={() => setExtraOpen(false)} />}
     </>
   )
 }

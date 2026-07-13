@@ -1,25 +1,25 @@
+import { useState } from 'react'
 import { useStore, orderStage } from '../store'
 import { useI18n } from '../i18n'
 import { useNow } from '../useNow'
 import { planName } from '../data/plans'
 import { Bag, CalendarIn, Chevron, Globe, Hanger, Route } from '../components/Icons'
-import { useAllowance } from '../components/ExtraKg'
+import { ExtraKgSheet, useAllowance } from '../components/ExtraKg'
 
 export default function Home({
   onSchedule,
   onSeePlans,
   onTrack,
-  onManage,
 }: {
   onSchedule: () => void
   onSeePlans: () => void
   onTrack: () => void
-  onManage: () => void
 }) {
   const { activePlan, user, activeOrder } = useStore()
   const { t, lang, toggle } = useI18n()
   const now = useNow(1000)
   const { usedKg: used, allowance, atLimit } = useAllowance()
+  const [extraOpen, setExtraOpen] = useState(false)
   const firstName = user?.name?.trim().split(/\s+/)[0]
   const orderStageIdx = activeOrder ? orderStage(activeOrder, now) : -1
 
@@ -76,7 +76,7 @@ export default function Home({
               <span style={{ width: `${allowance ? (used / allowance) * 100 : 0}%` }} />
             </div>
             {atLimit && (
-              <button className="hc-limit" onClick={onManage}>
+              <button className="hc-limit" onClick={() => setExtraOpen(true)}>
                 <span>{t('extra.limit')}</span>
                 <span className="hc-limit-cta">{t('extra.manage')} ›</span>
               </button>
@@ -115,6 +115,8 @@ export default function Home({
         </div>
         <div style={{ height: 16 }} />
       </div>
+
+      {extraOpen && <ExtraKgSheet onClose={() => setExtraOpen(false)} />}
     </>
   )
 }

@@ -4,7 +4,7 @@ import { useI18n } from '../i18n'
 import { pickupSlots, deliverySlots, slotLabel, type Slot } from '../data/slots'
 import { Toggle } from '../components/Common'
 import LocationPicker from '../components/LocationPicker'
-import { ExtraKgSlots, useAllowance } from '../components/ExtraKg'
+import { ExtraKgBanner, ExtraKgSheet, useAllowance } from '../components/ExtraKg'
 import {
   CalendarIn,
   CalendarOut,
@@ -32,6 +32,7 @@ export default function Pickup({
   const { t, lang } = useI18n()
   const { atLimit } = useAllowance()
   const [sheet, setSheet] = useState<Sheet>(null)
+  const [extraOpen, setExtraOpen] = useState(false)
 
   if (!s.activePlan) {
     return (
@@ -127,7 +128,7 @@ export default function Pickup({
           </button>
         </div>
 
-        {atLimit && <ExtraKgSlots />}
+        {atLimit && <ExtraKgBanner onClick={() => setExtraOpen(true)} />}
 
         <div className="info-banner">
           <Info />
@@ -167,6 +168,7 @@ export default function Pickup({
           onClose={() => setSheet(null)}
         />
       )}
+      {extraOpen && <ExtraKgSheet onClose={() => setExtraOpen(false)} />}
       {sheet === 'phone' && (
         <EditSheet title={t('sheet.phone')} value={s.phone} onSave={(v) => { s.setPhone(v); setSheet(null) }} onClose={() => setSheet(null)} />
       )}

@@ -15,29 +15,51 @@ export function useAllowance() {
   return { baseCap, allowance, usedKg, remaining, atLimit, pct }
 }
 
-/** The "Extra kilograms" top-up slots, shown when the allowance is used up. */
-export function ExtraKgSlots() {
-  const { addExtraKg } = useStore()
+/** Tappable banner shown at the allowance limit; opens the top-up popup. */
+export function ExtraKgBanner({ onClick }: { onClick: () => void }) {
   const { t } = useI18n()
   return (
-    <div className="extra-block">
-      <div className="extra-head">
-        <div className="extra-title">{t('extra.title')}</div>
-        <div className="extra-sub">
-          {t('extra.limit')} · {t('extra.sub')}
-        </div>
-      </div>
-      <div className="extra-grid">
-        {extras.map((e) => (
-          <div key={e.kg} className="extra-card">
-            <div className="ex-kg">+{e.kg} kg</div>
-            <div className="ex-price">{e.priceKwd}.000 KWD</div>
-            <button className="ex-add" onClick={() => addExtraKg(e.kg)}>
-              <Plus size={16} />
-              {t('extra.add')}
-            </button>
+    <button className="extra-banner" onClick={onClick}>
+      <span className="eb-ic"><Plus size={20} /></span>
+      <span className="eb-body">
+        <span className="eb-title">{t('extra.limit')}</span>
+        <span className="eb-sub">{t('extra.sub')}</span>
+      </span>
+      <span className="eb-cta">{t('extra.manage')} ›</span>
+    </button>
+  )
+}
+
+/** Bottom-sheet popup with the +5 kg / +8 kg top-up slots. */
+export function ExtraKgSheet({ onClose }: { onClose: () => void }) {
+  const { addExtraKg } = useStore()
+  const { t } = useI18n()
+
+  function buy(kg: number) {
+    addExtraKg(kg)
+    onClose()
+  }
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="grabber" />
+        <h3>{t('extra.title')}</h3>
+        <div className="sheet-scroll">
+          <p className="extra-sheet-sub">{t('extra.limit')} · {t('extra.sub')}</p>
+          <div className="extra-grid">
+            {extras.map((e) => (
+              <div key={e.kg} className="extra-card">
+                <div className="ex-kg">+{e.kg} kg</div>
+                <div className="ex-price">{e.priceKwd}.000 KWD</div>
+                <button className="ex-add" onClick={() => buy(e.kg)}>
+                  <Plus size={16} />
+                  {t('extra.add')}
+                </button>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   )
