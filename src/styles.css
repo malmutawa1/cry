@@ -2553,3 +2553,171 @@ button {
   font-size: 16px;
   color: var(--text);
 }
+
+/* Fit three tabs in the staff segmented control */
+.staff-seg .seg {
+  gap: 6px;
+  padding: 11px 6px;
+  font-size: 14px;
+}
+
+/* ---------- Staff: live order board ---------- */
+.ops-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 4px 18px 0;
+}
+.ops-stat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  text-align: center;
+}
+.ops-stat strong {
+  display: block;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+}
+.ops-stat strong.accent {
+  color: var(--accent);
+}
+.ops-stat strong.green {
+  color: var(--green);
+}
+.ops-stat span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Pipeline funnel (horizontal scroll of stage counts) */
+.ops-funnel {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 18px 4px;
+  scrollbar-width: none;
+}
+.ops-funnel::-webkit-scrollbar {
+  display: none;
+}
+.ops-stage {
+  flex-shrink: 0;
+  width: 96px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 10px;
+  text-align: center;
+}
+.ops-stage.on {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+}
+.ops-stage.on.done {
+  border-color: var(--green);
+  background: rgba(52, 199, 89, 0.12);
+}
+.ops-stage-n {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--faint);
+}
+.ops-stage.on .ops-stage-n {
+  color: var(--accent);
+}
+.ops-stage.on.done .ops-stage-n {
+  color: var(--green);
+}
+.ops-stage-l {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+  line-height: 1.25;
+}
+
+/* Order cards */
+.ops-list {
+  display: grid;
+  gap: 12px;
+  padding: 0 18px;
+}
+.ops-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.ops-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ops-id {
+  font-weight: 800;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.ops-eta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--accent-tint);
+  padding: 4px 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.ops-eta.done {
+  color: var(--green);
+  background: rgba(52, 199, 89, 0.14);
+}
+.ops-addr {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 8px;
+}
+.ops-addr svg {
+  flex-shrink: 0;
+}
+.ops-stagename {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--accent);
+  margin-top: 8px;
+}
+.ops-stagename.done {
+  color: var(--green);
+}
+.ops-pips {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+}
+.ops-pip {
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--surface-3);
+}
+.ops-pip.fill {
+  background: var(--accent);
+}
+.ops-pip.done {
+  background: var(--green);
+}
+.ops-pip.active {
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-tint);
+}

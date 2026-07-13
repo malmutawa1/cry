@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useStore, orderStage, STAGE_COUNT } from '../store'
+import { useStore, orderStage, STAGE_COUNT, STAGE_SECONDS } from '../store'
 import { useI18n } from '../i18n'
 import { useNow } from '../useNow'
 import {
@@ -8,6 +8,7 @@ import {
   defects,
   inspectors,
   kpis,
+  liveFleet,
   qc,
   qcChecklist,
   qcSeed,
@@ -16,7 +17,16 @@ import {
   type QcResult,
   type QcRecord,
 } from '../data/staff'
-import { Check, Close, Lock, Sliders } from '../components/Icons'
+import { Check, Clock, Close, Lock, Pin, Route, Sliders } from '../components/Icons'
+
+const CYCLE_MS = STAGE_COUNT * STAGE_SECONDS * 1000
+
+function formatCountdown(ms: number): string {
+  const total = Math.max(0, Math.round(ms / 1000))
+  const m = Math.floor(total / 60)
+  const s = total % 60
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
 
 /* ---------- Small building blocks ---------- */
 
@@ -182,6 +192,111 @@ function orderKg(id: string): number {
   return Math.round((4 + (n % 70) / 10) * 10) / 10
 }
 
+/* ---------- Live order board ---------- */
+
+interface BoardRow {
+  id: string
+  kg: number
+  address: string
+  createdAt: number
+  stage: number
+  delivered: boolean
+}
+
+function OrdersView({ lang }: { lang: 'en' | 'ar' }) {
+  const { t } = useI18n()
+  const { orders } = useStore()
+  const now = useNow(500)
+
+  const stageAt = (createdAt: number) =>
+    Math.min(STAGE_COUNT - 1, Math.floor((now - createdAt) / 1000 / STAGE_SECONDS))
+
+  const rows: BoardRow[] = useMemo(() => {
+    // Real orders coming from the customer app.
+    const fromApp: BoardRow[] = orders.map((o) => {
+      const stage = orderStage(o, now)
+      return { id: o.id, kg: orderKg(o.id), address: o.address, createdAt: o.createdAt, stage, delivered: stage >= STAGE_COUNT - 1 }
+    })
+    // Synthetic fleet that keeps cycling through the pipeline.
+    const fleet: BoardRow[] = liveFleet.map((lo) => {
+      const frac = ((now / CYCLE_MS) + lo.phase) % 1
+      const createdAt = now - frac * CYCLE_MS
+      const stage = stageAt(createdAt)
+      return { id: lo.id, kg: lo.kg, address: bi(lo.address, lang), createdAt, stage, delivered: stage >= STAGE_COUNT - 1 }
+    })
+    // Active orders first (closest to delivery on top), delivered last.
+    return [...fleet, ...fromApp].sort(
+      (a, b) => Number(a.delivered) - Number(b.delivered) || b.stage - a.stage,
+    )
+  }, [orders, now, lang])
+
+  const active = rows.filter((r) => !r.delivered).length
+  const delivered = rows.length - active
+  const counts = Array.from({ length: STAGE_COUNT }, (_, i) => rows.filter((r) => r.stage === i).length)
+
+  return (
+    <>
+      <div className="ops-summary">
+        <div className="ops-stat">
+          <strong className="accent">{active}</strong>
+          <span>{t('staff.orders.active')}</span>
+        </div>
+        <div className="ops-stat">
+          <strong className="green">{delivered}</strong>
+          <span>{t('staff.orders.delivered')}</span>
+        </div>
+      </div>
+
+      <div className="section-title staff-sec">{t('staff.orders.pipeline')}</div>
+      <div className="ops-funnel">
+        {counts.map((c, i) => (
+          <div key={i} className={`ops-stage ${c > 0 ? 'on' : ''} ${i === STAGE_COUNT - 1 ? 'done' : ''}`}>
+            <div className="ops-stage-n">{c}</div>
+            <div className="ops-stage-l">{t(`st.${i}.t`)}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="section-title staff-sec">{t('staff.orders.section')}</div>
+      <div className="ops-list">
+        {rows.map((r) => (
+          <div key={r.id} className="ops-card">
+            <div className="ops-top">
+              <span className="ops-id">{r.id}</span>
+              <span className={`ops-eta ${r.delivered ? 'done' : ''}`}>
+                {r.delivered ? (
+                  <>
+                    <Check size={13} /> {t('track.done')}
+                  </>
+                ) : (
+                  <>
+                    <Clock size={13} /> {formatCountdown(r.createdAt + CYCLE_MS - now)}
+                  </>
+                )}
+              </span>
+            </div>
+            <div className="ops-addr">
+              <Pin size={13} /> {r.address} · {r.kg} kg
+            </div>
+            <div className={`ops-stagename ${r.delivered ? 'done' : ''}`}>{t(`st.${r.stage}.t`)}</div>
+            <div className="ops-pips">
+              {Array.from({ length: STAGE_COUNT }).map((_, i) => (
+                <span
+                  key={i}
+                  className={`ops-pip ${i <= r.stage ? (r.delivered ? 'done' : 'fill') : ''} ${
+                    i === r.stage && !r.delivered ? 'active' : ''
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ height: 12 }} />
+    </>
+  )
+}
+
 function QcView({ lang }: { lang: 'en' | 'ar' }) {
   const { t } = useI18n()
   const { orders } = useStore()
@@ -307,7 +422,7 @@ function QcView({ lang }: { lang: 'en' | 'ar' }) {
 
 function StaffDashboard({ onExit }: { onExit: () => void }) {
   const { t, lang } = useI18n()
-  const [tab, setTab] = useState<'kpi' | 'qc'>('kpi')
+  const [tab, setTab] = useState<'kpi' | 'orders' | 'qc'>('kpi')
 
   return (
     <>
@@ -326,18 +441,22 @@ function StaffDashboard({ onExit }: { onExit: () => void }) {
 
       <div className="segmented staff-seg">
         <button className={`seg ${tab === 'kpi' ? 'on' : ''}`} onClick={() => setTab('kpi')}>
-          <Sliders size={18} />
+          <Sliders size={17} />
           {t('staff.tab.kpi')}
         </button>
+        <button className={`seg ${tab === 'orders' ? 'on' : ''}`} onClick={() => setTab('orders')}>
+          <Route size={17} />
+          {t('staff.tab.orders')}
+        </button>
         <button className={`seg ${tab === 'qc' ? 'on' : ''}`} onClick={() => setTab('qc')}>
-          <Check size={18} />
+          <Check size={17} />
           {t('staff.tab.qc')}
         </button>
       </div>
 
       <div className="screen">
         <div className="anim-in" key={tab}>
-          {tab === 'kpi' ? <KpiView lang={lang} /> : <QcView lang={lang} />}
+          {tab === 'kpi' ? <KpiView lang={lang} /> : tab === 'orders' ? <OrdersView lang={lang} /> : <QcView lang={lang} />}
         </div>
       </div>
     </>

@@ -38,6 +38,11 @@ stay in sync with live orders.
 - **KPIs** tab — orders processed, on-time delivery, average turnaround, rewash
   rate, active members and monthly revenue, plus a weekly throughput chart, an
   on-time delivery gauge, and facility-capacity usage.
+- **Orders** tab — a live order board tracking every order through the pickup →
+  delivery pipeline: active/delivered counts, a stage funnel, and per-order
+  cards with the current stage, live ETA countdown, and progress. Runs on the
+  same stage logic as the customer **Track** screen, so real app orders appear
+  alongside the moving fleet.
 - **Quality** tab — QC pass-rate ring, top defect types, a per-order QC
   checklist, recent inspections (pulled from live orders), and inspector
   performance.
