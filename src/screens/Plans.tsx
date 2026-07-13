@@ -121,7 +121,8 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
     const isSel = selected?.id === p.id
     const isCurrent = activePlan?.id === p.id
     return (
-      <button key={p.id} className={`plan-card ${isSel ? 'selected' : ''}`} onClick={() => setSelected(p)}>
+      <button key={p.id} className={`plan-card plan-${p.id} ${isSel ? 'selected' : ''}`} onClick={() => setSelected(p)}>
+        <span className="plan-fx" aria-hidden="true" />
         {isCurrent ? (
           <span className="badge-current">{t('plans.currentPlan')}</span>
         ) : (
