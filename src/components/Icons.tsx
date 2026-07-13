@@ -142,6 +142,12 @@ export const Moon = ({ size = 22, className }: P) => (
 export const Monitor = ({ size = 22, className }: P) => (
   <svg {...base(size, className)}><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></svg>
 )
+export const Gift = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><path d="M20 12v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8M2 8h20v4H2zM12 21V8M12 8S10.5 4 8 4a2 2 0 0 0 0 4h4M12 8s1.5-4 4-4a2 2 0 0 1 0 4h-4" /></svg>
+)
+export const Star = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><path d="M12 3l2.7 5.5 6 .9-4.3 4.2 1 6-5.4-2.8L6.6 19.6l1-6L3.3 9.4l6-.9L12 3Z" /></svg>
+)
 export const Male = ({ size = 22, className }: P) => (
   <svg {...base(size, className)}><circle cx="10" cy="14" r="6" /><path d="M14.5 9.5 20 4M20 4h-5M20 4v5" /></svg>
 )

@@ -89,7 +89,13 @@ interface Store {
   createOrder: () => string
   cancelOrder: () => void
   orders: Order[]
+
+  // loyalty
+  points: number
+  redeem: (cost: number) => boolean
 }
+
+export const POINTS_PER_PICKUP = 50
 
 const Ctx = createContext<Store | null>(null)
 
@@ -117,6 +123,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [payment, setPayment] = useState<PayMethod>('applepay')
   const [cards, setCards] = useState<Card[]>([])
   const [activeOrder, setActiveOrder] = useState<Order | null>(null)
+  const [points, setPoints] = useState(320)
   const DAY = 86400000
   const [orders, setOrders] = useState<Order[]>(() => {
     const base = { pickup: defaultPickup, delivery: defaultDelivery, address, phone }
@@ -183,10 +190,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const o: Order = { id, createdAt: Date.now(), pickup, delivery, address, phone }
       setActiveOrder(o)
       setOrders((prev) => [o, ...prev])
+      setPoints((p) => p + POINTS_PER_PICKUP)
       return id
     },
     cancelOrder: () => setActiveOrder(null),
     orders,
+    points,
+    redeem: (cost) => {
+      if (points < cost) return false
+      setPoints((p) => p - cost)
+      return true
+    },
   }
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
