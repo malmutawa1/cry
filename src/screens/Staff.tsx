@@ -17,7 +17,8 @@ import {
   type QcResult,
   type QcRecord,
 } from '../data/staff'
-import { Check, Clock, Close, Lock, Pin, Route, Sliders } from '../components/Icons'
+import { Car, Check, Chevron, Clock, Close, Lock, Phone, Pin, Route, Sliders } from '../components/Icons'
+import RouteMap from '../components/RouteMap'
 
 const CYCLE_MS = STAGE_COUNT * STAGE_SECONDS * 1000
 
@@ -26,6 +27,16 @@ function formatCountdown(ms: number): string {
   const m = Math.floor(total / 60)
   const s = total % 60
   return `${m}:${s.toString().padStart(2, '0')}`
+}
+
+function formatClock(ts: number, lang: string): string {
+  const d = new Date(ts)
+  let h = d.getHours()
+  const m = d.getMinutes().toString().padStart(2, '0')
+  const am = h < 12
+  h = h % 12 || 12
+  const suffix = lang === 'ar' ? (am ? 'ص' : 'م') : am ? 'AM' : 'PM'
+  return `${h}:${m} ${suffix}`
 }
 
 /* ---------- Small building blocks ---------- */
@@ -203,10 +214,100 @@ interface BoardRow {
   delivered: boolean
 }
 
+/** Per-order tracking view — the staff-side counterpart to the customer Track
+ *  screen: live map, current stage, driver, and the full stage timeline. */
+function StaffTrack({ row, lang, onBack }: { row: BoardRow; lang: 'en' | 'ar'; onBack: () => void }) {
+  const { t } = useI18n()
+  const now = useNow(250)
+
+  const elapsed = (now - row.createdAt) / 1000
+  const stage = Math.min(STAGE_COUNT - 1, Math.floor(elapsed / STAGE_SECONDS))
+  const frac = Math.max(0, Math.min(1, elapsed / STAGE_SECONDS - stage))
+  const delivered = stage >= STAGE_COUNT - 1
+  const etaTs = row.createdAt + CYCLE_MS
+  const driver = t('track.driver.name')
+
+  return (
+    <>
+      <button className="staff-track-back" onClick={onBack}>
+        <Close size={17} /> {t('staff.orders.back')}
+      </button>
+
+      <RouteMap stage={stage} frac={frac} />
+
+      <div className="track-head">
+        <div className="th-status">
+          <span className={`th-pulse ${delivered ? 'done' : ''}`} />
+          {row.id} · {t(`st.${stage}.t`)}
+        </div>
+        <div className="th-desc">{t(`st.${stage}.d`, { driver })}</div>
+        <div className="th-eta">
+          <span>{delivered ? t('track.done') : t('track.arriving')}</span>
+          <strong>{delivered ? formatClock(etaTs, lang) : formatCountdown(etaTs - now)}</strong>
+        </div>
+      </div>
+
+      {!delivered && (
+        <div className="driver-card">
+          <div className="dc-avatar"><Car size={24} /></div>
+          <div className="dc-body">
+            <div className="dc-label">{t('track.driver')}</div>
+            <div className="dc-name">{driver}</div>
+            <div className="dc-veh">{t('track.driver.vehicle')}</div>
+          </div>
+          <a className="dc-call" href="tel:+96541035032">
+            <Phone size={18} />
+            {t('track.call')}
+          </a>
+        </div>
+      )}
+
+      <div className="timeline">
+        {Array.from({ length: STAGE_COUNT }).map((_, i) => {
+          const state = i < stage ? 'done' : i === stage ? 'active' : 'todo'
+          const ts = row.createdAt + i * STAGE_SECONDS * 1000
+          return (
+            <div key={i} className={`tl-step ${state}`}>
+              <div className="tl-marker">
+                {state === 'done' ? <Check size={14} /> : <span className="tl-dot" />}
+                {i < STAGE_COUNT - 1 && <span className="tl-line" />}
+              </div>
+              <div className="tl-body">
+                <div className="tl-title">{t(`st.${i}.t`)}</div>
+                {state !== 'todo' && <div className="tl-desc">{t(`st.${i}.d`, { driver })}</div>}
+              </div>
+              {state !== 'todo' && <div className="tl-time">{formatClock(ts, lang)}</div>}
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="card-group">
+        <div className="row">
+          <span className="row-ic"><Pin /></span>
+          <span className="row-body">
+            <span className="label">{t('track.address')}</span>
+            <span className="value" style={{ whiteSpace: 'normal' }}>{row.address}</span>
+          </span>
+        </div>
+        <div className="row">
+          <span className="row-ic"><Route /></span>
+          <span className="row-body">
+            <span className="label">{t('staff.orders.weight')}</span>
+            <span className="value">{row.kg} kg</span>
+          </span>
+        </div>
+      </div>
+      <div style={{ height: 12 }} />
+    </>
+  )
+}
+
 function OrdersView({ lang }: { lang: 'en' | 'ar' }) {
   const { t } = useI18n()
   const { orders } = useStore()
   const now = useNow(500)
+  const [selected, setSelected] = useState<BoardRow | null>(null)
 
   const stageAt = (createdAt: number) =>
     Math.min(STAGE_COUNT - 1, Math.floor((now - createdAt) / 1000 / STAGE_SECONDS))
@@ -234,6 +335,8 @@ function OrdersView({ lang }: { lang: 'en' | 'ar' }) {
   const delivered = rows.length - active
   const counts = Array.from({ length: STAGE_COUNT }, (_, i) => rows.filter((r) => r.stage === i).length)
 
+  if (selected) return <StaffTrack row={selected} lang={lang} onBack={() => setSelected(null)} />
+
   return (
     <>
       <div className="ops-summary">
@@ -260,19 +363,22 @@ function OrdersView({ lang }: { lang: 'en' | 'ar' }) {
       <div className="section-title staff-sec">{t('staff.orders.section')}</div>
       <div className="ops-list">
         {rows.map((r) => (
-          <div key={r.id} className="ops-card">
+          <button key={r.id} className="ops-card" onClick={() => setSelected(r)}>
             <div className="ops-top">
               <span className="ops-id">{r.id}</span>
-              <span className={`ops-eta ${r.delivered ? 'done' : ''}`}>
-                {r.delivered ? (
-                  <>
-                    <Check size={13} /> {t('track.done')}
-                  </>
-                ) : (
-                  <>
-                    <Clock size={13} /> {formatCountdown(r.createdAt + CYCLE_MS - now)}
-                  </>
-                )}
+              <span className="ops-right">
+                <span className={`ops-eta ${r.delivered ? 'done' : ''}`}>
+                  {r.delivered ? (
+                    <>
+                      <Check size={13} /> {t('track.done')}
+                    </>
+                  ) : (
+                    <>
+                      <Clock size={13} /> {formatCountdown(r.createdAt + CYCLE_MS - now)}
+                    </>
+                  )}
+                </span>
+                <Chevron className="ops-chev" size={18} />
               </span>
             </div>
             <div className="ops-addr">
@@ -289,7 +395,7 @@ function OrdersView({ lang }: { lang: 'en' | 'ar' }) {
                 />
               ))}
             </div>
-          </div>
+          </button>
         ))}
       </div>
       <div style={{ height: 12 }} />

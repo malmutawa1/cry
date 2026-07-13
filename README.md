@@ -42,7 +42,8 @@ stay in sync with live orders.
   delivery pipeline: active/delivered counts, a stage funnel, and per-order
   cards with the current stage, live ETA countdown, and progress. Runs on the
   same stage logic as the customer **Track** screen, so real app orders appear
-  alongside the moving fleet.
+  alongside the moving fleet. **Tap any order** to open a staff-side tracking
+  view — live map, driver, ETA and the full stage timeline for that order.
 - **Quality** tab — QC pass-rate ring, top defect types, a per-order QC
   checklist, recent inspections (pulled from live orders), and inspector
   performance.

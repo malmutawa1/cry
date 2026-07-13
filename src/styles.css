@@ -2647,16 +2647,53 @@ button {
   padding: 0 18px;
 }
 .ops-card {
+  display: block;
+  width: 100%;
+  text-align: start;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 14px 16px;
+  transition: transform 0.13s ease, border-color 0.15s ease;
+}
+.ops-card:active {
+  transform: scale(0.98);
+  border-color: var(--accent);
 }
 .ops-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+.ops-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.ops-chev {
+  color: var(--faint);
+}
+[dir='rtl'] .ops-chev {
+  transform: scaleX(-1);
+}
+
+/* Staff track detail — back link */
+.staff-track-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 18px 10px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 14px;
+}
+.staff-track-back:active {
+  transform: scale(0.97);
 }
 .ops-id {
   font-weight: 800;
