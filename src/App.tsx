@@ -52,23 +52,25 @@ function Shell() {
           />
         ) : (
           <>
-            {tab === 'home' && (
-              <Home
-                onSchedule={() => setTab('pickup')}
-                onSeePlans={() => setTab('plans')}
-                onTrack={() => setTab('track')}
-              />
-            )}
-            {tab === 'plans' && <Plans onSubscribed={() => setTab('home')} />}
-            {tab === 'pickup' && (
-              <Pickup
-                onClose={() => setTab('home')}
-                onConfirm={confirmPickup}
-                onSeePlans={() => setTab('plans')}
-              />
-            )}
-            {tab === 'track' && <Track onSchedule={() => setTab('pickup')} />}
-            {tab === 'account' && <Account onSeePlans={() => setTab('plans')} onTrack={() => setTab('track')} />}
+            <div className="anim-in" key={tab}>
+              {tab === 'home' && (
+                <Home
+                  onSchedule={() => setTab('pickup')}
+                  onSeePlans={() => setTab('plans')}
+                  onTrack={() => setTab('track')}
+                />
+              )}
+              {tab === 'plans' && <Plans onSubscribed={() => setTab('home')} />}
+              {tab === 'pickup' && (
+                <Pickup
+                  onClose={() => setTab('home')}
+                  onConfirm={confirmPickup}
+                  onSeePlans={() => setTab('plans')}
+                />
+              )}
+              {tab === 'track' && <Track onSchedule={() => setTab('pickup')} />}
+              {tab === 'account' && <Account onSeePlans={() => setTab('plans')} onTrack={() => setTab('track')} />}
+            </div>
 
             <nav className="nav">
               {nav.map((n) => (

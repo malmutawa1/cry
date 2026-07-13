@@ -1996,3 +1996,88 @@ textarea.field {
   text-align: center;
   margin-bottom: 16px;
 }
+
+/* ---------- Transitions ---------- */
+.anim-in {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  animation: fadeUp 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* tactile press feedback */
+.btn-primary,
+.btn-ghost,
+.btn-apple,
+.round-btn,
+.ex-add,
+.dc-call,
+.chip,
+.seg,
+.row,
+.pay-row,
+.opt-row,
+.svc-card,
+.item-card,
+.track-card,
+.extra-banner,
+.link-btn,
+.nav button {
+  transition: transform 0.13s ease, background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+.plan-card {
+  transition: transform 0.13s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.btn-primary:active,
+.btn-ghost:active,
+.btn-apple:active,
+.round-btn:active,
+.ex-add:active,
+.dc-call:active,
+.chip:active,
+.seg:active,
+.row:active,
+.pay-row:active,
+.opt-row:active,
+.svc-card:active,
+.item-card:active,
+.plan-card:active,
+.track-card:active,
+.extra-banner:active,
+.link-btn:active,
+.nav button:active {
+  transform: scale(0.97);
+}
+.btn-primary:disabled:active,
+.btn-ghost:disabled:active {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-in,
+  .sheet,
+  .overlay,
+  .success .check-ring,
+  .map-pulse,
+  .th-pulse {
+    animation: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
