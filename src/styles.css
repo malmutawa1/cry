@@ -2169,3 +2169,10 @@ button {
   font-size: 13px;
   margin-top: 2px;
 }
+
+.field-err {
+  color: #f0595d;
+  font-size: 13px;
+  font-weight: 600;
+  margin: -4px 2px 6px;
+}

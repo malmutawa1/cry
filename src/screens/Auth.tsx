@@ -4,8 +4,8 @@ import { useI18n } from '../i18n'
 import LocationPicker from '../components/LocationPicker'
 import { Apple, Check, Close, Globe, Lock, Mail, Phone, Pin, User as UserIcon } from '../components/Icons'
 
-type Step = 'details' | 'emailOtp' | 'phoneOtp' | 'location'
-const STEPS: Step[] = ['details', 'emailOtp', 'phoneOtp', 'location']
+type Step = 'name' | 'email' | 'phone' | 'password' | 'emailOtp' | 'phoneOtp' | 'location'
+const STEPS: Step[] = ['name', 'email', 'phone', 'password', 'emailOtp', 'phoneOtp', 'location']
 
 function Otp({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const refs = useRef<(HTMLInputElement | null)[]>([])
@@ -40,10 +40,11 @@ export default function Auth() {
   const { signup, login, loginWithApple, setPhone, setAddress } = useStore()
   const { t, toggle } = useI18n()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
-  const [step, setStep] = useState<Step>('details')
+  const [step, setStep] = useState<Step>('name')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [phone, setPhoneVal] = useState('')
   const [emailCode, setEmailCode] = useState('')
   const [phoneCode, setPhoneCode] = useState('')
@@ -52,23 +53,25 @@ export default function Auth() {
 
   const emailOk = /.+@.+\..+/.test(email)
   const phoneOk = phone.replace(/\D/g, '').length >= 8
-  const detailsOk = name.trim().length > 0 && emailOk && password.length >= 4 && phoneOk
+  const passwordOk = password.length >= 4 && password === confirm
 
   function switchMode(m: 'login' | 'signup') {
     setMode(m)
-    setStep('details')
+    setStep('name')
   }
-
+  function goNext() {
+    const i = STEPS.indexOf(step)
+    if (i < STEPS.length - 1) setStep(STEPS[i + 1])
+  }
   function back() {
     const i = STEPS.indexOf(step)
     if (i > 0) setStep(STEPS[i - 1])
     else switchMode('login')
   }
-
   function finish() {
     setPhone(phone)
     if (locAddress) setAddress(locAddress)
-    signup(name, email) // sets the user and flags needsPlan → plans screen opens
+    signup(name, email) // sets user + flags needsPlan → plans screen opens
   }
 
   if (showMap) {
@@ -143,34 +146,69 @@ export default function Auth() {
           </div>
         )}
 
-        {/* ---------- SIGNUP: details ---------- */}
-        {isSignup && step === 'details' && (
+        {/* ---------- SIGNUP: name ---------- */}
+        {isSignup && step === 'name' && (
           <div className="auth">
-            <h2 className="auth-title">{t('auth.signup.title')}</h2>
-            <p className="auth-sub">{t('auth.signup.sub')}</p>
-
+            <h2 className="auth-title">{t('auth.q.name')}</h2>
+            <p className="auth-sub">{t('auth.q.name.sub')}</p>
             <label className="input">
               <UserIcon className="in-ic" size={20} />
-              <input placeholder={t('auth.name')} value={name} onChange={(e) => setName(e.target.value)} />
+              <input placeholder={t('auth.name')} value={name} onChange={(e) => setName(e.target.value)} autoFocus />
             </label>
-            <label className="input">
-              <Mail className="in-ic" size={20} />
-              <input type="email" inputMode="email" placeholder={t('auth.email')} value={email} onChange={(e) => setEmail(e.target.value)} />
-            </label>
-            <label className="input">
-              <Phone className="in-ic" size={20} />
-              <input type="tel" inputMode="tel" placeholder={t('auth.phone')} value={phone} onChange={(e) => setPhoneVal(e.target.value)} />
-            </label>
-            <label className="input">
-              <Lock className="in-ic" size={20} />
-              <input type="password" placeholder={t('auth.password')} value={password} onChange={(e) => setPassword(e.target.value)} />
-            </label>
-
-            <button className="btn-primary" disabled={!detailsOk} onClick={() => setStep('emailOtp')} style={{ marginTop: 6 }}>
+            <button className="btn-primary" disabled={name.trim().length === 0} onClick={goNext} style={{ marginTop: 6 }}>
               {t('auth.continue')}
             </button>
             <button className="link-btn" onClick={() => switchMode('login')}>{t('auth.toLogin')}</button>
-            <p className="auth-terms">{t('auth.terms')}</p>
+          </div>
+        )}
+
+        {/* ---------- SIGNUP: email ---------- */}
+        {isSignup && step === 'email' && (
+          <div className="auth">
+            <h2 className="auth-title">{t('auth.q.email')}</h2>
+            <p className="auth-sub">{t('auth.q.email.sub')}</p>
+            <label className="input">
+              <Mail className="in-ic" size={20} />
+              <input type="email" inputMode="email" placeholder={t('auth.email')} value={email} onChange={(e) => setEmail(e.target.value)} autoFocus />
+            </label>
+            <button className="btn-primary" disabled={!emailOk} onClick={goNext} style={{ marginTop: 6 }}>
+              {t('auth.continue')}
+            </button>
+          </div>
+        )}
+
+        {/* ---------- SIGNUP: phone ---------- */}
+        {isSignup && step === 'phone' && (
+          <div className="auth">
+            <h2 className="auth-title">{t('auth.q.phone')}</h2>
+            <p className="auth-sub">{t('auth.q.phone.sub')}</p>
+            <label className="input">
+              <Phone className="in-ic" size={20} />
+              <input type="tel" inputMode="tel" dir="ltr" placeholder={t('auth.phone')} value={phone} onChange={(e) => setPhoneVal(e.target.value)} autoFocus />
+            </label>
+            <button className="btn-primary" disabled={!phoneOk} onClick={goNext} style={{ marginTop: 6 }}>
+              {t('auth.continue')}
+            </button>
+          </div>
+        )}
+
+        {/* ---------- SIGNUP: password ---------- */}
+        {isSignup && step === 'password' && (
+          <div className="auth">
+            <h2 className="auth-title">{t('auth.q.password')}</h2>
+            <p className="auth-sub">{t('auth.q.password.sub')}</p>
+            <label className="input">
+              <Lock className="in-ic" size={20} />
+              <input type="password" placeholder={t('auth.password')} value={password} onChange={(e) => setPassword(e.target.value)} autoFocus />
+            </label>
+            <label className="input">
+              <Lock className="in-ic" size={20} />
+              <input type="password" placeholder={t('auth.confirm')} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+            </label>
+            {confirm.length > 0 && password !== confirm && <p className="field-err">{t('auth.mismatch')}</p>}
+            <button className="btn-primary" disabled={!passwordOk} onClick={goNext} style={{ marginTop: 6 }}>
+              {t('auth.continue')}
+            </button>
           </div>
         )}
 
@@ -181,7 +219,7 @@ export default function Auth() {
             <p className="auth-sub">{t('auth.email.otp.sub', { email })}</p>
             <Otp value={emailCode} onChange={setEmailCode} />
             <p className="otp-demo">{t('auth.otp.demo')}</p>
-            <button className="btn-primary" disabled={!/^\d{4}$/.test(emailCode)} onClick={() => setStep('phoneOtp')}>
+            <button className="btn-primary" disabled={!/^\d{4}$/.test(emailCode)} onClick={goNext}>
               {t('auth.verify')}
             </button>
             <button className="link-btn" onClick={() => setEmailCode('')}>{t('auth.otp.resend')}</button>
@@ -195,7 +233,7 @@ export default function Auth() {
             <p className="auth-sub" dir="auto">{t('auth.phone.otp.sub', { phone })}</p>
             <Otp value={phoneCode} onChange={setPhoneCode} />
             <p className="otp-demo">{t('auth.otp.demo')}</p>
-            <button className="btn-primary" disabled={!/^\d{4}$/.test(phoneCode)} onClick={() => setStep('location')}>
+            <button className="btn-primary" disabled={!/^\d{4}$/.test(phoneCode)} onClick={goNext}>
               {t('auth.verify')}
             </button>
             <button className="link-btn" onClick={() => setPhoneCode('')}>{t('auth.otp.resend')}</button>
@@ -207,7 +245,6 @@ export default function Auth() {
           <div className="auth">
             <h2 className="auth-title">{t('auth.loc.title')}</h2>
             <p className="auth-sub">{t('auth.loc.sub')}</p>
-
             <button className="loc-choose" onClick={() => setShowMap(true)}>
               <span className={`lc-ic ${locAddress ? 'done' : ''}`}>{locAddress ? <Check size={20} /> : <Pin size={20} />}</span>
               <span className="lc-body">
@@ -215,7 +252,6 @@ export default function Auth() {
                 {locAddress && <span className="lc-sub">{t('auth.loc.change')}</span>}
               </span>
             </button>
-
             <button className="btn-primary" disabled={!locAddress} onClick={finish} style={{ marginTop: 6 }}>
               {t('auth.finish')}
             </button>
