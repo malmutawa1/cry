@@ -8,6 +8,7 @@ interface Bubble {
   sway: number
   hue: number
   tilt: number
+  rise: number
 }
 
 const rnd = (min: number, max: number) => min + Math.random() * (max - min)
@@ -18,11 +19,13 @@ function makeBubbles(): Bubble[] {
   return Array.from({ length: count }, () => ({
     size: Math.round(rnd(20, 96)),
     left: Math.round(rnd(-4, 100)),
-    delay: +rnd(0, 2.2).toFixed(2),
-    dur: +rnd(5, 10).toFixed(2),
+    delay: +rnd(0, 1.4).toFixed(2),
+    dur: +rnd(3, 5.5).toFixed(2),
     sway: Math.round(rnd(-46, 46)),
     hue: Math.round(rnd(-14, 14)),
     tilt: Math.round(rnd(-45, 45)),
+    // how high it floats before it pops
+    rise: Math.round(rnd(35, 88)),
   }))
 }
 
@@ -33,8 +36,8 @@ export default function Welcome({ onStart }: { onStart: () => void }) {
 
   // Auto-advance: play the splash, fade out, then continue.
   useEffect(() => {
-    const fadeOut = setTimeout(() => setLeaving(true), 2600)
-    const done = setTimeout(onStart, 3300)
+    const fadeOut = setTimeout(() => setLeaving(true), 3600)
+    const done = setTimeout(onStart, 4300)
     return () => {
       clearTimeout(fadeOut)
       clearTimeout(done)
@@ -57,6 +60,7 @@ export default function Welcome({ onStart }: { onStart: () => void }) {
                 '--sway': `${b.sway}px`,
                 '--hue': `${b.hue}deg`,
                 '--tilt': `${b.tilt}deg`,
+                '--rise': `-${b.rise}vh`,
               } as React.CSSProperties
             }
           />
