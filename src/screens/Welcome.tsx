@@ -9,6 +9,7 @@ interface Bubble {
   hue: number
   tilt: number
   rise: number
+  pop: boolean
 }
 
 const rnd = (min: number, max: number) => min + Math.random() * (max - min)
@@ -16,7 +17,7 @@ const rnd = (min: number, max: number) => min + Math.random() * (max - min)
 function makeBubbles(): Bubble[] {
   // Random count too, so every app entry looks different.
   const count = Math.round(rnd(26, 42))
-  return Array.from({ length: count }, () => ({
+  const bubbles = Array.from({ length: count }, () => ({
     size: Math.round(rnd(20, 96)),
     left: Math.round(rnd(-4, 100)),
     delay: +rnd(0, 1.4).toFixed(2),
@@ -26,7 +27,14 @@ function makeBubbles(): Bubble[] {
     tilt: Math.round(rnd(-45, 45)),
     // how high it floats before it pops
     rise: Math.round(rnd(35, 88)),
+    pop: false,
   }))
+  // Only a few (3–4) bubbles actually pop; the rest just float away.
+  const popCount = Math.round(rnd(3, 4))
+  const idx = new Set<number>()
+  while (idx.size < Math.min(popCount, bubbles.length)) idx.add(Math.floor(Math.random() * bubbles.length))
+  idx.forEach((i) => (bubbles[i].pop = true))
+  return bubbles
 }
 
 export default function Welcome({ onStart }: { onStart: () => void }) {
@@ -50,7 +58,7 @@ export default function Welcome({ onStart }: { onStart: () => void }) {
         {bubbles.map((b, i) => (
           <span
             key={i}
-            className="bubble"
+            className={`bubble${b.pop ? ' pop' : ''}`}
             style={
               {
                 '--size': `${b.size}px`,
