@@ -2,10 +2,10 @@ import { useRef, useState } from 'react'
 import { useStore } from '../store'
 import { useI18n } from '../i18n'
 import LocationPicker from '../components/LocationPicker'
-import { Apple, Check, Close, Globe, Lock, Mail, Phone, Pin, User as UserIcon } from '../components/Icons'
+import { Apple, Check, Close, Female, Globe, Lock, Mail, Male, Phone, Pin, User as UserIcon } from '../components/Icons'
 
-type Step = 'name' | 'email' | 'phone' | 'password' | 'emailOtp' | 'phoneOtp' | 'location'
-const STEPS: Step[] = ['name', 'email', 'phone', 'password', 'emailOtp', 'phoneOtp', 'location']
+type Step = 'gender' | 'name' | 'email' | 'phone' | 'password' | 'emailOtp' | 'phoneOtp' | 'location'
+const STEPS: Step[] = ['gender', 'name', 'email', 'phone', 'password', 'emailOtp', 'phoneOtp', 'location']
 
 function Otp({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const refs = useRef<(HTMLInputElement | null)[]>([])
@@ -37,10 +37,11 @@ function Otp({ value, onChange }: { value: string; onChange: (v: string) => void
 }
 
 export default function Auth({ onStaff }: { onStaff: () => void }) {
-  const { signup, login, loginWithApple, setPhone, setAddress } = useStore()
+  const { signup, login, loginWithApple, setPhone, setAddress, theme, setTheme } = useStore()
   const { t, toggle } = useI18n()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
-  const [step, setStep] = useState<Step>('name')
+  const [step, setStep] = useState<Step>('gender')
+  const [gender, setGender] = useState<'male' | 'female' | null>(theme === 'dark' ? null : theme)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -58,7 +59,15 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
 
   function switchMode(m: 'login' | 'signup') {
     setMode(m)
-    setStep('name')
+    setStep('gender')
+    if (m === 'login') {
+      setGender(null)
+      setTheme('dark')
+    }
+  }
+  function selectGender(g: 'male' | 'female') {
+    setGender(g)
+    setTheme(g) // theme (white + pink/blue) applies live
   }
   function goNext() {
     const i = STEPS.indexOf(step)
@@ -175,6 +184,28 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
           </div>
         )}
 
+        {/* ---------- SIGNUP: gender ---------- */}
+        {isSignup && step === 'gender' && (
+          <div className="auth">
+            <h2 className="auth-title">{t('auth.q.gender')}</h2>
+            <p className="auth-sub">{t('auth.q.gender.sub')}</p>
+            <div className="gender-grid">
+              <button className={`gender-card male-card ${gender === 'male' ? 'sel' : ''}`} onClick={() => selectGender('male')}>
+                <span className="g-ic"><Male size={28} /></span>
+                {t('gender.male')}
+              </button>
+              <button className={`gender-card female-card ${gender === 'female' ? 'sel' : ''}`} onClick={() => selectGender('female')}>
+                <span className="g-ic"><Female size={28} /></span>
+                {t('gender.female')}
+              </button>
+            </div>
+            <button className="btn-primary" disabled={!gender} onClick={goNext} style={{ marginTop: 6 }}>
+              {t('auth.continue')}
+            </button>
+            <button className="link-btn" onClick={() => switchMode('login')}>{t('auth.toLogin')}</button>
+          </div>
+        )}
+
         {/* ---------- SIGNUP: name ---------- */}
         {isSignup && step === 'name' && (
           <div className="auth">
@@ -187,7 +218,6 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
             <button className="btn-primary" disabled={name.trim().length === 0} onClick={goNext} style={{ marginTop: 6 }}>
               {t('auth.continue')}
             </button>
-            <button className="link-btn" onClick={() => switchMode('login')}>{t('auth.toLogin')}</button>
           </div>
         )}
 

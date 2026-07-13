@@ -94,6 +94,7 @@ button {
   justify-content: center;
   background: radial-gradient(circle at 50% 0%, #1a1a20 0%, #060608 60%);
   padding: 0;
+  color: var(--text);
 }
 .phone {
   position: relative;
@@ -2757,4 +2758,105 @@ button {
 .ops-pip.active {
   background: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-tint);
+}
+
+/* ---------- Gender themes (light) ---------- */
+.app-shell.light {
+  --surface: #f3f4f7;
+  --surface-2: #eceef2;
+  --surface-3: #e1e4ea;
+  --line: #e2e5ea;
+  --text: #14151a;
+  --muted: #676a72;
+  --faint: #a6a9b1;
+  --info: #e6edf7;
+  background: radial-gradient(circle at 50% 0%, #eef1f6 0%, #dde1e8 60%);
+}
+.app-shell[data-theme='male'] {
+  --bg: #ffffff;
+  --accent: #2ba6f0;
+  --accent-strong: #1f8fd8;
+  --accent-ink: #ffffff;
+  --accent-tint: #e6f4fe;
+  --accent-glow: rgba(43, 166, 240, 0.3);
+}
+.app-shell[data-theme='female'] {
+  --bg: #ffffff;
+  --accent: #f2589e;
+  --accent-strong: #db3f88;
+  --accent-ink: #ffffff;
+  --accent-tint: #fdeaf3;
+  --accent-glow: rgba(242, 88, 158, 0.32);
+}
+
+/* light-theme component fixes (dark-only surfaces) */
+.app-shell.light .hero-card,
+.app-shell.light .track-card,
+.app-shell.light .checkout-card {
+  background: var(--surface);
+  border-color: var(--line);
+}
+.app-shell.light .info-banner {
+  color: #3a4a63;
+}
+.app-shell.light .info-banner.leaf {
+  background: #e4f6ea;
+  color: #1e7a45;
+}
+.app-shell.light .perks li {
+  color: #3a3b42;
+}
+.app-shell.light .btn-apple {
+  background: #111214;
+  color: #fff;
+}
+.app-shell.light .grabber {
+  background: #cfd3da;
+}
+.app-shell.light .chip.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ---------- Gender picker cards ---------- */
+.gender-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+.gender-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 26px 12px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 2px solid var(--line);
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--text);
+}
+.gender-card .g-ic {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  display: grid;
+  place-items: center;
+}
+.male-card .g-ic {
+  color: #2ba6f0;
+}
+.female-card .g-ic {
+  color: #f2589e;
+}
+.gender-card.sel {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+}
+.gender-card.sel .g-ic {
+  background: var(--accent);
+  color: var(--accent-ink);
 }
