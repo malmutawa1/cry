@@ -3686,3 +3686,108 @@ button {
 }
 .frozen-banner .fb-body { flex: 1; text-align: start; font-size: 14px; }
 .frozen-banner .fb-cta { font-size: 13px; font-weight: 700; }
+
+/* ===================== Active membership on Plans ===================== */
+.mem-card {
+  border: 1.5px solid var(--accent, #2f79c4);
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 20px;
+  background: var(--accent-tint, rgba(47, 121, 196, 0.08));
+  box-shadow: 0 10px 26px var(--accent-glow, rgba(47, 121, 196, 0.18));
+}
+.mem-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.mem-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent, #2f79c4);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.mem-name { margin-top: 8px; font-size: 24px; font-weight: 800; color: var(--text); }
+.mem-period { margin-top: 2px; font-size: 13px; color: var(--muted); }
+.mem-price { text-align: end; white-space: nowrap; }
+.mem-price strong { font-size: 26px; font-weight: 800; color: var(--text); }
+.mem-price span { display: block; font-size: 11.5px; color: var(--muted); }
+.mem-card .plan-cap { display: inline-block; margin: 12px 0 4px; }
+
+.mem-annual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 13px;
+  border: none;
+  border-radius: 13px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, #2fa864 0%, #1f8f52 100%);
+  box-shadow: 0 8px 18px rgba(31, 143, 82, 0.32);
+}
+.mem-annual-on {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: rgba(47, 168, 100, 0.14);
+  color: #1f8f52;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+.mem-cancel {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 6px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* current-plan badge on a plan card */
+.badge-current {
+  position: absolute;
+  top: -11px;
+  inset-inline-start: 18px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--accent, #2f79c4);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+/* refund / cancellation policy quote */
+.policy {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--surface-2, rgba(140, 150, 165, 0.1));
+  border: 1px solid var(--line);
+}
+.policy-mark {
+  font-size: 40px;
+  line-height: 0.9;
+  font-weight: 800;
+  color: var(--accent, #2f79c4);
+  flex: none;
+}
+.policy-title { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 3px; }
+.policy-body { margin: 0; font-size: 12.7px; line-height: 1.5; color: var(--muted); }
