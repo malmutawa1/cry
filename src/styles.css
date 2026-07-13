@@ -3803,10 +3803,11 @@ button {
   border-radius: 14px;
   font-size: 14.5px;
   font-weight: 800;
-  color: #14432a;
+  /* clean light button; text tinted per tier so it fits any card */
+  color: var(--annual-ink, #1f5c96);
   cursor: pointer;
-  background: linear-gradient(135deg, #d8f7c9 0%, #7fe0a6 55%, #46cf8b 100%);
-  box-shadow: 0 10px 22px rgba(20, 120, 70, 0.4);
+  background: linear-gradient(135deg, #ffffff 0%, #eef4fb 100%);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
   transition: transform 0.15s ease;
 }
 .mem-annual:hover { transform: translateY(-1px); }
@@ -3820,10 +3821,14 @@ button {
   width: 45%;
   height: 100%;
   z-index: 0;
-  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  background: linear-gradient(100deg, transparent, rgba(150, 175, 210, 0.4), transparent);
   transform: skewX(-18deg);
   animation: mem-shine 3.4s ease-in-out infinite;
 }
+/* text tint matched to each tier's card colour */
+.mem-basic, .mem-standard { --annual-ink: var(--accent, #1f5c96); }
+.mem-premium { --annual-ink: #4b41be; }
+.mem-family-plus { --annual-ink: #8a6413; }
 .mem-annual-on {
   display: flex;
   align-items: center;
