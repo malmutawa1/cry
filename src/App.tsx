@@ -19,7 +19,7 @@ function Shell() {
   const [order, setOrder] = useState<string | null>(null)
   const [staff, setStaff] = useState(false)
   const { t, dir } = useI18n()
-  const { user, createOrder, needsPlan, clearNeedsPlan } = useStore()
+  const { user, createOrder, needsPlan, clearNeedsPlan, theme } = useStore()
 
   // After a fresh sign-up, open the subscriptions screen automatically.
   useEffect(() => {
@@ -42,7 +42,7 @@ function Shell() {
   ]
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${theme === 'dark' ? '' : 'light'}`} data-theme={theme}>
       <div className="phone" dir={dir}>
         <StatusBar />
 

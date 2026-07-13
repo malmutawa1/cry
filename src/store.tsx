@@ -7,6 +7,8 @@ export interface User {
   email: string
 }
 
+export type Theme = 'dark' | 'male' | 'female'
+
 export interface Card {
   id: string
   brand: string
@@ -45,6 +47,9 @@ interface Store {
   /** true right after a fresh sign-up, so the app can open the plans screen */
   needsPlan: boolean
   clearNeedsPlan: () => void
+  /** visual theme, chosen by gender at sign-up */
+  theme: Theme
+  setTheme: (t: Theme) => void
 
   // subscription
   activePlan: Plan | null
@@ -94,6 +99,7 @@ function nameFromEmail(email: string): string {
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [needsPlan, setNeedsPlan] = useState(false)
+  const [theme, setTheme] = useState<Theme>('dark')
   const [activePlan, setActivePlan] = useState<Plan | null>(null)
   const [billing, setBilling] = useState<Billing>('monthly')
   const [extraKg, setExtraKg] = useState(0)
@@ -133,9 +139,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setNeedsPlan(true)
     },
     loginWithApple: () => setUser(APPLE_RELAY),
-    logout: () => setUser(null),
+    logout: () => {
+      setUser(null)
+      setTheme('dark')
+    },
     needsPlan,
     clearNeedsPlan: () => setNeedsPlan(false),
+    theme,
+    setTheme,
     activePlan,
     setActivePlan,
     billing,

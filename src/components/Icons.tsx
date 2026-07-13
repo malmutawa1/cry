@@ -133,3 +133,9 @@ export const Route = ({ size = 22, className }: P) => (
 export const Locate = ({ size = 22, className }: P) => (
   <svg {...base(size, className)}><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
 )
+export const Male = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><circle cx="10" cy="14" r="6" /><path d="M14.5 9.5 20 4M20 4h-5M20 4v5" /></svg>
+)
+export const Female = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><circle cx="12" cy="9" r="6" /><path d="M12 15v7M9 19h6" /></svg>
+)
