@@ -3379,6 +3379,11 @@ button {
   /* per-bubble colour shift so each entry looks unique */
   filter: hue-rotate(var(--hue, 0deg));
   opacity: 0;
+  /* most bubbles simply float up and off-screen */
+  animation: bubble-rise var(--dur) linear var(--delay) infinite;
+}
+/* only a chosen few actually pop */
+.bubble.pop {
   animation: bubble-pop var(--dur) ease-in var(--delay) infinite;
 }
 /* big glossy anime highlight (top-left) */
@@ -3405,7 +3410,16 @@ button {
   background: rgba(255, 255, 255, 0.95);
 }
 
-/* Float up, then POP: the bubble swells and bursts into an expanding ring. */
+/* Most bubbles: drift up and off the top. */
+@keyframes bubble-rise {
+  0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
+  8% { opacity: 1; }
+  50% { transform: translate(var(--sway), -55vh) scale(1); }
+  92% { opacity: 0.95; }
+  100% { transform: translate(calc(var(--sway) * -1), -112vh) scale(1.05); opacity: 0; }
+}
+
+/* A chosen few: float up, then POP — swell and burst into an expanding ring. */
 @keyframes bubble-pop {
   0% {
     transform: translate(0, 0) scale(0.6);
