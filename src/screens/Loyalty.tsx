@@ -76,7 +76,7 @@ export default function Loyalty({ onBack }: { onBack: () => void }) {
 
       <div className="screen">
         {/* balance card — tap to view all tiers */}
-        <button className="loy-hero" onClick={() => setView('tiers')}>
+        <button className={`loy-hero tier-${current.key}`} onClick={() => setView('tiers')}>
           <div className="loy-top">
             <span className="loy-tier">
               <Star size={14} /> {t(`loyalty.tier.${current.key}`)}

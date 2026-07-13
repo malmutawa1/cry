@@ -3218,3 +3218,98 @@ button {
   font-weight: 700;
   font-size: 13px;
 }
+
+/* ---------- Tier-colored balance card + ambient animation ---------- */
+.loy-hero {
+  --loy-fg: #fff;
+  position: relative;
+  overflow: hidden;
+  color: var(--loy-fg);
+  background-size: 200% 200%;
+  animation: loy-drift 9s ease-in-out infinite alternate;
+  box-shadow: 0 12px 34px var(--loy-glow, rgba(0, 0, 0, 0.25));
+}
+.loy-hero > * {
+  position: relative;
+  z-index: 1;
+}
+/* moving shine sweep */
+.loy-hero::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -60%;
+  width: 55%;
+  height: 160%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: skewX(-18deg);
+  z-index: 0;
+  pointer-events: none;
+  animation: loy-shine 5.5s ease-in-out infinite;
+}
+/* ambient floating glow */
+.loy-hero::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -15%;
+  width: 70%;
+  height: 150%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.28), transparent 68%);
+  z-index: 0;
+  pointer-events: none;
+  animation: loy-float 6s ease-in-out infinite alternate;
+}
+.loy-hero .loy-tier {
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+.loy-hero .loy-bar {
+  background: color-mix(in srgb, currentColor 26%, transparent);
+}
+.loy-hero .loy-bar > span {
+  background: currentColor;
+  opacity: 0.95;
+}
+
+.loy-hero.tier-bronze {
+  background-image: linear-gradient(135deg, #e6ac6e, #b06a2c 55%, #85491b);
+  --loy-fg: #fff;
+  --loy-glow: rgba(176, 106, 44, 0.42);
+}
+.loy-hero.tier-silver {
+  background-image: linear-gradient(135deg, #eef1f5, #c2cad4 45%, #97a1af);
+  --loy-fg: #2b323c;
+  --loy-glow: rgba(150, 162, 178, 0.45);
+}
+.loy-hero.tier-gold {
+  background-image: linear-gradient(135deg, #ffe38f, #eab63f 48%, #cc9622);
+  --loy-fg: #4a3608;
+  --loy-glow: rgba(214, 175, 55, 0.5);
+}
+
+@keyframes loy-shine {
+  0% { left: -60%; }
+  55%, 100% { left: 130%; }
+}
+@keyframes loy-float {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-12%, 9%); }
+}
+@keyframes loy-drift {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+
+/* Home rewards card tinted to the tier colour */
+.loy-card.tier-bronze .loy-card-pts { color: #b06a2c; }
+.loy-card.tier-bronze .loy-card-ic { background: rgba(176, 106, 44, 0.14); color: #b06a2c; }
+.loy-card.tier-silver .loy-card-pts { color: #6f7a89; }
+.loy-card.tier-silver .loy-card-ic { background: rgba(150, 162, 178, 0.18); color: #6f7a89; }
+.loy-card.tier-gold .loy-card-pts { color: #b8901f; }
+.loy-card.tier-gold .loy-card-ic { background: rgba(214, 175, 55, 0.18); color: #b8901f; }
+
+@media (prefers-reduced-motion: reduce) {
+  .loy-hero { animation: none !important; }
+  .loy-hero::before,
+  .loy-hero::after { display: none; }
+}
