@@ -43,7 +43,20 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
   const [step, setStep] = useState<Step>('gender')
   const [gender, setGender] = useState<'male' | 'female' | null>(null)
   const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const [remember, setRemember] = useState(() => {
+    try {
+      return localStorage.getItem('pressd.remember') === '1'
+    } catch {
+      return false
+    }
+  })
+  const [email, setEmail] = useState(() => {
+    try {
+      return localStorage.getItem('pressd.remember') === '1' ? localStorage.getItem('pressd.email') || '' : ''
+    } catch {
+      return ''
+    }
+  })
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [phone, setPhoneVal] = useState('')
@@ -84,6 +97,20 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
     setPhone(phone)
     if (locAddress) setAddress(locAddress)
     signup(name, email) // sets user + flags needsPlan → plans screen opens
+  }
+  function doLogin() {
+    try {
+      if (remember) {
+        localStorage.setItem('pressd.remember', '1')
+        localStorage.setItem('pressd.email', email)
+      } else {
+        localStorage.removeItem('pressd.remember')
+        localStorage.removeItem('pressd.email')
+      }
+    } catch {
+      /* storage unavailable — ignore */
+    }
+    login(email)
   }
 
   const firstName = name.trim().split(/\s+/)[0] || name.trim()
@@ -171,7 +198,13 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
               <input type="password" placeholder={t('auth.password')} value={password} onChange={(e) => setPassword(e.target.value)} />
             </label>
 
-            <button className="btn-primary" disabled={!(emailOk && password.length >= 4)} onClick={() => login(email)} style={{ marginTop: 6 }}>
+            <label className="remember">
+              <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+              <span className="rem-box">{remember && <Check size={13} />}</span>
+              <span>{t('auth.remember')}</span>
+            </label>
+
+            <button className="btn-primary" disabled={!(emailOk && password.length >= 4)} onClick={doLogin} style={{ marginTop: 6 }}>
               {t('auth.login.cta')}
             </button>
 

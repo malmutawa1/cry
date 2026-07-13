@@ -3540,3 +3540,149 @@ button {
   .drop { animation: none; opacity: 0; }
   .welcome-mark { animation: none; }
 }
+
+/* ===================== Linked account features ===================== */
+
+/* toast — brief action confirmation */
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: 80%;
+  padding: 11px 18px;
+  border-radius: 14px;
+  background: rgba(20, 28, 40, 0.94);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+  animation: toast-in 0.28s ease both;
+}
+.app-shell[data-mode='light'] .toast {
+  background: var(--accent, #2f79c4);
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* remember me checkbox on login */
+.remember {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 2px 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted, #6a7686);
+  cursor: pointer;
+}
+.remember input { position: absolute; opacity: 0; width: 0; height: 0; }
+.remember .rem-box {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 2px solid var(--line, #d5dde7);
+  color: #fff;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.remember input:checked + .rem-box {
+  background: var(--accent, #2f79c4);
+  border-color: var(--accent, #2f79c4);
+}
+
+/* small field caption above inputs */
+.field-label {
+  display: block;
+  margin: 12px 2px 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted, #6a7686);
+}
+
+/* saved address card */
+.addr-card {
+  border: 1px solid var(--line, #e2e8f0);
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: var(--surface, #fff);
+}
+.addr-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent, #2f79c4);
+}
+.addr-text { margin: 8px 0 0; font-size: 15px; line-height: 1.45; color: var(--text); }
+
+/* refer sheet */
+.refer-hero { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+.refer-ic {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  flex: none;
+  border-radius: 16px;
+  background: var(--accent-tint, rgba(47, 121, 196, 0.12));
+  color: var(--accent, #2f79c4);
+}
+.refer-code {
+  margin-bottom: 14px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 2px dashed var(--accent, #2f79c4);
+  background: var(--accent-tint, rgba(47, 121, 196, 0.08));
+  color: var(--accent, #2f79c4);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+/* freeze action / warning button */
+.btn-warn {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #b4630a;
+  background: rgba(240, 160, 40, 0.16);
+  cursor: pointer;
+}
+
+/* frozen membership banner */
+.frozen-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 13px 15px;
+  border: none;
+  border-radius: 16px;
+  background: rgba(240, 160, 40, 0.14);
+  color: #a9600a;
+  font-weight: 600;
+  cursor: pointer;
+}
+.frozen-banner .fb-ic {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  background: rgba(240, 160, 40, 0.22);
+}
+.frozen-banner .fb-body { flex: 1; text-align: start; font-size: 14px; }
+.frozen-banner .fb-cta { font-size: 13px; font-weight: 700; }

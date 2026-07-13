@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { useStore } from '../store'
 import { useI18n } from '../i18n'
 import { planName, planPrice } from '../data/plans'
-import { PaymentSheet } from '../components/Payment'
+import { PaymentSheet, PaymentValue } from '../components/Payment'
 import { ExtraKgBanner, ExtraKgSheet, useAllowance } from '../components/ExtraKg'
-import { Cards, Chevron, Clock, Gift, Globe, Leaf, Logout, Pin, Receipt, Sun, User } from '../components/Icons'
+import { Cards, Chevron, Clock, Gift, Globe, Leaf, Logout, Pin, Receipt, Star, Sun, User } from '../components/Icons'
+import { ReferSheet, FreezeSheet } from '../components/AccountSheets'
 import History from './History'
 import Display from './Display'
+import Personal from './Personal'
+import Addresses from './Addresses'
 
 export default function Account({
   onSeePlans,
@@ -17,11 +20,13 @@ export default function Account({
   onTrack: () => void
   onRewards: () => void
 }) {
-  const { activePlan, billing, user, logout, mode, points } = useStore()
+  const { activePlan, billing, user, logout, mode, points, credit, freeMonths, frozen } = useStore()
   const { t, lang, toggle } = useI18n()
   const [payOpen, setPayOpen] = useState(false)
   const [extraOpen, setExtraOpen] = useState(false)
-  const [view, setView] = useState<'main' | 'history' | 'display'>('main')
+  const [referOpen, setReferOpen] = useState(false)
+  const [freezeOpen, setFreezeOpen] = useState(false)
+  const [view, setView] = useState<'main' | 'history' | 'display' | 'personal' | 'addresses'>('main')
   const { usedKg, allowance, atLimit, pct } = useAllowance()
 
   if (view === 'history')
@@ -34,6 +39,18 @@ export default function Account({
     return (
       <div className="anim-in" key="display">
         <Display onBack={() => setView('main')} />
+      </div>
+    )
+  if (view === 'personal')
+    return (
+      <div className="anim-in" key="personal">
+        <Personal onBack={() => setView('main')} />
+      </div>
+    )
+  if (view === 'addresses')
+    return (
+      <div className="anim-in" key="addresses">
+        <Addresses onBack={() => setView('main')} />
       </div>
     )
   const initial = (user?.name || 'A').trim().charAt(0).toUpperCase()
@@ -85,21 +102,53 @@ export default function Account({
           </div>
         )}
 
+        {frozen && (
+          <button className="frozen-banner" onClick={() => setFreezeOpen(true)}>
+            <span className="fb-ic"><Clock size={18} /></span>
+            <span className="fb-body">{t('freeze.banner')}</span>
+            <span className="fb-cta">{t('freeze.banner.cta')} ›</span>
+          </button>
+        )}
+
         {atLimit && <ExtraKgBanner onClick={() => setExtraOpen(true)} />}
+
+        {(credit > 0 || freeMonths > 0) && (
+          <div className="card-group">
+            {credit > 0 && (
+              <div className="row">
+                <span className="row-ic"><Gift size={20} /></span>
+                <span className="row-body"><span className="value" style={{ fontWeight: 600 }}>{t('account.credit')}</span></span>
+                <span className="row-value">{t('account.credit.value', { n: credit })}</span>
+              </div>
+            )}
+            {freeMonths > 0 && (
+              <div className="row">
+                <span className="row-ic"><Star size={20} /></span>
+                <span className="row-body"><span className="value" style={{ fontWeight: 600 }}>{t('account.freeMonths')}</span></span>
+                <span className="row-value">{t('account.freeMonths.value', { n: freeMonths })}</span>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="card-group">
           <AcctRow icon={<Globe />} label={t('account.language')} value={t('account.lang.value')} onClick={toggle} />
           <AcctRow icon={<Sun />} label={t('account.display')} value={t(`display.${mode}`)} onClick={() => setView('display')} />
-          <AcctRow icon={<Cards />} label={t('account.payment')} onClick={() => setPayOpen(true)} />
+          <AcctRow icon={<Cards />} label={t('account.payment')} value={<PaymentValue />} onClick={() => setPayOpen(true)} />
           <AcctRow icon={<Gift />} label={t('account.rewards')} value={`${points} ${t('loyalty.pts')}`} onClick={onRewards} />
           <AcctRow icon={<Receipt />} label={t('account.orders')} onClick={() => setView('history')} />
-          <AcctRow icon={<Pin />} label={t('account.addresses')} />
-          <AcctRow icon={<Clock />} label={t('account.freeze')} />
+          <AcctRow icon={<Pin />} label={t('account.addresses')} onClick={() => setView('addresses')} />
+          <AcctRow
+            icon={<Clock />}
+            label={t('account.freeze')}
+            value={frozen ? t('freeze.status') : undefined}
+            onClick={() => setFreezeOpen(true)}
+          />
         </div>
 
         <div className="card-group">
-          <AcctRow icon={<User />} label={t('account.personal')} />
-          <AcctRow icon={<Leaf />} label={t('account.refer')} />
+          <AcctRow icon={<User />} label={t('account.personal')} onClick={() => setView('personal')} />
+          <AcctRow icon={<Leaf />} label={t('account.refer')} onClick={() => setReferOpen(true)} />
         </div>
 
         <div className="card-group">
@@ -110,6 +159,8 @@ export default function Account({
 
       {payOpen && <PaymentSheet onClose={() => setPayOpen(false)} />}
       {extraOpen && <ExtraKgSheet onClose={() => setExtraOpen(false)} />}
+      {referOpen && <ReferSheet onClose={() => setReferOpen(false)} />}
+      {freezeOpen && <FreezeSheet onClose={() => setFreezeOpen(false)} />}
     </div>
   )
 }
@@ -123,7 +174,7 @@ function AcctRow({
 }: {
   icon: React.ReactNode
   label: string
-  value?: string
+  value?: React.ReactNode
   onClick?: () => void
   danger?: boolean
 }) {
