@@ -130,3 +130,6 @@ export const Car = ({ size = 22, className }: P) => (
 export const Route = ({ size = 22, className }: P) => (
   <svg {...base(size, className)}><circle cx="6" cy="19" r="2.5" /><circle cx="18" cy="5" r="2.5" /><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5" /></svg>
 )
+export const Locate = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
+)

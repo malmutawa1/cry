@@ -3,6 +3,7 @@ import { useStore } from '../store'
 import { useI18n } from '../i18n'
 import { pickupSlots, deliverySlots, slotLabel, type Slot } from '../data/slots'
 import { Toggle } from '../components/Common'
+import LocationPicker from '../components/LocationPicker'
 import {
   CalendarIn,
   CalendarOut,
@@ -156,7 +157,11 @@ export default function Pickup({
         />
       )}
       {sheet === 'address' && (
-        <EditSheet title={t('sheet.address')} value={s.address} onSave={(v) => { s.setAddress(v); setSheet(null) }} onClose={() => setSheet(null)} />
+        <LocationPicker
+          initialAddress={s.address}
+          onSelect={(addr) => { s.setAddress(addr); setSheet(null) }}
+          onClose={() => setSheet(null)}
+        />
       )}
       {sheet === 'phone' && (
         <EditSheet title={t('sheet.phone')} value={s.phone} onSave={(v) => { s.setPhone(v); setSheet(null) }} onClose={() => setSheet(null)} />
