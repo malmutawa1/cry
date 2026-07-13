@@ -3706,7 +3706,15 @@ button {
   animation: mem-drift 10s ease-in-out infinite alternate;
   box-shadow: 0 18px 40px var(--accent-glow, rgba(47, 121, 196, 0.4));
 }
-.mem-card > * { position: relative; z-index: 2; }
+.mem-card > :not(.mem-fx) { position: relative; z-index: 2; }
+.mem-fx {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
 /* moving shine sweep */
 .mem-card::before {
   content: '';
@@ -4023,4 +4031,61 @@ button {
   .plan-premium .plan-fx::after,
   .plan-family-plus .plan-fx::before,
   .plan-family-plus .plan-fx::after { animation: none; }
+}
+
+/* ===================== Per-tier active membership card ===================== */
+/* Basic — calm & clean: dim the ambient texture, no shine sweep */
+.mem-basic { animation-duration: 14s; }
+.mem-basic::before { display: none; }
+.mem-basic::after { opacity: 0.5; animation-duration: 20s; }
+
+/* Standard — light & airy: extra drifting bubbles over the accent card */
+.mem-standard .mem-fx {
+  background-image:
+    radial-gradient(circle at 16% 34%, rgba(255, 255, 255, 0.28) 0 10px, transparent 11px),
+    radial-gradient(circle at 84% 24%, rgba(255, 255, 255, 0.2) 0 15px, transparent 16px),
+    radial-gradient(circle at 60% 70%, rgba(255, 255, 255, 0.18) 0 8px, transparent 9px),
+    radial-gradient(circle at 38% 84%, rgba(255, 255, 255, 0.16) 0 6px, transparent 7px);
+  animation: mem-bubbles 12s ease-in-out infinite alternate-reverse;
+}
+
+/* Premium — rich indigo sheen with a fine diagonal weave */
+.mem-premium {
+  background:
+    linear-gradient(135deg, #8385f5 0%, #4b41be 50%, #2b2570 100%);
+  background-size: 190% 190%;
+  box-shadow: 0 18px 40px rgba(75, 65, 190, 0.5);
+}
+.mem-premium .mem-fx {
+  background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0 2px, transparent 2px 11px);
+}
+
+/* Family Plus — luxurious gold with twinkling sparkles + warm shimmer */
+.mem-family-plus {
+  background:
+    linear-gradient(135deg, #eecb6b 0%, #b78a2f 46%, #7c581a 100%);
+  background-size: 190% 190%;
+  box-shadow: 0 20px 44px rgba(176, 138, 44, 0.55);
+}
+.mem-family-plus::before {
+  /* warm gold shine instead of plain white */
+  background: linear-gradient(100deg, transparent, rgba(255, 240, 190, 0.55), transparent);
+}
+.mem-family-plus .mem-fx::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 22% 30%, rgba(255, 248, 214, 0.95) 0 2px, transparent 2.8px),
+    radial-gradient(circle at 74% 22%, rgba(255, 248, 214, 0.85) 0 2px, transparent 2.8px),
+    radial-gradient(circle at 55% 60%, rgba(255, 248, 214, 0.9) 0 2px, transparent 2.8px),
+    radial-gradient(circle at 88% 68%, rgba(255, 248, 214, 0.8) 0 2px, transparent 2.8px),
+    radial-gradient(circle at 33% 82%, rgba(255, 248, 214, 0.78) 0 2px, transparent 2.8px),
+    radial-gradient(circle at 12% 62%, rgba(255, 248, 214, 0.82) 0 2px, transparent 2.8px);
+  animation: fx-twinkle 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mem-standard .mem-fx,
+  .mem-family-plus .mem-fx::before { animation: none; }
 }
