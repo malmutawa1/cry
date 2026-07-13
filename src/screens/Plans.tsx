@@ -184,8 +184,9 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
       <div className="screen">
         {subscribed && activePlan ? (
           <>
-            {/* Active membership summary */}
-            <div className="mem-card">
+            {/* Active membership summary — themed to the subscribed tier */}
+            <div className={`mem-card mem-${activePlan.id}`}>
+              <span className="mem-fx" aria-hidden="true" />
               <div className="mem-top">
                 <div>
                   <span className="mem-tag">{t('plans.currentTag')}</span>
