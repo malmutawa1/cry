@@ -3382,10 +3382,6 @@ button {
   /* most bubbles simply float up and off-screen */
   animation: bubble-rise var(--dur) linear var(--delay) infinite;
 }
-/* only a chosen few actually pop */
-.bubble.pop {
-  animation: bubble-pop var(--dur) ease-in var(--delay) infinite;
-}
 /* big glossy anime highlight (top-left) */
 .bubble::after {
   content: '';
@@ -3419,36 +3415,83 @@ button {
   100% { transform: translate(calc(var(--sway) * -1), -112vh) scale(1.05); opacity: 0; }
 }
 
-/* A chosen few: float up, then POP — swell and burst into an expanding ring. */
-@keyframes bubble-pop {
+/* ---- the chosen few that POP ---- */
+/* wrapper rises up to the pop point (no opacity of its own, so the
+   droplets it holds keep their own fade) */
+.popper {
+  position: absolute;
+  bottom: -120px;
+  left: var(--left);
+  width: var(--size);
+  height: var(--size);
+  animation: pop-rise var(--dur) linear var(--delay) infinite;
+}
+/* the shell inside the popper: swells, then bursts into a ring */
+.popper > .bubble.burst {
+  position: absolute;
+  inset: 0;
+  left: auto;
+  bottom: auto;
+  width: 100%;
+  height: 100%;
+  animation: bubble-burst var(--dur) ease-in var(--delay) infinite;
+}
+/* droplet splash layer, centred on the shell */
+.splash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.drop {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--dsize);
+  height: var(--dsize);
+  margin: calc(var(--dsize) / -2) 0 0 calc(var(--dsize) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #ffffff 0%, #bfe6fb 45%, #8fd0f7 100%);
+  box-shadow: 0 1px 3px rgba(96, 172, 230, 0.4);
+  opacity: 0;
+  animation: drop-fly var(--dur) ease-out var(--delay) infinite;
+}
+
+@keyframes pop-rise {
+  0% { transform: translate(0, 0); }
+  72%, 100% { transform: translate(var(--sway), var(--rise)); }
+}
+
+/* shell swells then vanishes, leaving an expanding ring */
+@keyframes bubble-burst {
   0% {
-    transform: translate(0, 0) scale(0.6);
+    transform: scale(0.6);
     opacity: 0;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 4px 14px rgba(96, 172, 230, 0.28), 0 0 0 0 rgba(143, 208, 247, 0);
   }
   10% { opacity: 1; }
-  /* rise to its pop point */
   72% {
-    transform: translate(var(--sway), var(--rise)) scale(1);
+    transform: scale(1);
     opacity: 1;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 4px 14px rgba(96, 172, 230, 0.28), 0 0 0 0 rgba(143, 208, 247, 0);
   }
-  /* swell just before bursting */
-  82% {
-    transform: translate(var(--sway), var(--rise)) scale(1.28);
-    opacity: 0.9;
-  }
-  /* burst — shell vanishes, splash ring blows outward */
+  82% { transform: scale(1.3); opacity: 0.9; }
   90% {
-    transform: translate(var(--sway), var(--rise)) scale(1.5);
+    transform: scale(1.6);
     opacity: 0;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0), 0 0 0 0 rgba(143, 208, 247, 0), 0 0 0 10px rgba(143, 208, 247, 0.4);
   }
   100% {
-    transform: translate(var(--sway), var(--rise)) scale(1.5);
+    transform: scale(1.6);
     opacity: 0;
     box-shadow: 0 0 0 22px rgba(143, 208, 247, 0);
   }
+}
+
+/* droplets stay hidden through the rise, then burst outward at pop time */
+@keyframes drop-fly {
+  0%, 78% { transform: translate(0, 0) scale(0.3); opacity: 0; }
+  84% { transform: translate(calc(var(--dx) * 0.5), calc(var(--dy) * 0.5)) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
 }
 
 /* --- centred brand mark --- */
@@ -3492,5 +3535,8 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .welcome, .welcome.leaving { animation-duration: 0.01s; }
   .bubble { animation: none; opacity: 0.5; }
+  .popper { animation: none; }
+  .popper > .bubble.burst { animation: none; opacity: 0.5; }
+  .drop { animation: none; opacity: 0; }
   .welcome-mark { animation: none; }
 }
