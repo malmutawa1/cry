@@ -10,12 +10,14 @@ import Pickup from './screens/Pickup'
 import Track from './screens/Track'
 import Account from './screens/Account'
 import Success from './screens/Success'
+import Staff from './screens/Staff'
 
 type Tab = 'home' | 'plans' | 'pickup' | 'track' | 'account'
 
 function Shell() {
   const [tab, setTab] = useState<Tab>('home')
   const [order, setOrder] = useState<string | null>(null)
+  const [staff, setStaff] = useState(false)
   const { t, dir } = useI18n()
   const { user, createOrder, needsPlan, clearNeedsPlan } = useStore()
 
@@ -44,8 +46,10 @@ function Shell() {
       <div className="phone" dir={dir}>
         <StatusBar />
 
-        {!user ? (
-          <Auth />
+        {staff ? (
+          <Staff onExit={() => setStaff(false)} />
+        ) : !user ? (
+          <Auth onStaff={() => setStaff(true)} />
         ) : order ? (
           <Success
             orderId={order}

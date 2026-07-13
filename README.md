@@ -27,6 +27,22 @@ and set **Source: GitHub Actions**. The next push (or a manual run of the
 | **Pickup** | Address, pick-up & delivery scheduling, contact, hangers toggle, note, and confirm — covered by the subscription (no basket) |
 | **Confirmation** | Pickup confirmed with pick-up / delivery / plan summary |
 | **Account** | Membership usage, **language toggle**, order history, saved addresses, payment, freeze subscription |
+| **Staff portal** | Staff-only operations dashboard for **KPIs & quality control** — reached via *Staff portal* on the login screen (demo passcode `2468`) |
+
+### Staff portal
+
+A back-of-house view for the facility team, gated behind a passcode on the login
+screen. It reads the same order data the customer app produces, so inspections
+stay in sync with live orders.
+
+- **KPIs** tab — orders processed, on-time delivery, average turnaround, rewash
+  rate, active members and monthly revenue, plus a weekly throughput chart, an
+  on-time delivery gauge, and facility-capacity usage.
+- **Quality** tab — QC pass-rate ring, top defect types, a per-order QC
+  checklist, recent inspections (pulled from live orders), and inspector
+  performance.
+
+Fully bilingual with RTL, matching the rest of the app.
 
 ### Language
 
@@ -63,9 +79,9 @@ npm run preview
 
 ```
 src/
-  data/        # plans (bilingual) & time slots (from the study)
+  data/        # plans & time slots (from the study), staff KPI / QC data
   components/  # icon set, StatusBar / Toggle
-  screens/     # Home, Plans, Pickup, Success, Account
+  screens/     # Home, Plans, Pickup, Success, Account, Staff (staff-only)
   i18n.tsx     # language context + en/ar translations + direction
   store.tsx    # scheduling + subscription context
   App.tsx      # phone frame, tab navigation, RTL wiring

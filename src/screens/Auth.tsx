@@ -36,7 +36,7 @@ function Otp({ value, onChange }: { value: string; onChange: (v: string) => void
   )
 }
 
-export default function Auth() {
+export default function Auth({ onStaff }: { onStaff: () => void }) {
   const { signup, login, loginWithApple, setPhone, setAddress } = useStore()
   const { t, toggle } = useI18n()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
@@ -171,6 +171,7 @@ export default function Auth() {
             </button>
             <button className="link-btn" onClick={() => switchMode('signup')}>{t('auth.toSignup')}</button>
             <p className="auth-terms">{t('auth.terms')}</p>
+            <button className="staff-link" onClick={onStaff}>{t('auth.staff')}</button>
           </div>
         )}
 
