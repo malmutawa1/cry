@@ -2081,3 +2081,91 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------- Signup wizard ---------- */
+.step-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  transition: background 0.2s, width 0.2s;
+}
+.step-dot.on {
+  background: var(--accent);
+  width: 18px;
+}
+.otp {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 10px 0 8px;
+}
+.otp-box {
+  width: 60px;
+  height: 68px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 800;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--text);
+  font-family: inherit;
+}
+.otp-box:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-tint);
+}
+.otp-demo {
+  text-align: center;
+  color: var(--faint);
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+.loc-choose {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  text-align: start;
+  margin-bottom: 4px;
+}
+.lc-ic {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent-tint);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.lc-ic.done {
+  background: rgba(52, 199, 89, 0.16);
+  color: var(--green);
+}
+.lc-body {
+  min-width: 0;
+  flex: 1;
+}
+.lc-title {
+  display: block;
+  font-weight: 700;
+  font-size: 16px;
+}
+.lc-sub {
+  display: block;
+  color: var(--accent);
+  font-size: 13px;
+  margin-top: 2px;
+}

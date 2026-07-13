@@ -42,6 +42,9 @@ interface Store {
   signup: (name: string, email: string) => void
   loginWithApple: () => void
   logout: () => void
+  /** true right after a fresh sign-up, so the app can open the plans screen */
+  needsPlan: boolean
+  clearNeedsPlan: () => void
 
   // subscription
   activePlan: Plan | null
@@ -90,6 +93,7 @@ function nameFromEmail(email: string): string {
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+  const [needsPlan, setNeedsPlan] = useState(false)
   const [activePlan, setActivePlan] = useState<Plan | null>(null)
   const [billing, setBilling] = useState<Billing>('monthly')
   const [extraKg, setExtraKg] = useState(0)
@@ -124,9 +128,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const value: Store = {
     user,
     login: (email) => setUser({ name: nameFromEmail(email), email }),
-    signup: (name, email) => setUser({ name: name.trim() || nameFromEmail(email), email }),
+    signup: (name, email) => {
+      setUser({ name: name.trim() || nameFromEmail(email), email })
+      setNeedsPlan(true)
+    },
     loginWithApple: () => setUser(APPLE_RELAY),
     logout: () => setUser(null),
+    needsPlan,
+    clearNeedsPlan: () => setNeedsPlan(false),
     activePlan,
     setActivePlan,
     billing,

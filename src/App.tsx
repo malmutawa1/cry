@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { StatusBar } from './components/Common'
 import { Bag, Cards, Home as HomeIcon, Route, User } from './components/Icons'
 import { StoreProvider, useStore } from './store'
@@ -17,7 +17,15 @@ function Shell() {
   const [tab, setTab] = useState<Tab>('home')
   const [order, setOrder] = useState<string | null>(null)
   const { t, dir } = useI18n()
-  const { user, createOrder } = useStore()
+  const { user, createOrder, needsPlan, clearNeedsPlan } = useStore()
+
+  // After a fresh sign-up, open the subscriptions screen automatically.
+  useEffect(() => {
+    if (needsPlan) {
+      setTab('plans')
+      clearNeedsPlan()
+    }
+  }, [needsPlan, clearNeedsPlan])
 
   function confirmPickup() {
     setOrder(createOrder())
