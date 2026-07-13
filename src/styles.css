@@ -1944,3 +1944,55 @@ textarea.field {
   font-weight: 800;
   font-size: 15px;
 }
+
+/* ---------- Extra kg trigger banner + popup ---------- */
+.extra-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 36px);
+  margin: 0 18px 16px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: rgba(240, 89, 93, 0.1);
+  border: 1px solid rgba(240, 89, 93, 0.35);
+  text-align: start;
+}
+.eb-ic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(240, 89, 93, 0.18);
+  color: #f0595d;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.eb-body {
+  flex: 1;
+  min-width: 0;
+}
+.eb-title {
+  display: block;
+  font-weight: 800;
+  font-size: 15px;
+}
+.eb-sub {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 1px;
+}
+.eb-cta {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 14px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.extra-sheet-sub {
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 16px;
+}
