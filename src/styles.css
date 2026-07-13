@@ -3898,3 +3898,129 @@ button {
 }
 .policy-title { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 3px; }
 .policy-body { margin: 0; font-size: 12.7px; line-height: 1.5; color: var(--muted); }
+
+/* ===================== Per-tier plan textures & animation ===================== */
+.plan-card { isolation: isolate; }
+.plan-fx {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.plan-card > :not(.plan-fx) { position: relative; z-index: 1; }
+.badge-pop, .badge-current { z-index: 2; }
+
+/* --- Basic: clean & light, a soft breathing wash --- */
+.plan-basic .plan-fx {
+  background: radial-gradient(130% 90% at 100% 0%, rgba(90, 170, 235, 0.1), transparent 55%);
+  animation: fx-breathe 6s ease-in-out infinite;
+}
+
+/* --- Standard: light & airy, drifting soap bubbles + faint shine --- */
+.plan-standard .plan-fx {
+  background: radial-gradient(120% 85% at 0% 100%, rgba(76, 196, 255, 0.12), transparent 55%);
+}
+.plan-standard .plan-fx::before {
+  content: '';
+  position: absolute;
+  inset: -12%;
+  background-image:
+    radial-gradient(circle at 15% 30%, rgba(120, 195, 245, 0.22) 0 6px, transparent 7px),
+    radial-gradient(circle at 80% 20%, rgba(120, 195, 245, 0.16) 0 9px, transparent 10px),
+    radial-gradient(circle at 62% 74%, rgba(120, 195, 245, 0.14) 0 5px, transparent 6px),
+    radial-gradient(circle at 35% 60%, rgba(120, 195, 245, 0.12) 0 4px, transparent 5px);
+  animation: fx-bubbles 11s ease-in-out infinite alternate;
+}
+.plan-standard .plan-fx::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -60%;
+  width: 42%;
+  height: 160%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transform: skewX(-18deg);
+  animation: fx-shine 6.5s ease-in-out infinite;
+}
+
+/* --- Premium: rich sheen, fine diagonal weave + metallic shine --- */
+.plan-premium {
+  border-color: rgba(99, 102, 241, 0.42);
+}
+.plan-premium .plan-fx {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(37, 99, 235, 0.06) 60%, transparent);
+}
+.plan-premium .plan-fx::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(135deg, rgba(120, 120, 190, 0.07) 0 2px, transparent 2px 9px);
+}
+.plan-premium .plan-fx::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -60%;
+  width: 44%;
+  height: 160%;
+  background: linear-gradient(100deg, transparent, rgba(185, 195, 255, 0.34), transparent);
+  transform: skewX(-18deg);
+  animation: fx-shine 5s ease-in-out infinite;
+}
+
+/* --- Family Plus: luxurious gold, twinkling sparkles + gold shimmer --- */
+.plan-family-plus {
+  border-color: rgba(214, 175, 55, 0.55);
+  box-shadow: 0 10px 26px rgba(214, 175, 55, 0.16);
+}
+.plan-family-plus .plan-fx {
+  background:
+    linear-gradient(135deg, rgba(214, 175, 55, 0.18), rgba(255, 215, 120, 0.06) 55%, transparent),
+    radial-gradient(120% 90% at 100% 0%, rgba(214, 175, 55, 0.14), transparent 60%);
+}
+.plan-family-plus .plan-fx::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 28%, rgba(255, 240, 190, 0.95) 0 1.6px, transparent 2.4px),
+    radial-gradient(circle at 72% 22%, rgba(255, 240, 190, 0.85) 0 1.6px, transparent 2.4px),
+    radial-gradient(circle at 45% 68%, rgba(255, 240, 190, 0.9) 0 1.6px, transparent 2.4px),
+    radial-gradient(circle at 86% 62%, rgba(255, 240, 190, 0.8) 0 1.6px, transparent 2.4px),
+    radial-gradient(circle at 30% 86%, rgba(255, 240, 190, 0.75) 0 1.6px, transparent 2.4px),
+    radial-gradient(circle at 60% 44%, rgba(255, 240, 190, 0.7) 0 1.6px, transparent 2.4px);
+  animation: fx-twinkle 2.6s ease-in-out infinite;
+}
+.plan-family-plus .plan-fx::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -60%;
+  width: 40%;
+  height: 160%;
+  background: linear-gradient(100deg, transparent, rgba(255, 225, 150, 0.48), transparent);
+  transform: skewX(-18deg);
+  animation: fx-shine 4.2s ease-in-out infinite;
+}
+
+/* keep the selection highlight winning over per-tier borders */
+.plan-card.selected {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+}
+
+@keyframes fx-breathe { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+@keyframes fx-bubbles { from { transform: translate(0, 0); } to { transform: translate(-5%, -8%); } }
+@keyframes fx-shine { 0% { left: -60%; } 55%, 100% { left: 130%; } }
+@keyframes fx-twinkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-basic .plan-fx,
+  .plan-standard .plan-fx::before,
+  .plan-standard .plan-fx::after,
+  .plan-premium .plan-fx::after,
+  .plan-family-plus .plan-fx::before,
+  .plan-family-plus .plan-fx::after { animation: none; }
+}
