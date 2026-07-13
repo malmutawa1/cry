@@ -49,6 +49,33 @@ const en: Dict = {
   'checkout.method': 'Payment method',
   'checkout.pay': 'Pay {price}.000 KWD',
   'checkout.secure': 'Secured payment · cancel anytime',
+  'checkout.update': 'Confirm {price}.000 KWD',
+
+  // active membership on the Plans screen
+  'plans.current': 'Your membership',
+  'plans.currentTag': 'Active',
+  'plans.currentPlan': 'Current plan',
+  'plans.currentCta': 'This is your current plan',
+  'plans.changeTitle': 'Upgrade or change plan',
+  'plans.makeAnnual': 'Switch to annual — save {pct}%',
+  'plans.annualActive': "You're saving with annual billing",
+  'plans.upgradeTo': 'Upgrade to {name}',
+  'plans.switchTo': 'Switch to {name}',
+  'plans.cancelLink': 'Cancel membership',
+
+  // refund / cancellation policy
+  'policy.title': 'Cancel anytime',
+  'policy.body':
+    'You can cancel your membership whenever you like. A full refund is available within 3 days of billing and only while no laundry has been picked up. Once any kilograms have been collected — or more than 3 days have passed in the cycle — the current period is non-refundable.',
+  'cancel.title': 'Cancel membership?',
+  'cancel.sub': 'Your allowance stays active until the end of the current cycle.',
+  'cancel.confirm': 'Cancel membership',
+  'cancel.keep': 'Keep my membership',
+
+  // toasts
+  'toast.planUpdated': 'Membership updated to {name}',
+  'toast.annualOn': 'Switched to annual billing',
+  'toast.cancelled': 'Membership cancelled',
 
   'history.title': 'Order history',
   'history.empty.title': 'No orders yet',
@@ -414,6 +441,33 @@ const ar: Dict = {
   'checkout.method': 'طريقة الدفع',
   'checkout.pay': 'ادفع {price}٫٠٠٠ د.ك',
   'checkout.secure': 'دفع آمن · إلغاء في أي وقت',
+  'checkout.update': 'تأكيد {price}٫٠٠٠ د.ك',
+
+  // active membership on the Plans screen
+  'plans.current': 'عضويتك',
+  'plans.currentTag': 'نشِطة',
+  'plans.currentPlan': 'الباقة الحالية',
+  'plans.currentCta': 'هذه باقتك الحالية',
+  'plans.changeTitle': 'ترقية أو تغيير الباقة',
+  'plans.makeAnnual': 'التحويل إلى السنوي — وفّر {pct}٪',
+  'plans.annualActive': 'أنت توفّر مع الدفع السنوي',
+  'plans.upgradeTo': 'الترقية إلى {name}',
+  'plans.switchTo': 'التغيير إلى {name}',
+  'plans.cancelLink': 'إلغاء العضوية',
+
+  // refund / cancellation policy
+  'policy.title': 'إلغاء في أي وقت',
+  'policy.body':
+    'يمكنك إلغاء عضويتك متى شئت. يتوفّر استرداد كامل خلال 3 أيام من الفوترة وطالما لم يتم استلام أي غسيل. بمجرد استلام أي كيلوجرامات — أو مرور أكثر من 3 أيام في الدورة — تصبح الفترة الحالية غير قابلة للاسترداد.',
+  'cancel.title': 'إلغاء العضوية؟',
+  'cancel.sub': 'تبقى كميتك نشطة حتى نهاية الدورة الحالية.',
+  'cancel.confirm': 'إلغاء العضوية',
+  'cancel.keep': 'الاحتفاظ بعضويتي',
+
+  // toasts
+  'toast.planUpdated': 'تم تحديث العضوية إلى {name}',
+  'toast.annualOn': 'تم التحويل إلى الدفع السنوي',
+  'toast.cancelled': 'تم إلغاء العضوية',
 
   'history.title': 'سجل الطلبات',
   'history.empty.title': 'لا توجد طلبات بعد',
