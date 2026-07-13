@@ -24,7 +24,7 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
   if (view === 'checkout' && activePlan) {
     const price = planPrice(activePlan, billing)
     return (
-      <>
+      <div className="anim-in" key="checkout">
         <div className="topbar">
           <button className="round-btn" onClick={() => setView('select')} aria-label="Back">
             <Close />
@@ -66,13 +66,13 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
         </div>
 
         {payOpen && <PaymentSheet onClose={() => setPayOpen(false)} />}
-      </>
+      </div>
     )
   }
 
   // ---------- Plan selection ----------
   return (
-    <>
+    <div className="anim-in" key="select">
       <div className="topbar">
         <h1>{t('plans.title')}</h1>
       </div>
@@ -138,6 +138,6 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
           )}
         </button>
       </div>
-    </>
+    </div>
   )
 }

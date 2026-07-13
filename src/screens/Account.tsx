@@ -15,11 +15,16 @@ export default function Account({ onSeePlans, onTrack }: { onSeePlans: () => voi
   const [view, setView] = useState<'main' | 'history'>('main')
   const { usedKg, allowance, atLimit, pct } = useAllowance()
 
-  if (view === 'history') return <History onBack={() => setView('main')} onTrack={onTrack} />
+  if (view === 'history')
+    return (
+      <div className="anim-in" key="history">
+        <History onBack={() => setView('main')} onTrack={onTrack} />
+      </div>
+    )
   const initial = (user?.name || 'A').trim().charAt(0).toUpperCase()
 
   return (
-    <>
+    <div className="anim-in" key="account-main">
       <div className="topbar">
         <h1>{t('account.title')}</h1>
       </div>
@@ -88,7 +93,7 @@ export default function Account({ onSeePlans, onTrack }: { onSeePlans: () => voi
 
       {payOpen && <PaymentSheet onClose={() => setPayOpen(false)} />}
       {extraOpen && <ExtraKgSheet onClose={() => setExtraOpen(false)} />}
-    </>
+    </div>
   )
 }
 
