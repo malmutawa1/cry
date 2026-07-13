@@ -2975,3 +2975,171 @@ button {
   background: var(--accent);
   color: var(--accent-ink);
 }
+
+/* ---------- Loyalty / rewards ---------- */
+.loy-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 36px);
+  margin: 0 18px 16px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  text-align: start;
+}
+.loy-card-ic {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--accent-tint);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.loy-card-body {
+  flex: 1;
+  min-width: 0;
+}
+.loy-card-title {
+  display: block;
+  font-weight: 800;
+  font-size: 16px;
+}
+.loy-card-sub {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 1px;
+}
+.loy-card-pts {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.loy-hero {
+  margin: 0 18px 16px;
+  padding: 20px;
+  border-radius: var(--radius);
+  background: linear-gradient(150deg, var(--accent), var(--accent-strong));
+  color: var(--accent-ink);
+}
+.loy-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.loy-tier {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.22);
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 13px;
+}
+.loy-bal-label {
+  font-size: 13px;
+  opacity: 0.85;
+  font-weight: 600;
+}
+.loy-points {
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin: 10px 0 14px;
+}
+.loy-points span {
+  font-size: 18px;
+  font-weight: 700;
+  opacity: 0.85;
+}
+.loy-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  overflow: hidden;
+}
+.loy-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent-ink);
+  opacity: 0.9;
+}
+.loy-next {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+.loy-earn-pts {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.reward-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin: 0 18px 12px;
+}
+.rw-ic {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent-tint);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.rw-body {
+  flex: 1;
+  min-width: 0;
+}
+.rw-title {
+  display: block;
+  font-weight: 700;
+  font-size: 16px;
+}
+.rw-pts {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 1px;
+}
+.rw-btn {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 800;
+  font-size: 14px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.rw-btn:disabled {
+  background: var(--surface-3);
+  color: var(--faint);
+  font-size: 12px;
+}
+.rw-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--green);
+  font-weight: 800;
+  font-size: 14px;
+  flex-shrink: 0;
+}

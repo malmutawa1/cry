@@ -3,22 +3,26 @@ import { useStore, orderStage } from '../store'
 import { useI18n } from '../i18n'
 import { useNow } from '../useNow'
 import { planName } from '../data/plans'
-import { Bag, CalendarIn, Chevron, Globe, Hanger, Route } from '../components/Icons'
+import { Bag, CalendarIn, Chevron, Gift, Globe, Hanger, Route } from '../components/Icons'
 import { ExtraKgSheet, useAllowance } from '../components/ExtraKg'
+import { tierInfo } from '../data/rewards'
 
 export default function Home({
   onSchedule,
   onSeePlans,
   onTrack,
+  onRewards,
 }: {
   onSchedule: () => void
   onSeePlans: () => void
   onTrack: () => void
+  onRewards: () => void
 }) {
-  const { activePlan, user, activeOrder } = useStore()
+  const { activePlan, user, activeOrder, points } = useStore()
   const { t, lang, toggle } = useI18n()
   const now = useNow(1000)
   const { usedKg: used, allowance, atLimit } = useAllowance()
+  const tier = tierInfo(points).current
   const [extraOpen, setExtraOpen] = useState(false)
   const firstName = user?.name?.trim().split(/\s+/)[0]
   const orderStageIdx = activeOrder ? orderStage(activeOrder, now) : -1
@@ -97,6 +101,16 @@ export default function Home({
             {t('home.schedule')}
           </button>
         </div>
+
+        <button className="loy-card" onClick={onRewards}>
+          <span className="loy-card-ic"><Gift size={22} /></span>
+          <span className="loy-card-body">
+            <span className="loy-card-title">{t('home.rewards.title')}</span>
+            <span className="loy-card-sub">{t(`loyalty.tier.${tier.key}`)}</span>
+          </span>
+          <span className="loy-card-pts">{points} {t('loyalty.pts')}</span>
+          <Chevron className="chev" />
+        </button>
 
         <div className="section-title">{t('home.how')}</div>
         <div className="pad">
