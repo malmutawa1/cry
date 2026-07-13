@@ -98,8 +98,6 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
               <Chevron className="chev" />
             </button>
           </div>
-
-          <RefundPolicy />
           <div style={{ height: 8 }} />
         </div>
 
