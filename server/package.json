@@ -1,0 +1,15 @@
+{
+  "name": "pressd-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Backend API for the Pressd laundry app — Node built-ins only (node:http + node:sqlite).",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "start": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/index.ts",
+    "dev": "node --watch --experimental-strip-types --disable-warning=ExperimentalWarning src/index.ts",
+    "typecheck": "tsc --noEmit"
+  }
+}
