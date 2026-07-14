@@ -65,6 +65,9 @@ interface Store {
   setActivePlan: (p: Plan | null) => void
   billing: Billing
   setBilling: (b: Billing) => void
+  /** epoch ms when the current subscription period started (null = not subscribed) */
+  subscribedAt: number | null
+  setSubscribedAt: (t: number | null) => void
   /** extra kg bought on top of the plan's monthly cap */
   extraKg: number
   addExtraKg: (kg: number) => void
@@ -150,6 +153,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }
   const [activePlan, setActivePlan] = useState<Plan | null>(null)
   const [billing, setBilling] = useState<Billing>('monthly')
+  const [subscribedAt, setSubscribedAt] = useState<number | null>(null)
   const [extraKg, setExtraKg] = useState(0)
   const [hangers, setHangers] = useState(true)
   const [note, setNote] = useState('')
@@ -217,6 +221,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setActivePlan,
     billing,
     setBilling,
+    subscribedAt,
+    setSubscribedAt,
     extraKg,
     addExtraKg: (kg) => setExtraKg((n) => n + kg),
     frozen,

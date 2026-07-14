@@ -9,7 +9,7 @@ import {
   type Billing,
   type Plan,
 } from '../data/plans'
-import { Check, Chevron, Close, Leaf, Star } from '../components/Icons'
+import { CalendarIn, Check, Chevron, Close, Leaf, Star } from '../components/Icons'
 import Reveal from '../components/Reveal'
 import { PaymentSheet, PaymentValue } from '../components/Payment'
 import { useStore } from '../store'
@@ -32,7 +32,7 @@ function RefundPolicy() {
 }
 
 export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
-  const { activePlan, setActivePlan, billing, setBilling, showToast } = useStore()
+  const { activePlan, setActivePlan, billing, setBilling, subscribedAt, setSubscribedAt, showToast } = useStore()
   const { t, lang } = useI18n()
   const [payOpen, setPayOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
@@ -43,6 +43,20 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
 
   const annual = billing === 'annual'
   const subscribed = activePlan != null
+
+  /** End of the current billing period, formatted for the active language. */
+  function expiryLabel(): string {
+    const start = new Date(subscribedAt ?? Date.now())
+    const end = new Date(start)
+    if (annual) end.setFullYear(end.getFullYear() + 1)
+    else end.setMonth(end.getMonth() + 1)
+    const date = end.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+    return t('plans.expires', { date })
+  }
 
   function goCheckout(plan: Plan, b: Billing) {
     setIntent({ plan, billing: b })
@@ -55,6 +69,7 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
     const sameePlan = activePlan?.id === intent.plan.id
     setActivePlan(intent.plan)
     setBilling(intent.billing)
+    setSubscribedAt(Date.now()) // new billing period starts now
     setSelected(intent.plan)
     if (!wasSubscribed) showToast(t('toast.subscribed', { name: planName(intent.plan, lang) }))
     else if (sameePlan && intent.billing === 'annual') showToast(t('toast.annualOn'))
@@ -201,6 +216,11 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
               </div>
               <span className="plan-cap">{t('plans.cap', { kg: activePlan.capKg })}</span>
 
+              <div className="mem-expiry">
+                <CalendarIn size={15} />
+                {expiryLabel()}
+              </div>
+
               {annual ? (
                 <div className="mem-annual-on">
                   <Star size={15} /> {t('plans.annualActive')}
@@ -268,6 +288,7 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
                 className="btn-warn"
                 onClick={() => {
                   setActivePlan(null)
+                  setSubscribedAt(null)
                   setSelected(null)
                   setCancelOpen(false)
                   showToast(t('toast.cancelled'))

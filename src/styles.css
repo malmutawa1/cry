@@ -3788,6 +3788,16 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.32);
   color: #fff;
 }
+.mem-expiry {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+.mem-expiry svg { opacity: 0.85; }
 
 .mem-annual {
   position: relative;
