@@ -3650,6 +3650,7 @@ button {
 /* freeze action / warning button */
 .btn-warn {
   width: 100%;
+  margin-top: 18px;
   padding: 15px;
   border: none;
   border-radius: 14px;
