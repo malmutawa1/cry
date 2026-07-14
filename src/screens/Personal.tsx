@@ -4,7 +4,7 @@ import { useI18n } from '../i18n'
 import { Close, Mail, Phone, User as UserIcon } from '../components/Icons'
 
 export default function Personal({ onBack }: { onBack: () => void }) {
-  const { user, phone, setPhone, updateProfile, showToast } = useStore()
+  const { user, phone, updateProfile, showToast } = useStore()
   const { t } = useI18n()
   const [name, setName] = useState(user?.name ?? '')
   const [email, setEmail] = useState(user?.email ?? '')
@@ -15,8 +15,7 @@ export default function Personal({ onBack }: { onBack: () => void }) {
     name.trim() !== (user?.name ?? '') || email.trim() !== (user?.email ?? '') || ph !== phone
 
   function save() {
-    updateProfile({ name, email })
-    setPhone(ph)
+    updateProfile({ name, email, phone: ph })
     showToast(t('toast.profileSaved'))
     onBack()
   }

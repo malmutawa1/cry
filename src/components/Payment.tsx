@@ -23,14 +23,14 @@ function Radio({ on }: { on: boolean }) {
 }
 
 export function PaymentSheet({ onClose }: { onClose: () => void }) {
-  const { payment, setPayment, cards, showToast } = useStore()
+  const { payment, choosePayment, cards, showToast } = useStore()
   const { t } = useI18n()
   const [adding, setAdding] = useState(false)
 
   if (adding) return <AddCardSheet onClose={onClose} onBack={() => setAdding(false)} />
 
   function pick(m: PayMethod) {
-    setPayment(m)
+    choosePayment(m)
     showToast(t('toast.paySaved'))
     onClose()
   }

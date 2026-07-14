@@ -97,7 +97,8 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
   function completeSignup() {
     setPhone(phone)
     if (locAddress) setAddress(locAddress)
-    signup(name, email) // sets user + flags needsPlan → plans screen opens
+    // sets user + flags needsPlan → plans screen opens (also persists to backend when enabled)
+    signup(name, email, { password, phone, gender: gender ?? undefined, address: locAddress || undefined })
   }
   function doLogin() {
     try {
@@ -111,7 +112,7 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
     } catch {
       /* storage unavailable — ignore */
     }
-    login(email)
+    login(email, password)
   }
 
   const firstName = name.trim().split(/\s+/)[0] || name.trim()
