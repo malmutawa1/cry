@@ -3969,18 +3969,21 @@ button {
   animation: fx-shine 6.5s ease-in-out infinite;
 }
 
-/* --- Premium: rich sheen, fine diagonal weave + metallic shine --- */
+/* --- Premium: soft violet aurora glow + metallic shine (no lines) --- */
 .plan-premium {
   border-color: rgba(99, 102, 241, 0.42);
 }
 .plan-premium .plan-fx {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(37, 99, 235, 0.06) 60%, transparent);
+  background:
+    radial-gradient(115% 90% at 85% 0%, rgba(139, 122, 246, 0.18), transparent 60%),
+    radial-gradient(95% 85% at 0% 100%, rgba(99, 102, 241, 0.13), transparent 62%);
 }
 .plan-premium .plan-fx::before {
+  /* soft corner bloom instead of the diagonal weave */
   content: '';
   position: absolute;
   inset: 0;
-  background-image: repeating-linear-gradient(135deg, rgba(120, 120, 190, 0.07) 0 2px, transparent 2px 9px);
+  background: radial-gradient(60% 45% at 78% 12%, rgba(167, 139, 250, 0.16), transparent 70%);
 }
 .plan-premium .plan-fx::after {
   content: '';
