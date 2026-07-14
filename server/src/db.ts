@@ -46,16 +46,28 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_subs_user ON subscriptions(user_id);
 
   CREATE TABLE IF NOT EXISTS orders (
-    id         TEXT PRIMARY KEY,
-    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    created_at INTEGER NOT NULL,
-    pickup     TEXT NOT NULL DEFAULT '',
-    delivery   TEXT NOT NULL DEFAULT '',
-    address    TEXT NOT NULL DEFAULT '',
-    phone      TEXT NOT NULL DEFAULT '',
-    status     TEXT NOT NULL DEFAULT 'scheduled'
+    id               TEXT PRIMARY KEY,
+    user_id          INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at       INTEGER NOT NULL,
+    pickup           TEXT NOT NULL DEFAULT '',
+    delivery         TEXT NOT NULL DEFAULT '',
+    address          TEXT NOT NULL DEFAULT '',
+    phone            TEXT NOT NULL DEFAULT '',
+    status           TEXT NOT NULL DEFAULT 'scheduled',
+    stage            INTEGER NOT NULL DEFAULT 0,
+    stage_updated_at INTEGER NOT NULL DEFAULT 0
   );
   CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
+
+  CREATE TABLE IF NOT EXISTS cards (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    brand      TEXT NOT NULL,
+    last4      TEXT NOT NULL,
+    is_default INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_cards_user ON cards(user_id);
 
   CREATE TABLE IF NOT EXISTS redemptions (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -74,3 +86,17 @@ db.exec(`
     created_at INTEGER NOT NULL
   );
 `)
+
+// ---- Idempotent migrations for DBs created by an earlier version ----
+function ensureColumn(table: string, column: string, decl: string): void {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]
+  if (!cols.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${decl}`)
+  }
+}
+ensureColumn('users', 'role', "TEXT NOT NULL DEFAULT 'customer'")
+ensureColumn('users', 'referral_code', 'TEXT')
+ensureColumn('users', 'referred_by', 'INTEGER')
+ensureColumn('users', 'payment_method', "TEXT NOT NULL DEFAULT 'applepay'")
+ensureColumn('orders', 'stage', 'INTEGER NOT NULL DEFAULT 0')
+ensureColumn('orders', 'stage_updated_at', 'INTEGER NOT NULL DEFAULT 0')

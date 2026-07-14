@@ -27,7 +27,7 @@ export function json(res: ServerResponse, status: number, data: unknown): void {
   res.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': config.corsOrigin,
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-staff-key',
     'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
   })
   res.end(payload)
@@ -54,6 +54,12 @@ export function requireAuth(ctx: Ctx): number {
   if (!claims) throw new HttpError(401, 'Unauthorized')
   ctx.userId = claims.sub
   return claims.sub
+}
+
+/** Guards staff/admin endpoints behind a shared key (`x-staff-key` header). */
+export function requireStaff(ctx: Ctx): void {
+  const key = ctx.req.headers['x-staff-key']
+  if (typeof key !== 'string' || key !== config.staffKey) throw new HttpError(403, 'Staff access required')
 }
 
 interface Route {
