@@ -20,12 +20,12 @@ export default function Home({
   onTrack: () => void
   onRewards: () => void
 }) {
-  const { activePlan, user, activeOrder, points } = useStore()
+  const { activePlan, user, activeOrder, points, lifetimePoints } = useStore()
   const shownPoints = useCountUp(points)
   const { t, lang, toggle } = useI18n()
   const now = useNow(1000)
   const { usedKg: used, allowance, atLimit } = useAllowance()
-  const tier = tierInfo(points).current
+  const tier = tierInfo(lifetimePoints).current
   const [extraOpen, setExtraOpen] = useState(false)
   const firstName = user?.name?.trim().split(/\s+/)[0]
   const orderStageIdx = activeOrder ? orderStage(activeOrder, now) : -1

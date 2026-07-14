@@ -17,9 +17,9 @@ export interface Tier {
 
 export const TIERS: Tier[] = [
   { key: 'bronze', min: 0 },
-  { key: 'silver', min: 500 },
-  { key: 'gold', min: 1500 },
-  { key: 'platinum', min: 3000 },
+  { key: 'silver', min: 1500 },
+  { key: 'gold', min: 5000 },
+  { key: 'platinum', min: 12000 },
 ]
 
 export const TIER_PERKS: Record<Tier['key'], string[]> = {

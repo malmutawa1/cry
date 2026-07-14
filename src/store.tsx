@@ -102,7 +102,10 @@ interface Store {
   orders: Order[]
 
   // loyalty
+  /** spendable points balance (drops when you redeem) */
   points: number
+  /** total points ever earned — drives tier & progress (never drops on redeem) */
+  lifetimePoints: number
   redeem: (cost: number) => boolean
   /** redeem a specific reward — deducts points AND applies its perk */
   redeemReward: (id: string, cost: number) => boolean
@@ -165,6 +168,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [cards, setCards] = useState<Card[]>([])
   const [activeOrder, setActiveOrder] = useState<Order | null>(null)
   const [points, setPoints] = useState(320)
+  const [lifetimePoints, setLifetimePoints] = useState(320)
   const [credit, setCredit] = useState(0)
   const [freeMonths, setFreeMonths] = useState(0)
   const [frozen, setFrozen] = useState(false)
@@ -250,11 +254,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setActiveOrder(o)
       setOrders((prev) => [o, ...prev])
       setPoints((p) => p + POINTS_PER_PICKUP)
+      setLifetimePoints((p) => p + POINTS_PER_PICKUP)
       return id
     },
     cancelOrder: () => setActiveOrder(null),
     orders,
     points,
+    lifetimePoints,
     redeem: (cost) => {
       if (points < cost) return false
       setPoints((p) => p - cost)
