@@ -289,6 +289,9 @@ const en: Dict = {
   'display.system': 'System',
   'display.device': 'Use device settings',
   'display.device.sub': "Match appearance to your device's display & brightness settings.",
+  'display.motion': 'MOTION',
+  'display.reduceMotion': 'Reduce motion',
+  'display.reduceMotion.sub': 'Turn off animations and transitions across the app.',
 
   'welcome.hi': 'Welcome to',
   'welcome.tagline': 'Fresh laundry, picked up and delivered to your door.',
@@ -681,6 +684,9 @@ const ar: Dict = {
   'display.system': 'النظام',
   'display.device': 'استخدام إعدادات الجهاز',
   'display.device.sub': 'مطابقة المظهر لإعدادات جهازك.',
+  'display.motion': 'الحركة',
+  'display.reduceMotion': 'تقليل الحركة',
+  'display.reduceMotion.sub': 'إيقاف الرسوم المتحركة والانتقالات في جميع أنحاء التطبيق.',
 
   'welcome.hi': 'مرحباً بك في',
   'welcome.tagline': 'غسيل نظيف يصلك إلى باب منزلك.',

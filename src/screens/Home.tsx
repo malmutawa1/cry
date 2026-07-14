@@ -5,6 +5,7 @@ import { useNow } from '../useNow'
 import { planName } from '../data/plans'
 import { Bag, CalendarIn, Chevron, Gift, Globe, Hanger, Route } from '../components/Icons'
 import Reveal from '../components/Reveal'
+import { useCountUp } from '../useCountUp'
 import { ExtraKgSheet, useAllowance } from '../components/ExtraKg'
 import { tierInfo } from '../data/rewards'
 
@@ -20,6 +21,7 @@ export default function Home({
   onRewards: () => void
 }) {
   const { activePlan, user, activeOrder, points } = useStore()
+  const shownPoints = useCountUp(points)
   const { t, lang, toggle } = useI18n()
   const now = useNow(1000)
   const { usedKg: used, allowance, atLimit } = useAllowance()
@@ -111,12 +113,12 @@ export default function Home({
             <span className="loy-card-title">{t('home.rewards.title')}</span>
             <span className="loy-card-sub">{t(`loyalty.tier.${tier.key}`)}</span>
           </span>
-          <span className="loy-card-pts">{points} {t('loyalty.pts')}</span>
+          <span className="loy-card-pts">{shownPoints} {t('loyalty.pts')}</span>
           <Chevron className="chev" />
         </button>
 
         <div className="section-title">{t('home.how')}</div>
-        <div className="pad">
+        <div className="pad stagger">
           {steps.map((st, i) => (
             <div key={i} className="step">
               <div className="step-num">

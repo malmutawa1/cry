@@ -56,6 +56,9 @@ interface Store {
   /** appearance mode toggle */
   mode: Mode
   setMode: (m: Mode) => void
+  /** user preference to reduce/disable animations */
+  reduceMotion: boolean
+  setReduceMotion: (v: boolean) => void
 
   // subscription
   activePlan: Plan | null
@@ -126,6 +129,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [needsPlan, setNeedsPlan] = useState(false)
   const [accent, setAccent] = useState<Accent>('blue')
   const [mode, setMode] = useState<Mode>('light')
+  const [reduceMotion, setReduceMotionState] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('pressd.reduceMotion')
+      if (saved != null) return saved === '1'
+    } catch {
+      /* storage unavailable */
+    }
+    return typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false
+  })
+  function setReduceMotion(v: boolean) {
+    setReduceMotionState(v)
+    try {
+      localStorage.setItem('pressd.reduceMotion', v ? '1' : '0')
+    } catch {
+      /* storage unavailable */
+    }
+  }
   const [activePlan, setActivePlan] = useState<Plan | null>(null)
   const [billing, setBilling] = useState<Billing>('monthly')
   const [extraKg, setExtraKg] = useState(0)
@@ -189,6 +211,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setAccent,
     mode,
     setMode,
+    reduceMotion,
+    setReduceMotion,
     activePlan,
     setActivePlan,
     billing,

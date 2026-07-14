@@ -31,7 +31,7 @@ function Preview({ variant, accent }: { variant: 'light' | 'dark'; accent: 'blue
 }
 
 export default function Display({ onBack }: { onBack: () => void }) {
-  const { mode, setMode, accent } = useStore()
+  const { mode, setMode, accent, reduceMotion, setReduceMotion } = useStore()
   const { t } = useI18n()
   const system = mode === 'system'
 
@@ -73,6 +73,17 @@ export default function Display({ onBack }: { onBack: () => void }) {
               <div className="dd-sub">{t('display.device.sub')}</div>
             </div>
             <Toggle on={system} onChange={toggleDevice} />
+          </div>
+        </div>
+
+        <div className="disp-label">{t('display.motion')}</div>
+        <div className="card-group disp-card-group">
+          <div className="disp-device">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="dd-title">{t('display.reduceMotion')}</div>
+              <div className="dd-sub">{t('display.reduceMotion.sub')}</div>
+            </div>
+            <Toggle on={reduceMotion} onChange={setReduceMotion} />
           </div>
         </div>
       </div>
