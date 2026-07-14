@@ -5,9 +5,9 @@ export interface Reward {
 }
 
 export const rewards: Reward[] = [
-  { id: 'extra5', titleKey: 'reward.extra5', pts: 300 },
-  { id: 'credit5', titleKey: 'reward.credit5', pts: 800 },
-  { id: 'freemonth', titleKey: 'reward.freemonth', pts: 2500 },
+  { id: 'extra5', titleKey: 'reward.extra5', pts: 750 },
+  { id: 'credit5', titleKey: 'reward.credit5', pts: 2000 },
+  { id: 'freemonth', titleKey: 'reward.freemonth', pts: 6000 },
 ]
 
 export interface Tier {
