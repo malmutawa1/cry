@@ -4094,3 +4094,37 @@ button {
   .mem-standard .mem-fx,
   .mem-family-plus .mem-fx::before { animation: none; }
 }
+
+/* ===================== Text reveal animations (ui-ux-pro-max motion) ===================== */
+/* Word-by-word heading entrance — transform + opacity only, ease-out. */
+.reveal { display: block; }
+.reveal-w {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.5em);
+  animation: reveal-word 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--d, 0ms);
+  will-change: transform, opacity;
+}
+@keyframes reveal-word {
+  from { opacity: 0; transform: translateY(0.5em); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Subtitle / supporting line fades up just after its heading. */
+.reveal-sub {
+  animation: reveal-fadeup 0.5s ease-out both;
+  animation-delay: var(--sd, 320ms);
+}
+/* Screen titles in the top bar get a subtle single-element fade-up. */
+.topbar h1 {
+  animation: reveal-fadeup 0.45s ease-out both;
+}
+@keyframes reveal-fadeup {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-w, .reveal-sub, .topbar h1 { animation: none; opacity: 1; transform: none; }
+}
