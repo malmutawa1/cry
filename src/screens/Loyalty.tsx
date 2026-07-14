@@ -46,10 +46,10 @@ function Tiers({ onBack, currentKey }: { onBack: () => void; currentKey: string 
 }
 
 export default function Loyalty({ onBack }: { onBack: () => void }) {
-  const { points, redeemReward, showToast } = useStore()
+  const { points, lifetimePoints, redeemReward, showToast } = useStore()
   const shownPoints = useCountUp(points)
   const { t } = useI18n()
-  const { current, next, progress } = tierInfo(points)
+  const { current, next, progress } = tierInfo(lifetimePoints)
   const [done, setDone] = useState<string[]>([])
   const [view, setView] = useState<'main' | 'tiers'>('main')
 
@@ -94,7 +94,7 @@ export default function Loyalty({ onBack }: { onBack: () => void }) {
           <div className="loy-next">
             <span>
               {next
-                ? t('loyalty.toNext', { n: next.min - points, tier: t(`loyalty.tier.${next.key}`) })
+                ? t('loyalty.toNext', { n: next.min - lifetimePoints, tier: t(`loyalty.tier.${next.key}`) })
                 : t('loyalty.maxTier')}
             </span>
             <span className="loy-view">
