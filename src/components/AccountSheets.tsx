@@ -5,12 +5,13 @@ import { Check, Gift } from './Icons'
 
 /** Referral bottom-sheet: shows a personal code that can be copied. */
 export function ReferSheet({ onClose }: { onClose: () => void }) {
-  const { user, showToast } = useStore()
+  const { user, referralCode, showToast } = useStore()
   const { t } = useI18n()
   const [copied, setCopied] = useState(false)
 
   const initials = (user?.name || 'Friend').replace(/[^A-Za-z]/g, '').slice(0, 4).toUpperCase() || 'FRND'
-  const code = `PRESSD-${initials}25`
+  // prefer the real code from the backend; fall back to a derived one when offline
+  const code = referralCode ?? `PRESSD-${initials}25`
 
   function copy() {
     navigator.clipboard?.writeText(code).catch(() => {})
@@ -47,12 +48,12 @@ export function ReferSheet({ onClose }: { onClose: () => void }) {
 
 /** Freeze / resume subscription bottom-sheet. */
 export function FreezeSheet({ onClose }: { onClose: () => void }) {
-  const { frozen, setFrozen, showToast } = useStore()
+  const { frozen, freeze, showToast } = useStore()
   const { t } = useI18n()
 
   function toggle() {
     const next = !frozen
-    setFrozen(next)
+    freeze(next)
     showToast(t(next ? 'toast.frozen' : 'toast.unfrozen'))
     onClose()
   }

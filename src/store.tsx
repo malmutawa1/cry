@@ -1,10 +1,18 @@
-import { createContext, useContext, useRef, useState, type ReactNode } from 'react'
-import type { Billing, Plan } from './data/plans'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { plans, type Billing, type Plan } from './data/plans'
 import { defaultDelivery, defaultPickup, type Slot } from './data/slots'
+import { api, apiEnabled, getToken, setToken, type ApiLoyalty, type Snapshot } from './api'
 
 export interface User {
   name: string
   email: string
+}
+
+export interface SignupOpts {
+  password?: string
+  phone?: string
+  gender?: string
+  address?: string
 }
 
 export type Accent = 'blue' | 'pink'
@@ -41,12 +49,14 @@ export type PayMethod = string
 interface Store {
   // auth
   user: User | null
-  login: (email: string) => void
-  signup: (name: string, email: string) => void
+  login: (email: string, password?: string) => void
+  signup: (name: string, email: string, opts?: SignupOpts) => void
   loginWithApple: () => void
   logout: () => void
   /** edit the signed-in user's profile fields */
-  updateProfile: (p: { name?: string; email?: string }) => void
+  updateProfile: (p: { name?: string; email?: string; phone?: string; address?: string }) => void
+  /** the signed-in user's referral code (from the backend when available) */
+  referralCode: string | null
   /** true right after a fresh sign-up, so the app can open the plans screen */
   needsPlan: boolean
   clearNeedsPlan: () => void
@@ -68,12 +78,18 @@ interface Store {
   /** epoch ms when the current subscription period started (null = not subscribed) */
   subscribedAt: number | null
   setSubscribedAt: (t: number | null) => void
+  /** subscribe / upgrade / switch billing (persists to the backend when enabled) */
+  subscribe: (plan: Plan, billing: Billing) => void
+  /** cancel the active membership */
+  cancelSubscription: () => void
   /** extra kg bought on top of the plan's monthly cap */
   extraKg: number
   addExtraKg: (kg: number) => void
   /** membership paused */
   frozen: boolean
   setFrozen: (v: boolean) => void
+  /** freeze / resume (persists to the backend when enabled) */
+  freeze: (v: boolean) => void
 
   // scheduling
   hangers: boolean
@@ -92,6 +108,8 @@ interface Store {
   // payment
   payment: PayMethod
   setPayment: (m: PayMethod) => void
+  /** pick a payment method (persists to the backend when enabled) */
+  choosePayment: (m: PayMethod) => void
   cards: Card[]
   addCard: (number: string) => void
 
@@ -172,6 +190,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [credit, setCredit] = useState(0)
   const [freeMonths, setFreeMonths] = useState(0)
   const [frozen, setFrozen] = useState(false)
+  const [referralCode, setReferralCode] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   function showToast(msg: string) {
@@ -189,6 +208,49 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ]
   })
 
+  // ---- Backend sync (only active when VITE_API_URL is set) ----
+  function authed() {
+    return apiEnabled && getToken() != null
+  }
+
+  function reconcileLoyalty(l: ApiLoyalty) {
+    setPoints(l.points)
+    setLifetimePoints(l.lifetimePoints)
+    setCredit(l.credit)
+    setFreeMonths(l.freeMonths)
+    setExtraKg(l.extraKg)
+  }
+
+  /** Replace local state with an authoritative snapshot from the server. */
+  function hydrate(s: Snapshot) {
+    setUser({ name: s.user.name, email: s.user.email })
+    setAccent(s.user.accent === 'pink' ? 'pink' : 'blue')
+    if (s.user.phone) setPhone(s.user.phone)
+    if (s.user.address) setAddress(s.user.address)
+    setReferralCode(s.user.referralCode ?? null)
+    setPayment(s.user.paymentMethod || 'applepay')
+    reconcileLoyalty(s.loyalty)
+    if (s.subscription) {
+      setActivePlan(plans.find((p) => p.id === s.subscription!.planId) ?? null)
+      setBilling(s.subscription.billing)
+      setSubscribedAt(s.subscription.startedAt)
+      setFrozen(s.subscription.frozen)
+    } else {
+      setActivePlan(null)
+      setSubscribedAt(null)
+      setFrozen(false)
+    }
+    setCards(s.cards.map((c) => ({ id: String(c.id), brand: c.brand, last4: c.last4 })))
+  }
+
+  // Restore an existing session on load.
+  useEffect(() => {
+    if (apiEnabled && getToken()) {
+      api.me().then(hydrate).catch(() => setToken(null))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   function addCard(number: string) {
     const digits = number.replace(/\D/g, '')
     const last4 = digits.slice(-4) || '0000'
@@ -196,23 +258,72 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const id = 'c' + Date.now()
     setCards((prev) => [...prev, { id, brand, last4 }])
     setPayment('card:' + id)
+    if (authed()) {
+      api
+        .addCard(number)
+        .then((r) => {
+          setCards(r.cards.map((c) => ({ id: String(c.id), brand: c.brand, last4: c.last4 })))
+          const def = r.cards.find((c) => c.isDefault) ?? r.cards[0]
+          if (def) setPayment('card:' + def.id)
+        })
+        .catch(() => {})
+    }
   }
 
   const value: Store = {
     user,
-    login: (email) => setUser({ name: nameFromEmail(email), email }),
-    signup: (name, email) => {
-      setUser({ name: name.trim() || nameFromEmail(email), email })
+    login: (email, password) => {
+      if (apiEnabled && password) {
+        api
+          .login({ email, password })
+          .then((r) => {
+            setToken(r.token)
+            hydrate(r)
+          })
+          .catch(() => setUser({ name: nameFromEmail(email), email })) // graceful offline fallback
+      } else {
+        setUser({ name: nameFromEmail(email), email })
+      }
+    },
+    signup: (name, email, opts) => {
       setNeedsPlan(true)
+      if (apiEnabled && opts?.password) {
+        api
+          .signup({ name, email, password: opts.password, phone: opts.phone, gender: opts.gender, address: opts.address })
+          .then((r) => {
+            setToken(r.token)
+            hydrate(r)
+          })
+          .catch(() => setUser({ name: name.trim() || nameFromEmail(email), email }))
+      } else {
+        setUser({ name: name.trim() || nameFromEmail(email), email })
+      }
     },
     loginWithApple: () => setUser(APPLE_RELAY),
     logout: () => {
+      setToken(null)
       setUser(null)
       setAccent('blue')
       setMode('light')
+      setActivePlan(null)
+      setSubscribedAt(null)
+      setFrozen(false)
+      setCards([])
+      setPayment('applepay')
+      setReferralCode(null)
+      setPoints(320)
+      setLifetimePoints(320)
+      setCredit(0)
+      setFreeMonths(0)
+      setExtraKg(0)
     },
-    updateProfile: (p) =>
-      setUser((u) => (u ? { name: p.name?.trim() || u.name, email: p.email?.trim() || u.email } : u)),
+    updateProfile: (p) => {
+      setUser((u) => (u ? { name: p.name?.trim() || u.name, email: p.email?.trim() || u.email } : u))
+      if (p.phone !== undefined) setPhone(p.phone)
+      if (p.address !== undefined) setAddress(p.address)
+      if (authed()) api.updateProfile({ name: p.name, email: p.email, phone: p.phone, address: p.address }).catch(() => {})
+    },
+    referralCode,
     needsPlan,
     clearNeedsPlan: () => setNeedsPlan(false),
     accent,
@@ -227,10 +338,33 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setBilling,
     subscribedAt,
     setSubscribedAt,
+    subscribe: (plan, b) => {
+      setActivePlan(plan)
+      setBilling(b)
+      setSubscribedAt(Date.now())
+      if (authed()) {
+        api
+          .subscribe({ planId: plan.id, billing: b })
+          .then((r) => r.subscription && setSubscribedAt(r.subscription.startedAt))
+          .catch(() => {})
+      }
+    },
+    cancelSubscription: () => {
+      setActivePlan(null)
+      setSubscribedAt(null)
+      if (authed()) api.cancelSubscription().catch(() => {})
+    },
     extraKg,
-    addExtraKg: (kg) => setExtraKg((n) => n + kg),
+    addExtraKg: (kg) => {
+      setExtraKg((n) => n + kg)
+      if (authed()) api.extraKg(kg).then((r) => reconcileLoyalty(r.loyalty)).catch(() => {})
+    },
     frozen,
     setFrozen,
+    freeze: (v) => {
+      setFrozen(v)
+      if (authed()) api.freeze(v).catch(() => {})
+    },
     hangers,
     setHangers,
     note,
@@ -245,6 +379,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setDelivery,
     payment,
     setPayment,
+    choosePayment: (m) => {
+      setPayment(m)
+      if (authed()) api.setPaymentMethod(m).catch(() => {})
+    },
     cards,
     addCard,
     activeOrder,
@@ -255,6 +393,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setOrders((prev) => [o, ...prev])
       setPoints((p) => p + POINTS_PER_PICKUP)
       setLifetimePoints((p) => p + POINTS_PER_PICKUP)
+      if (authed()) {
+        api
+          .createOrder({ pickup: pickup.id, delivery: delivery.id, address, phone })
+          .then((r) => reconcileLoyalty(r.loyalty))
+          .catch(() => {})
+      }
       return id
     },
     cancelOrder: () => setActiveOrder(null),
@@ -273,6 +417,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (id === 'extra5') setExtraKg((n) => n + 5)
       else if (id === 'credit5') setCredit((c) => c + 5)
       else if (id === 'freemonth') setFreeMonths((n) => n + 1)
+      if (authed()) api.redeem(id).then((r) => reconcileLoyalty(r.loyalty)).catch(() => {})
       return true
     },
     credit,

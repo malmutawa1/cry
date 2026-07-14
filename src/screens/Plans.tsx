@@ -32,7 +32,7 @@ function RefundPolicy() {
 }
 
 export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
-  const { activePlan, setActivePlan, billing, setBilling, subscribedAt, setSubscribedAt, showToast } = useStore()
+  const { activePlan, billing, setBilling, subscribedAt, subscribe, cancelSubscription, showToast } = useStore()
   const { t, lang } = useI18n()
   const [payOpen, setPayOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
@@ -67,9 +67,7 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
     if (!intent) return
     const wasSubscribed = activePlan != null
     const sameePlan = activePlan?.id === intent.plan.id
-    setActivePlan(intent.plan)
-    setBilling(intent.billing)
-    setSubscribedAt(Date.now()) // new billing period starts now
+    subscribe(intent.plan, intent.billing) // sets plan + billing + fresh period; persists to backend
     setSelected(intent.plan)
     if (!wasSubscribed) showToast(t('toast.subscribed', { name: planName(intent.plan, lang) }))
     else if (sameePlan && intent.billing === 'annual') showToast(t('toast.annualOn'))
@@ -287,8 +285,7 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
               <button
                 className="btn-warn"
                 onClick={() => {
-                  setActivePlan(null)
-                  setSubscribedAt(null)
+                  cancelSubscription()
                   setSelected(null)
                   setCancelOpen(false)
                   showToast(t('toast.cancelled'))
