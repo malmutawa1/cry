@@ -218,7 +218,7 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
             </div>
 
             <div className="section-title" style={{ fontSize: 20 }}>{t('plans.changeTitle')}</div>
-            {planCards}
+            <div className="stagger">{planCards}</div>
             <div style={{ height: 8 }} />
           </>
         ) : (
@@ -243,7 +243,7 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
               {t('plans.free')}
             </div>
 
-            {planCards}
+            <div className="stagger">{planCards}</div>
             <div style={{ height: 8 }} />
           </>
         )}

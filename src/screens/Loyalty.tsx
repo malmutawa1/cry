@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useStore, POINTS_PER_PICKUP } from '../store'
+import { useCountUp } from '../useCountUp'
 import { useI18n } from '../i18n'
 import { rewards, tierInfo, TIERS, TIER_PERKS } from '../data/rewards'
 import { Bag, Check, Chevron, Close, Gift, Leaf, Star } from '../components/Icons'
@@ -46,6 +47,7 @@ function Tiers({ onBack, currentKey }: { onBack: () => void; currentKey: string 
 
 export default function Loyalty({ onBack }: { onBack: () => void }) {
   const { points, redeemReward, showToast } = useStore()
+  const shownPoints = useCountUp(points)
   const { t } = useI18n()
   const { current, next, progress } = tierInfo(points)
   const [done, setDone] = useState<string[]>([])
@@ -84,7 +86,7 @@ export default function Loyalty({ onBack }: { onBack: () => void }) {
             <span className="loy-bal-label">{t('loyalty.balance')}</span>
           </div>
           <div className="loy-points">
-            {points} <span>{t('loyalty.pts')}</span>
+            {shownPoints} <span>{t('loyalty.pts')}</span>
           </div>
           <div className="loy-bar">
             <span style={{ width: `${progress * 100}%` }} />
@@ -103,7 +105,7 @@ export default function Loyalty({ onBack }: { onBack: () => void }) {
 
         {/* ways to earn */}
         <div className="section-title" style={{ fontSize: 20 }}>{t('loyalty.earn')}</div>
-        <div className="card-group">
+        <div className="card-group stagger">
           {earn.map((e, i) => (
             <div className="row" key={i}>
               <span className="row-ic">{e.icon}</span>
@@ -117,7 +119,7 @@ export default function Loyalty({ onBack }: { onBack: () => void }) {
 
         {/* redeem */}
         <div className="section-title" style={{ fontSize: 20 }}>{t('loyalty.redeemTitle')}</div>
-        <div style={{ paddingBottom: 8 }}>
+        <div className="stagger" style={{ paddingBottom: 8 }}>
           {rewards.map((r) => {
             const redeemed = done.includes(r.id)
             const enough = points >= r.pts

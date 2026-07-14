@@ -131,7 +131,7 @@ export default function Account({
           </div>
         )}
 
-        <div className="card-group">
+        <div className="card-group stagger">
           <AcctRow icon={<Globe />} label={t('account.language')} value={t('account.lang.value')} onClick={toggle} />
           <AcctRow icon={<Sun />} label={t('account.display')} value={t(`display.${mode}`)} onClick={() => setView('display')} />
           <AcctRow icon={<Cards />} label={t('account.payment')} value={<PaymentValue />} onClick={() => setPayOpen(true)} />
