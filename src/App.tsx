@@ -87,7 +87,17 @@ function Shell() {
             }}
           />
         ) : rewards ? (
-          <Loyalty onBack={() => setRewards(false)} />
+          <Loyalty
+            onBack={() => setRewards(false)}
+            onSchedule={() => {
+              setRewards(false)
+              setTab('pickup')
+            }}
+            onSeePlans={() => {
+              setRewards(false)
+              setTab('plans')
+            }}
+          />
         ) : (
           <>
             <div className="anim-in" key={tab}>

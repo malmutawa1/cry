@@ -4,6 +4,7 @@ import { useCountUp } from '../useCountUp'
 import { useI18n } from '../i18n'
 import { rewards, tierInfo, TIERS, TIER_PERKS } from '../data/rewards'
 import { Bag, Check, Chevron, Close, Gift, Leaf, Star } from '../components/Icons'
+import { ReferSheet } from '../components/AccountSheets'
 
 function Tiers({ onBack, currentKey }: { onBack: () => void; currentKey: string }) {
   const { t } = useI18n()
@@ -45,13 +46,22 @@ function Tiers({ onBack, currentKey }: { onBack: () => void; currentKey: string 
   )
 }
 
-export default function Loyalty({ onBack }: { onBack: () => void }) {
+export default function Loyalty({
+  onBack,
+  onSchedule,
+  onSeePlans,
+}: {
+  onBack: () => void
+  onSchedule?: () => void
+  onSeePlans?: () => void
+}) {
   const { points, lifetimePoints, redeemReward, showToast } = useStore()
   const shownPoints = useCountUp(points)
   const { t } = useI18n()
   const { current, next, progress } = tierInfo(lifetimePoints)
   const [done, setDone] = useState<string[]>([])
   const [view, setView] = useState<'main' | 'tiers'>('main')
+  const [referOpen, setReferOpen] = useState(false)
 
   if (view === 'tiers')
     return (
@@ -61,9 +71,9 @@ export default function Loyalty({ onBack }: { onBack: () => void }) {
     )
 
   const earn = [
-    { icon: <Bag size={20} />, label: t('loyalty.earn.pickup'), pts: POINTS_PER_PICKUP },
-    { icon: <Leaf size={20} />, label: t('loyalty.earn.refer'), pts: 200 },
-    { icon: <Star size={20} />, label: t('loyalty.earn.annual'), pts: 500 },
+    { icon: <Bag size={20} />, label: t('loyalty.earn.pickup'), pts: POINTS_PER_PICKUP, onClick: onSchedule },
+    { icon: <Leaf size={20} />, label: t('loyalty.earn.refer'), pts: 200, onClick: () => setReferOpen(true) },
+    { icon: <Star size={20} />, label: t('loyalty.earn.annual'), pts: 500, onClick: onSeePlans },
   ]
 
   return (
@@ -107,13 +117,14 @@ export default function Loyalty({ onBack }: { onBack: () => void }) {
         <div className="section-title" style={{ fontSize: 20 }}>{t('loyalty.earn')}</div>
         <div className="card-group stagger">
           {earn.map((e, i) => (
-            <div className="row" key={i}>
+            <button className="row" key={i} onClick={e.onClick}>
               <span className="row-ic">{e.icon}</span>
               <span className="row-body">
                 <span className="value" style={{ fontWeight: 600 }}>{e.label}</span>
               </span>
               <span className="loy-earn-pts">+{e.pts}</span>
-            </div>
+              <Chevron className="chev" />
+            </button>
           ))}
         </div>
 
@@ -152,6 +163,8 @@ export default function Loyalty({ onBack }: { onBack: () => void }) {
         </div>
         <div style={{ height: 12 }} />
       </div>
+
+      {referOpen && <ReferSheet onClose={() => setReferOpen(false)} />}
     </>
   )
 }
