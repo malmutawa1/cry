@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useStore, orderStage, STAGE_COUNT, STAGE_SECONDS } from '../store'
+import { api, apiEnabled, type ApiStaffOrder } from '../api'
 import { useI18n } from '../i18n'
 import { useNow } from '../useNow'
 import {
@@ -85,14 +86,29 @@ function ResultBadge({ result }: { result: QcResult }) {
 
 /* ---------- Passcode gate ---------- */
 
-function StaffGate({ onEnter, onExit }: { onEnter: () => void; onExit: () => void }) {
+function StaffGate({ onEnter, onExit }: { onEnter: (key: string) => void; onExit: () => void }) {
   const { t } = useI18n()
   const [code, setCode] = useState('')
   const [err, setErr] = useState(false)
+  const [busy, setBusy] = useState(false)
 
-  function submit() {
-    if (code === STAFF_PASSCODE) onEnter()
-    else setErr(true)
+  async function submit() {
+    if (apiEnabled) {
+      // validate the passcode against the backend (it is also the staff API key)
+      setBusy(true)
+      try {
+        await api.staffStats(code)
+        onEnter(code)
+      } catch {
+        setErr(true)
+      } finally {
+        setBusy(false)
+      }
+    } else if (code === STAFF_PASSCODE) {
+      onEnter(code)
+    } else {
+      setErr(true)
+    }
   }
 
   return (
@@ -127,7 +143,7 @@ function StaffGate({ onEnter, onExit }: { onEnter: () => void; onExit: () => voi
             />
           </label>
           {err && <p className="field-err">{t('staff.gate.err')}</p>}
-          <button className="btn-primary" disabled={code.length === 0} onClick={submit} style={{ marginTop: 6 }}>
+          <button className="btn-primary" disabled={code.length === 0 || busy} onClick={submit} style={{ marginTop: 6 }}>
             {t('staff.gate.cta')}
           </button>
           <p className="otp-demo">{t('staff.gate.hint')}</p>
@@ -303,7 +319,118 @@ function StaffTrack({ row, lang, onBack }: { row: BoardRow; lang: 'en' | 'ar'; o
   )
 }
 
-function OrdersView({ lang }: { lang: 'en' | 'ar' }) {
+/** Live order board backed by the staff API — lists every customer's order and
+ *  lets staff advance an order through the pipeline (auto-refreshes every 5s). */
+function ApiOrdersView({ staffKey }: { lang: 'en' | 'ar'; staffKey: string }) {
+  const { t } = useI18n()
+  const [orders, setOrders] = useState<ApiStaffOrder[] | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
+
+  async function load() {
+    try {
+      const r = await api.staffOrders(staffKey)
+      setOrders(r.orders)
+    } catch {
+      setOrders([])
+    }
+  }
+  useEffect(() => {
+    load()
+    const iv = setInterval(load, 5000)
+    return () => clearInterval(iv)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [staffKey])
+
+  async function advance(id: string) {
+    setBusyId(id)
+    try {
+      await api.staffAdvance(staffKey, id)
+      await load()
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  if (orders === null) return <div className="staff-card center" style={{ padding: 28 }}>{t('staff.orders.loading')}</div>
+
+  const active = orders.filter((o) => !o.delivered).length
+  const delivered = orders.length - active
+  const counts = Array.from({ length: STAGE_COUNT }, (_, i) => orders.filter((o) => o.stage === i).length)
+
+  return (
+    <>
+      <div className="staff-live"><span className="staff-live-dot" /> {t('staff.orders.live')}</div>
+      <div className="ops-summary">
+        <div className="ops-stat">
+          <strong className="accent">{active}</strong>
+          <span>{t('staff.orders.active')}</span>
+        </div>
+        <div className="ops-stat">
+          <strong className="green">{delivered}</strong>
+          <span>{t('staff.orders.delivered')}</span>
+        </div>
+      </div>
+
+      <div className="section-title staff-sec">{t('staff.orders.pipeline')}</div>
+      <div className="ops-funnel">
+        {counts.map((c, i) => (
+          <div key={i} className={`ops-stage ${c > 0 ? 'on' : ''} ${i === STAGE_COUNT - 1 ? 'done' : ''}`}>
+            <div className="ops-stage-n">{c}</div>
+            <div className="ops-stage-l">{t(`st.${i}.t`)}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="section-title staff-sec">{t('staff.orders.section')}</div>
+      {orders.length === 0 && <div className="staff-card center" style={{ padding: 22 }}>{t('staff.orders.empty')}</div>}
+      <div className="ops-list">
+        {orders.map((o) => (
+          <div key={o.id} className="ops-card static">
+            <div className="ops-top">
+              <span className="ops-id">{o.id}</span>
+              <span className={`ops-eta ${o.delivered ? 'done' : ''}`}>
+                {o.delivered ? (
+                  <>
+                    <Check size={13} /> {t('track.done')}
+                  </>
+                ) : (
+                  t(`st.${o.stage}.t`)
+                )}
+              </span>
+            </div>
+            <div className="ops-addr">
+              <Pin size={13} /> {o.customer.name} · {o.customer.email}
+            </div>
+            <div className="ops-pips">
+              {Array.from({ length: STAGE_COUNT }).map((_, i) => (
+                <span
+                  key={i}
+                  className={`ops-pip ${i <= o.stage ? (o.delivered ? 'done' : 'fill') : ''} ${
+                    i === o.stage && !o.delivered ? 'active' : ''
+                  }`}
+                />
+              ))}
+            </div>
+            {!o.delivered && (
+              <button className="ops-advance" disabled={busyId === o.id} onClick={() => advance(o.id)}>
+                {t('staff.orders.advance')} →
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+      <div style={{ height: 12 }} />
+    </>
+  )
+}
+
+/** Picks the live server board (staff API) when available, else the local demo board. */
+function OrdersView({ lang, staffKey }: { lang: 'en' | 'ar'; staffKey: string | null }) {
+  if (apiEnabled && staffKey) return <ApiOrdersView lang={lang} staffKey={staffKey} />
+  return <LocalOrdersView lang={lang} />
+}
+
+function LocalOrdersView({ lang }: { lang: 'en' | 'ar' }) {
   const { t } = useI18n()
   const { orders } = useStore()
   const now = useNow(500)
@@ -526,7 +653,7 @@ function QcView({ lang }: { lang: 'en' | 'ar' }) {
 
 /* ---------- Dashboard shell ---------- */
 
-function StaffDashboard({ onExit }: { onExit: () => void }) {
+function StaffDashboard({ onExit, staffKey }: { onExit: () => void; staffKey: string | null }) {
   const { t, lang } = useI18n()
   const [tab, setTab] = useState<'kpi' | 'orders' | 'qc'>('kpi')
 
@@ -562,7 +689,7 @@ function StaffDashboard({ onExit }: { onExit: () => void }) {
 
       <div className="screen">
         <div className="anim-in" key={tab}>
-          {tab === 'kpi' ? <KpiView lang={lang} /> : tab === 'orders' ? <OrdersView lang={lang} /> : <QcView lang={lang} />}
+          {tab === 'kpi' ? <KpiView lang={lang} /> : tab === 'orders' ? <OrdersView lang={lang} staffKey={staffKey} /> : <QcView lang={lang} />}
         </div>
       </div>
     </>
@@ -572,10 +699,17 @@ function StaffDashboard({ onExit }: { onExit: () => void }) {
 /* ---------- Entry point ---------- */
 
 export default function Staff({ onExit }: { onExit: () => void }) {
+  const [staffKey, setStaffKey] = useState<string | null>(null)
   const [authed, setAuthed] = useState(false)
   return authed ? (
-    <StaffDashboard onExit={onExit} />
+    <StaffDashboard onExit={onExit} staffKey={staffKey} />
   ) : (
-    <StaffGate onEnter={() => setAuthed(true)} onExit={onExit} />
+    <StaffGate
+      onEnter={(key) => {
+        setStaffKey(key)
+        setAuthed(true)
+      }}
+      onExit={onExit}
+    />
   )
 }

@@ -48,6 +48,18 @@ async function request<T = unknown>(method: string, path: string, body?: unknown
   return data as T
 }
 
+/** Staff endpoints are authorized by a shared key sent as `x-staff-key`. */
+async function staffRequest<T = unknown>(method: string, path: string, key: string, body?: unknown): Promise<T> {
+  const res = await fetch(BASE + path, {
+    method,
+    headers: { 'Content-Type': 'application/json', 'x-staff-key': key },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  })
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>
+  if (!res.ok) throw new ApiError(res.status, (data?.error as string) || `Request failed (${res.status})`)
+  return data as T
+}
+
 // ---- Response shapes (subset the store consumes) ----
 export interface ApiUser {
   id: number
@@ -111,4 +123,28 @@ export const api = {
   addCard: (number: string) => request<{ cards: ApiCard[] }>('POST', '/api/cards', { number }),
   setPaymentMethod: (method: string) => request<{ paymentMethod: string }>('POST', '/api/payment-method', { method }),
   referral: () => request<{ code: string; referredCount: number }>('GET', '/api/referral'),
+
+  // staff / admin (key-authorized)
+  staffOrders: (key: string) => staffRequest<{ orders: ApiStaffOrder[] }>('GET', '/api/staff/orders', key),
+  staffAdvance: (key: string, id: string) =>
+    staffRequest<{ order: ApiStaffOrder }>('POST', `/api/staff/orders/${encodeURIComponent(id)}/advance`, key),
+  staffStats: (key: string) => staffRequest<ApiStaffStats>('GET', '/api/staff/stats', key),
+}
+
+export interface ApiStaffOrder {
+  id: string
+  createdAt: number
+  stage: number
+  stageKey: string
+  stageLabel: string
+  delivered: boolean
+  address: string
+  phone: string
+  customer: { name: string; email: string }
+}
+export interface ApiStaffStats {
+  users: number
+  orders: number
+  activeSubscriptions: number
+  ordersInProgress: number
 }
