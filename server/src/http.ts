@@ -56,6 +56,12 @@ export function requireAuth(ctx: Ctx): number {
   return claims.sub
 }
 
+/** Guards staff/admin endpoints behind a shared key (`x-staff-key` header). */
+export function requireStaff(ctx: Ctx): void {
+  const key = ctx.req.headers['x-staff-key']
+  if (typeof key !== 'string' || key !== config.staffKey) throw new HttpError(403, 'Staff access required')
+}
+
 interface Route {
   method: string
   segments: string[]

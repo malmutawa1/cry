@@ -78,3 +78,28 @@ export const EXTRAS: { kg: number; priceKwd: number }[] = [
   { kg: 5, priceKwd: 2 },
   { kg: 8, priceKwd: 5 },
 ]
+
+// ---- Order tracking ----
+export const ORDER_STAGES = ['scheduled', 'picked_up', 'washing', 'ready', 'out_for_delivery', 'delivered'] as const
+export type OrderStage = (typeof ORDER_STAGES)[number]
+export const STAGE_LABELS: Record<OrderStage, string> = {
+  scheduled: 'Pickup scheduled',
+  picked_up: 'Picked up',
+  washing: 'Washing & pressing',
+  ready: 'Ready',
+  out_for_delivery: 'Out for delivery',
+  delivered: 'Delivered',
+}
+export const LAST_STAGE = ORDER_STAGES.length - 1
+
+// ---- Referrals ----
+/** Points awarded to the referrer, and KWD credit given to the invited user. */
+export const REFERRAL_REWARD_POINTS = 200
+export const REFERRAL_CREDIT_KWD = 5
+
+// ---- Card brand detection (mirrors src/store.tsx addCard) ----
+export function cardBrand(digits: string): string {
+  if (/^4/.test(digits)) return 'Visa'
+  if (/^5/.test(digits)) return 'Mastercard'
+  return 'Card'
+}

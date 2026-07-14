@@ -1,5 +1,15 @@
 import { db } from './db.ts'
-import { planById, planPrice, periodEnd, tierInfo, type Billing } from './domain.ts'
+import {
+  planById,
+  planPrice,
+  periodEnd,
+  tierInfo,
+  ORDER_STAGES,
+  STAGE_LABELS,
+  LAST_STAGE,
+  type Billing,
+  type OrderStage,
+} from './domain.ts'
 
 export interface UserRow {
   id: number
@@ -11,6 +21,10 @@ export interface UserRow {
   address: string
   password_hash: string
   created_at: number
+  role: string
+  referral_code: string | null
+  referred_by: number | null
+  payment_method: string
 }
 
 export interface LoyaltyRow {
@@ -41,6 +55,17 @@ export interface OrderRow {
   address: string
   phone: string
   status: string
+  stage: number
+  stage_updated_at: number
+}
+
+export interface CardRow {
+  id: number
+  user_id: number
+  brand: string
+  last4: string
+  is_default: number
+  created_at: number
 }
 
 // ---------- Users ----------
@@ -79,6 +104,9 @@ export function createUser(input: {
   const id = Number(info.lastInsertRowid)
   // seed loyalty (matches the frontend's starting balance)
   db.prepare('INSERT INTO loyalty (user_id, points, lifetime_points) VALUES (?, 320, 320)').run(id)
+  // deterministic, unique referral code
+  const initials = input.name.replace(/[^A-Za-z]/g, '').slice(0, 4).toUpperCase() || 'FRND'
+  db.prepare('UPDATE users SET referral_code = ? WHERE id = ?').run(`PRESSD-${initials}${String(id).padStart(2, '0')}`, id)
   return findUserById(id)!
 }
 
@@ -116,9 +144,47 @@ export function activeSub(userId: number): SubRow | undefined {
     .get(userId) as SubRow | undefined
 }
 
+// ---------- Cards ----------
+export function listCards(userId: number): CardRow[] {
+  return db.prepare('SELECT * FROM cards WHERE user_id = ? ORDER BY id DESC').all(userId) as CardRow[]
+}
+export function addCard(userId: number, brand: string, last4: string): CardRow {
+  const isFirst = listCards(userId).length === 0
+  const info = db.prepare('INSERT INTO cards (user_id, brand, last4, is_default, created_at) VALUES (?, ?, ?, ?, ?)').run(userId, brand, last4, isFirst ? 1 : 0, Date.now())
+  const card = db.prepare('SELECT * FROM cards WHERE id = ?').get(Number(info.lastInsertRowid)) as CardRow
+  if (isFirst) db.prepare("UPDATE users SET payment_method = ? WHERE id = ?").run(`card:${card.id}`, userId)
+  return card
+}
+export function setDefaultCard(userId: number, cardId: number): void {
+  db.prepare('UPDATE cards SET is_default = CASE id WHEN ? THEN 1 ELSE 0 END WHERE user_id = ?').run(cardId, userId)
+}
+
+// ---------- Order stage ----------
+export function stageOf(o: OrderRow): { index: number; key: OrderStage; label: string; delivered: boolean } {
+  const index = Math.max(0, Math.min(LAST_STAGE, o.stage))
+  const key = ORDER_STAGES[index]!
+  return { index, key, label: STAGE_LABELS[key], delivered: index >= LAST_STAGE }
+}
+
 // ---------- Serializers (shape the API/JSON responses) ----------
 export function serializeUser(u: UserRow) {
-  return { id: u.id, name: u.name, email: u.email, phone: u.phone, gender: u.gender, accent: u.accent, address: u.address, createdAt: u.created_at }
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    phone: u.phone,
+    gender: u.gender,
+    accent: u.accent,
+    address: u.address,
+    role: u.role,
+    referralCode: u.referral_code,
+    paymentMethod: u.payment_method,
+    createdAt: u.created_at,
+  }
+}
+
+export function serializeCard(c: CardRow) {
+  return { id: c.id, brand: c.brand, last4: c.last4, isDefault: !!c.is_default }
 }
 
 export function serializeLoyalty(l: LoyaltyRow) {
@@ -153,5 +219,18 @@ export function serializeSub(s: SubRow | undefined) {
 }
 
 export function serializeOrder(o: OrderRow) {
-  return { id: o.id, createdAt: o.created_at, pickup: o.pickup, delivery: o.delivery, address: o.address, phone: o.phone, status: o.status }
+  const st = stageOf(o)
+  return {
+    id: o.id,
+    createdAt: o.created_at,
+    pickup: o.pickup,
+    delivery: o.delivery,
+    address: o.address,
+    phone: o.phone,
+    stage: st.index,
+    stageKey: st.key,
+    stageLabel: st.label,
+    delivered: st.delivered,
+    stageUpdatedAt: o.stage_updated_at || o.created_at,
+  }
 }
