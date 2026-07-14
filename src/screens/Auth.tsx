@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useStore } from '../store'
 import { useI18n } from '../i18n'
 import LocationPicker from '../components/LocationPicker'
+import Reveal from '../components/Reveal'
 import { Apple, Check, Close, Female, Globe, Lock, Mail, Male, Phone, Pin, User as UserIcon } from '../components/Icons'
 
 type Step = 'gender' | 'name' | 'email' | 'phone' | 'password' | 'emailOtp' | 'phoneOtp' | 'location'
@@ -186,8 +187,8 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
         {/* ---------- LOGIN ---------- */}
         {!isSignup && (
           <div className="auth">
-            <h2 className="auth-title">{t('auth.login.title')}</h2>
-            <p className="auth-sub">{t('auth.login.sub')}</p>
+            <Reveal as="h2" className="auth-title" text={t('auth.login.title')} />
+            <p className="auth-sub reveal-sub">{t('auth.login.sub')}</p>
 
             <label className="input">
               <Mail className="in-ic" size={20} />

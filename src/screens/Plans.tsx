@@ -10,6 +10,7 @@ import {
   type Plan,
 } from '../data/plans'
 import { Check, Chevron, Close, Leaf, Star } from '../components/Icons'
+import Reveal from '../components/Reveal'
 import { PaymentSheet, PaymentValue } from '../components/Payment'
 import { useStore } from '../store'
 import { useI18n } from '../i18n'
@@ -223,8 +224,8 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
         ) : (
           <>
             <div className="hero" style={{ paddingTop: 0 }}>
-              <h2>{t('plans.heroTitle')}</h2>
-              <p>{t('plans.heroSub')}</p>
+              <Reveal as="h2" text={t('plans.heroTitle')} />
+              <p className="reveal-sub">{t('plans.heroSub')}</p>
             </div>
 
             <div className="segmented">

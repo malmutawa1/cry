@@ -4,6 +4,7 @@ import { useI18n } from '../i18n'
 import { useNow } from '../useNow'
 import { planName } from '../data/plans'
 import { Bag, CalendarIn, Chevron, Gift, Globe, Hanger, Route } from '../components/Icons'
+import Reveal from '../components/Reveal'
 import { ExtraKgSheet, useAllowance } from '../components/ExtraKg'
 import { tierInfo } from '../data/rewards'
 
@@ -47,10 +48,12 @@ export default function Home({
 
       <div className="screen">
         <div className="pad" style={{ paddingTop: 6, paddingBottom: 18 }}>
-          <div className="greeting">
-            {firstName ? `${lang === 'ar' ? 'مرحباً، ' : 'Hello, '}${firstName}` : t('home.greeting')}
-          </div>
-          <div className="greeting-sub">{t('home.subtitle')}</div>
+          <Reveal
+            as="div"
+            className="greeting"
+            text={firstName ? `${lang === 'ar' ? 'مرحباً، ' : 'Hello, '}${firstName}` : t('home.greeting')}
+          />
+          <div className="greeting-sub reveal-sub">{t('home.subtitle')}</div>
         </div>
 
         {activeOrder && (
