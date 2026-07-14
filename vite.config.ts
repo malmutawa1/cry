@@ -10,4 +10,15 @@ export default defineConfig(({ mode }) => ({
     host: true,
     port: 5173,
   },
+  build: {
+    rollupOptions: {
+      input: {
+        // Customer app (existing).
+        main: 'index.html',
+        // Standalone in-store POS — a separate site that shares nothing with
+        // the customer app besides the brand look. Reachable at /pos.html.
+        pos: 'pos.html',
+      },
+    },
+  },
 }))
