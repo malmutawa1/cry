@@ -1,55 +1,79 @@
-// Seed data for the standalone Pressd POS.
-// This POS is intentionally self-contained: it does NOT import from the
-// customer app's data/ or store — it keeps its own catalog and sales log in
-// localStorage so the terminal works with no backend.
+// Seed data for the Pressd operations terminal.
+// Pressd is a *subscription* laundry (monthly kg allowance) with pickup &
+// delivery — there is no walk-in counter and no cash tender. This terminal is
+// the facility-side tool staff use to take in members' laundry, bill overflow
+// as extra-kg blocks against the account, and watch operations.
+//
+// It stays self-contained (its own copy of the plan/extra figures that mirror
+// the customer app) and persists to localStorage with no backend.
 
-export type Unit = 'item' | 'kg'
-
-export interface Category {
+export interface Plan {
   id: string
   name: string
-  /** Emoji used as a lightweight tile glyph — no icon dependency. */
-  glyph: string
+  /** Monthly subscription price in KWD. */
+  priceKwd: number
+  /** Monthly laundry allowance in kilograms. */
+  capKg: number
+  tagline: string
+  popular?: boolean
 }
 
-export interface Product {
+export interface ExtraBlock {
+  id: string
+  kg: number
+  priceKwd: number
+}
+
+export interface Member {
   id: string
   name: string
-  categoryId: string
-  /** Price in KWD (3-decimal fils precision). */
-  price: number
-  unit: Unit
-  available: boolean
+  phone: string
+  area: string
+  planId: string
+  /** Kilograms already used in the current billing cycle. */
+  kgUsed: number
+  /** Masked card kept on file — overflow is billed here, never at a counter. */
+  cardLast4: string
+}
+
+export interface OrderBlocks {
+  /** count of 5 kg blocks added */
+  k5: number
+  /** count of 8 kg blocks added */
+  k8: number
+}
+
+export interface Intake {
+  id: string
+  ts: number
+  memberId: string
+  memberName: string
+  planId: string
+  planName: string
+  /** Weight of this batch (kg). */
+  kg: number
+  /** Allowance remaining before this batch was taken in. */
+  remainingBefore: number
+  /** Portion of the batch covered by the subscription allowance. */
+  coveredKg: number
+  /** Portion beyond the allowance. */
+  overflowKg: number
+  blocks: OrderBlocks
+  /** Total extra capacity purchased (kg). */
+  extraKgAdded: number
+  /** Amount billed to the card on file for extra kg (KWD). */
+  extraCharge: number
+  hangers: boolean
+  express: boolean
+  staffId: string
+  staffName: string
 }
 
 export interface Staff {
   id: string
   name: string
   role: string
-  /** 4-digit counter passcode (prototype only). */
   pin: string
-}
-
-export type PaymentMethod = 'cash' | 'knet' | 'card'
-
-export interface SaleLine {
-  productId: string
-  name: string
-  unit: Unit
-  price: number
-  qty: number
-}
-
-export interface Sale {
-  id: string
-  ts: number
-  staffId: string
-  staffName: string
-  method: PaymentMethod
-  lines: SaleLine[]
-  subtotal: number
-  discountPct: number
-  total: number
 }
 
 export const CURRENCY = 'KD'
@@ -59,48 +83,99 @@ export function money(kwd: number): string {
   return `${CURRENCY} ${kwd.toFixed(3)}`
 }
 
-export const categories: Category[] = [
-  { id: 'wash', name: 'Wash & Fold', glyph: '🧺' },
-  { id: 'dry', name: 'Dry Cleaning', glyph: '🥼' },
-  { id: 'press', name: 'Ironing & Press', glyph: '👔' },
-  { id: 'house', name: 'Household', glyph: '🛏️' },
-  { id: 'express', name: 'Express', glyph: '⚡' },
+// Subscription tiers — mirror the customer app's feasibility-study plans.
+export const seedPlans: Plan[] = [
+  { id: 'basic', name: 'Basic', priceKwd: 15, capKg: 20, tagline: 'Singles & couples' },
+  { id: 'standard', name: 'Standard', priceKwd: 28, capKg: 40, tagline: 'Small families', popular: true },
+  { id: 'premium', name: 'Premium', priceKwd: 45, capKg: 70, tagline: 'Larger families' },
+  { id: 'family-plus', name: 'Family Plus', priceKwd: 65, capKg: 100, tagline: 'Heavy-use households' },
 ]
 
-export const seedProducts: Product[] = [
-  // Wash & Fold — priced by weight.
-  { id: 'wf-mixed', name: 'Mixed Wash & Fold', categoryId: 'wash', price: 1.5, unit: 'kg', available: true },
-  { id: 'wf-delicate', name: 'Delicate Wash', categoryId: 'wash', price: 2.25, unit: 'kg', available: true },
-  { id: 'wf-whites', name: 'Whites & Brights', categoryId: 'wash', price: 1.75, unit: 'kg', available: true },
-  // Dry cleaning — per item.
-  { id: 'dc-suit', name: 'Two-piece Suit', categoryId: 'dry', price: 3.5, unit: 'item', available: true },
-  { id: 'dc-dishdasha', name: 'Dishdasha', categoryId: 'dry', price: 1.25, unit: 'item', available: true },
-  { id: 'dc-abaya', name: 'Abaya', categoryId: 'dry', price: 1.5, unit: 'item', available: true },
-  { id: 'dc-coat', name: 'Winter Coat', categoryId: 'dry', price: 4, unit: 'item', available: true },
-  { id: 'dc-dress', name: 'Evening Dress', categoryId: 'dry', price: 3, unit: 'item', available: true },
-  // Ironing & press — per item.
-  { id: 'pr-shirt', name: 'Shirt Press', categoryId: 'press', price: 0.5, unit: 'item', available: true },
-  { id: 'pr-trouser', name: 'Trouser Press', categoryId: 'press', price: 0.5, unit: 'item', available: true },
-  { id: 'pr-dishdasha', name: 'Dishdasha Press', categoryId: 'press', price: 0.75, unit: 'item', available: true },
-  { id: 'pr-thobe', name: 'Ghutra / Thobe Press', categoryId: 'press', price: 0.4, unit: 'item', available: true },
-  // Household — per item.
-  { id: 'hh-duvet', name: 'Duvet (Double)', categoryId: 'house', price: 4.5, unit: 'item', available: true },
-  { id: 'hh-blanket', name: 'Blanket', categoryId: 'house', price: 3, unit: 'item', available: true },
-  { id: 'hh-curtain', name: 'Curtain Panel', categoryId: 'house', price: 2, unit: 'item', available: true },
-  { id: 'hh-rug', name: 'Small Rug', categoryId: 'house', price: 5, unit: 'item', available: false },
-  // Express surcharge.
-  { id: 'ex-sameday', name: 'Same-day Rush', categoryId: 'express', price: 2, unit: 'item', available: true },
-  { id: 'ex-4hr', name: '4-hour Express', categoryId: 'express', price: 3.5, unit: 'item', available: true },
+// Extra-capacity blocks, sold when a batch runs past the monthly allowance.
+export const seedExtras: ExtraBlock[] = [
+  { id: 'x5', kg: 5, priceKwd: 2 },
+  { id: 'x8', kg: 8, priceKwd: 5 },
 ]
 
 export const staff: Staff[] = [
   { id: 's-fatima', name: 'Fatima', role: 'Shift Lead', pin: '2468' },
-  { id: 's-yousef', name: 'Yousef', role: 'Cashier', pin: '1357' },
-  { id: 's-ahmad', name: 'Ahmad', role: 'Cashier', pin: '1111' },
+  { id: 's-yousef', name: 'Yousef', role: 'Intake', pin: '1357' },
+  { id: 's-ahmad', name: 'Ahmad', role: 'Intake', pin: '1111' },
 ]
 
-export const paymentMethods: { id: PaymentMethod; label: string; glyph: string }[] = [
-  { id: 'cash', label: 'Cash', glyph: '💵' },
-  { id: 'knet', label: 'KNET', glyph: '🏧' },
-  { id: 'card', label: 'Card', glyph: '💳' },
+// Member roster — the subscribers whose laundry comes through the facility.
+export const seedMembers: Member[] = [
+  { id: 'm-1001', name: 'Noura Al-Sabah', phone: '9945 1002', area: 'Salmiya, Block 10', planId: 'standard', kgUsed: 31, cardLast4: '4417' },
+  { id: 'm-1002', name: 'Yousef Al-Ajmi', phone: '6612 8830', area: 'Jabriya, Block 3', planId: 'premium', kgUsed: 52, cardLast4: '9021' },
+  { id: 'm-1003', name: 'Dana Khalid', phone: '5540 7781', area: 'Mishref, Block 6', planId: 'basic', kgUsed: 17, cardLast4: '1188' },
+  { id: 'm-1004', name: 'Abdullah Al-Rashed', phone: '9901 4456', area: 'Rumaithiya, Block 2', planId: 'family-plus', kgUsed: 74, cardLast4: '3390' },
+  { id: 'm-1005', name: 'Fatima Al-Enezi', phone: '6678 2213', area: 'Bayan, Block 7', planId: 'standard', kgUsed: 39, cardLast4: '7752' },
+  { id: 'm-1006', name: 'Mishari Al-Otaibi', phone: '5023 9987', area: 'Salwa, Block 4', planId: 'basic', kgUsed: 8, cardLast4: '2204' },
+  { id: 'm-1007', name: 'Latifa Bader', phone: '9987 1120', area: 'Qortuba, Block 1', planId: 'premium', kgUsed: 61, cardLast4: '6612' },
+  { id: 'm-1008', name: 'Hamad Al-Failakawi', phone: '6650 3341', area: 'Surra, Block 5', planId: 'standard', kgUsed: 22, cardLast4: '8830' },
+  { id: 'm-1009', name: 'Sara Al-Mutairi', phone: '5567 9004', area: 'Shaab, Block 8', planId: 'family-plus', kgUsed: 88, cardLast4: '1077' },
+  { id: 'm-1010', name: 'Khaled Al-Duwaisan', phone: '9932 6650', area: 'Jabriya, Block 11', planId: 'basic', kgUsed: 19, cardLast4: '4520' },
+  { id: 'm-1011', name: 'Maryam Al-Sabah', phone: '6604 8871', area: 'Mishref, Block 2', planId: 'premium', kgUsed: 45, cardLast4: '3011' },
+  { id: 'm-1012', name: 'Talal Al-Harbi', phone: '5590 1123', area: 'Rumaithiya, Block 9', planId: 'standard', kgUsed: 36, cardLast4: '9948' },
 ]
+
+export function planById(plans: Plan[], id: string): Plan | undefined {
+  return plans.find((p) => p.id === id)
+}
+
+/** Cheapest set of extra blocks that covers `overflowKg`, using the cheapest
+ *  per-kg block first. Returns block counts, total kg and total price. */
+export function suggestBlocks(
+  overflowKg: number,
+  extras: ExtraBlock[],
+): { k5: number; k8: number; kg: number; price: number } {
+  const b5 = extras.find((e) => e.kg === 5) ?? { kg: 5, priceKwd: 2 }
+  const b8 = extras.find((e) => e.kg === 8) ?? { kg: 8, priceKwd: 5 }
+  if (overflowKg <= 0) return { k5: 0, k8: 0, kg: 0, price: 0 }
+  // Order blocks by price-per-kg (cheapest first) and greedily cover.
+  const perKg5 = b5.priceKwd / b5.kg
+  const perKg8 = b8.priceKwd / b8.kg
+  const [big, small] = perKg8 <= perKg5 ? [b8, b5] : [b5, b8]
+  let remaining = overflowKg
+  const countBig = Math.floor(remaining / big.kg)
+  remaining -= countBig * big.kg
+  const countSmall = remaining > 0 ? Math.ceil(remaining / small.kg) : 0
+  const k5 = (big.kg === 5 ? countBig : 0) + (small.kg === 5 ? countSmall : 0)
+  const k8 = (big.kg === 8 ? countBig : 0) + (small.kg === 8 ? countSmall : 0)
+  const kg = k5 * 5 + k8 * 8
+  const price = k5 * b5.priceKwd + k8 * b8.priceKwd
+  return { k5, k8, kg, price }
+}
+
+// --- Operations demo figures (throughput & quality), mirroring the app's
+//     facility-side staff view. Turnaround / on-time / rewash are steady-state
+//     metrics that wouldn't be derivable from a day of seeded intakes. ---
+export const ops = {
+  onTimePct: 96,
+  slaTargetPct: 95,
+  avgTurnaroundH: 22,
+  rewashPct: 2.4,
+  capacityPct: 78,
+  qcPassPct: 97.6,
+}
+
+export interface ThroughputDay {
+  label: string
+  kg: number
+}
+export const throughputSeed: ThroughputDay[] = [
+  { label: 'Sat', kg: 620 },
+  { label: 'Sun', kg: 540 },
+  { label: 'Mon', kg: 580 },
+  { label: 'Tue', kg: 700 },
+  { label: 'Wed', kg: 660 },
+  { label: 'Thu', kg: 480 },
+  { label: 'Fri', kg: 300 },
+]
+
+export const PLAN_COLOR: Record<string, string> = {
+  basic: '#6c6c74',
+  standard: '#4cc4ff',
+  premium: '#c9a24a',
+  'family-plus': '#34c759',
+}

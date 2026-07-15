@@ -30,7 +30,7 @@ export function Login() {
         <div className="brand">
           Pressd<span className="dot">.</span>
         </div>
-        <p className="lead">Counter terminal — enter your passcode</p>
+        <p className="lead">Operations terminal — enter your passcode</p>
 
         <div className={`pin-dots${err ? ' err' : ''}`}>
           {[0, 1, 2, 3].map((i) => (

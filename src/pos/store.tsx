@@ -8,17 +8,23 @@ import {
   type ReactNode,
 } from 'react'
 import {
-  seedProducts,
+  seedExtras,
+  seedMembers,
+  seedPlans,
   staff as staffList,
-  type PaymentMethod,
-  type Product,
-  type Sale,
-  type SaleLine,
+  suggestBlocks,
+  type ExtraBlock,
+  type Intake,
+  type Member,
+  type OrderBlocks,
+  type Plan,
   type Staff,
 } from './data'
 
-const PRODUCTS_KEY = 'pressd-pos:products:v1'
-const SALES_KEY = 'pressd-pos:sales:v1'
+const PLANS_KEY = 'pressd-pos:plans:v2'
+const EXTRAS_KEY = 'pressd-pos:extras:v2'
+const MEMBERS_KEY = 'pressd-pos:members:v2'
+const INTAKES_KEY = 'pressd-pos:intakes:v2'
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -28,57 +34,19 @@ function load<T>(key: string, fallback: T): T {
     return fallback
   }
 }
-
 function save<T>(key: string, value: T) {
   try {
     localStorage.setItem(key, JSON.stringify(value))
   } catch {
-    /* storage full or unavailable — POS keeps running from memory */
+    /* storage unavailable — terminal keeps running from memory */
   }
 }
 
-/** A day's worth of pretend transactions so the dashboard is never empty on
- *  first launch. Spread across the last 7 days at plausible counter hours. */
-function seedSales(products: Product[]): Sale[] {
-  const rng = mulberry32(20260714)
-  const methods: PaymentMethod[] = ['cash', 'knet', 'knet', 'card']
-  const out: Sale[] = []
-  const now = Date.now()
-  for (let day = 6; day >= 0; day--) {
-    const count = 8 + Math.floor(rng() * 12)
-    for (let i = 0; i < count; i++) {
-      const hour = 9 + Math.floor(rng() * 11)
-      const ts = now - day * 86400000
-      const d = new Date(ts)
-      d.setHours(hour, Math.floor(rng() * 60), 0, 0)
-      const lineCount = 1 + Math.floor(rng() * 3)
-      const lines: SaleLine[] = []
-      for (let l = 0; l < lineCount; l++) {
-        const p = products[Math.floor(rng() * products.length)]
-        const qty = p.unit === 'kg' ? 1 + Math.floor(rng() * 6) : 1 + Math.floor(rng() * 3)
-        lines.push({ productId: p.id, name: p.name, unit: p.unit, price: p.price, qty })
-      }
-      const subtotal = lines.reduce((s, ln) => s + ln.price * ln.qty, 0)
-      const discountPct = rng() > 0.85 ? 10 : 0
-      const total = round3(subtotal * (1 - discountPct / 100))
-      const clerk = staffList[Math.floor(rng() * staffList.length)]
-      out.push({
-        id: `S-${d.getTime()}-${i}`,
-        ts: d.getTime(),
-        staffId: clerk.id,
-        staffName: clerk.name,
-        method: methods[Math.floor(rng() * methods.length)],
-        lines,
-        subtotal: round3(subtotal),
-        discountPct,
-        total,
-      })
-    }
-  }
-  return out.sort((a, b) => a.ts - b.ts)
+export function round3(n: number): number {
+  return Math.round(n * 1000) / 1000
 }
 
-/** Deterministic PRNG so the demo sales look the same on every reload. */
+/** Deterministic PRNG so the seeded intake history is stable across reloads. */
 function mulberry32(seed: number) {
   let a = seed
   return function () {
@@ -90,95 +58,168 @@ function mulberry32(seed: number) {
   }
 }
 
-export function round3(n: number): number {
-  return Math.round(n * 1000) / 1000
+/** A week of past intakes so the operations dashboard is populated on launch. */
+function seedIntakes(plans: Plan[], extras: ExtraBlock[], members: Member[]): Intake[] {
+  const rng = mulberry32(20260715)
+  const out: Intake[] = []
+  const now = Date.now()
+  for (let day = 6; day >= 0; day--) {
+    const count = 6 + Math.floor(rng() * 8)
+    for (let i = 0; i < count; i++) {
+      const member = members[Math.floor(rng() * members.length)]
+      const plan = plans.find((p) => p.id === member.planId) ?? plans[0]
+      const kg = round3(3 + rng() * 9)
+      const remainingBefore = Math.max(0, plan.capKg - Math.floor(rng() * plan.capKg))
+      const overflowKg = Math.max(0, round3(kg - remainingBefore))
+      const s = suggestBlocks(overflowKg, extras)
+      const d = new Date(now - day * 86400000)
+      d.setHours(9 + Math.floor(rng() * 11), Math.floor(rng() * 60), 0, 0)
+      const clerk = staffList[Math.floor(rng() * staffList.length)]
+      out.push({
+        id: `PRS-${7000 + out.length}`,
+        ts: d.getTime(),
+        memberId: member.id,
+        memberName: member.name,
+        planId: plan.id,
+        planName: plan.name,
+        kg,
+        remainingBefore,
+        coveredKg: round3(Math.min(kg, remainingBefore)),
+        overflowKg,
+        blocks: { k5: s.k5, k8: s.k8 },
+        extraKgAdded: s.kg,
+        extraCharge: round3(s.price),
+        hangers: rng() > 0.4,
+        express: rng() > 0.85,
+        staffId: clerk.id,
+        staffName: clerk.name,
+      })
+    }
+  }
+  return out.sort((a, b) => a.ts - b.ts)
+}
+
+export interface IntakeDraft {
+  memberId: string
+  kg: number
+  remainingBefore: number
+  coveredKg: number
+  overflowKg: number
+  blocks: OrderBlocks
+  extraKgAdded: number
+  extraCharge: number
+  hangers: boolean
+  express: boolean
 }
 
 interface PosState {
   staff: Staff[]
   currentStaff: Staff | null
-  products: Product[]
-  sales: Sale[]
+  plans: Plan[]
+  extras: ExtraBlock[]
+  members: Member[]
+  intakes: Intake[]
   login: (pin: string) => Staff | null
   logout: () => void
-  addProduct: (p: Omit<Product, 'id'>) => void
-  updateProduct: (p: Product) => void
-  deleteProduct: (id: string) => void
-  toggleAvailable: (id: string) => void
-  recordSale: (sale: Omit<Sale, 'id' | 'ts' | 'staffId' | 'staffName'>) => Sale | null
+  addPlan: (p: Omit<Plan, 'id'>) => void
+  updatePlan: (p: Plan) => void
+  deletePlan: (id: string) => void
+  updateExtra: (e: ExtraBlock) => void
+  recordIntake: (draft: IntakeDraft) => Intake | null
 }
 
 const Ctx = createContext<PosState | null>(null)
 
 export function PosProvider({ children }: { children: ReactNode }) {
   const [currentStaff, setCurrentStaff] = useState<Staff | null>(null)
-  const [products, setProducts] = useState<Product[]>(() => load(PRODUCTS_KEY, seedProducts))
-  const [sales, setSales] = useState<Sale[]>(() => {
-    const existing = load<Sale[] | null>(SALES_KEY, null)
+  const [plans, setPlans] = useState<Plan[]>(() => load(PLANS_KEY, seedPlans))
+  const [extras, setExtras] = useState<ExtraBlock[]>(() => load(EXTRAS_KEY, seedExtras))
+  const [members, setMembers] = useState<Member[]>(() => load(MEMBERS_KEY, seedMembers))
+  const [intakes, setIntakes] = useState<Intake[]>(() => {
+    const existing = load<Intake[] | null>(INTAKES_KEY, null)
     if (existing) return existing
-    const seeded = seedSales(seedProducts)
-    save(SALES_KEY, seeded)
+    const seeded = seedIntakes(seedPlans, seedExtras, seedMembers)
+    save(INTAKES_KEY, seeded)
     return seeded
   })
 
-  useEffect(() => save(PRODUCTS_KEY, products), [products])
-  useEffect(() => save(SALES_KEY, sales), [sales])
+  useEffect(() => save(PLANS_KEY, plans), [plans])
+  useEffect(() => save(EXTRAS_KEY, extras), [extras])
+  useEffect(() => save(MEMBERS_KEY, members), [members])
+  useEffect(() => save(INTAKES_KEY, intakes), [intakes])
 
   const login = useCallback((pin: string) => {
     const match = staffList.find((s) => s.pin === pin) ?? null
     if (match) setCurrentStaff(match)
     return match
   }, [])
-
   const logout = useCallback(() => setCurrentStaff(null), [])
 
-  const addProduct = useCallback((p: Omit<Product, 'id'>) => {
-    setProducts((prev) => [...prev, { ...p, id: `p-${Date.now()}` }])
+  const addPlan = useCallback((p: Omit<Plan, 'id'>) => {
+    setPlans((prev) => [...prev, { ...p, id: `plan-${Date.now()}` }])
+  }, [])
+  const updatePlan = useCallback((p: Plan) => {
+    setPlans((prev) => prev.map((x) => (x.id === p.id ? p : x)))
+  }, [])
+  const deletePlan = useCallback((id: string) => {
+    setPlans((prev) => prev.filter((x) => x.id !== id))
+  }, [])
+  const updateExtra = useCallback((e: ExtraBlock) => {
+    setExtras((prev) => prev.map((x) => (x.id === e.id ? e : x)))
   }, [])
 
-  const updateProduct = useCallback((p: Product) => {
-    setProducts((prev) => prev.map((x) => (x.id === p.id ? p : x)))
-  }, [])
-
-  const deleteProduct = useCallback((id: string) => {
-    setProducts((prev) => prev.filter((x) => x.id !== id))
-  }, [])
-
-  const toggleAvailable = useCallback((id: string) => {
-    setProducts((prev) => prev.map((x) => (x.id === id ? { ...x, available: !x.available } : x)))
-  }, [])
-
-  const recordSale = useCallback<PosState['recordSale']>(
+  const recordIntake = useCallback<PosState['recordIntake']>(
     (draft) => {
       if (!currentStaff) return null
-      const sale: Sale = {
-        ...draft,
-        id: `S-${Date.now()}`,
+      const member = members.find((m) => m.id === draft.memberId)
+      if (!member) return null
+      const plan = plans.find((p) => p.id === member.planId)
+      const intake: Intake = {
+        id: `PRS-${9000 + Math.floor(Math.random() * 999)}`,
         ts: Date.now(),
+        memberId: member.id,
+        memberName: member.name,
+        planId: member.planId,
+        planName: plan?.name ?? '—',
+        kg: draft.kg,
+        remainingBefore: draft.remainingBefore,
+        coveredKg: draft.coveredKg,
+        overflowKg: draft.overflowKg,
+        blocks: draft.blocks,
+        extraKgAdded: draft.extraKgAdded,
+        extraCharge: draft.extraCharge,
+        hangers: draft.hangers,
+        express: draft.express,
         staffId: currentStaff.id,
         staffName: currentStaff.name,
       }
-      setSales((prev) => [...prev, sale])
-      return sale
+      setIntakes((prev) => [...prev, intake])
+      // Deduct the batch from the member's monthly allowance usage.
+      setMembers((prev) =>
+        prev.map((m) => (m.id === member.id ? { ...m, kgUsed: round3(m.kgUsed + draft.kg) } : m)),
+      )
+      return intake
     },
-    [currentStaff],
+    [currentStaff, members, plans],
   )
 
   const value = useMemo<PosState>(
     () => ({
       staff: staffList,
       currentStaff,
-      products,
-      sales,
+      plans,
+      extras,
+      members,
+      intakes,
       login,
       logout,
-      addProduct,
-      updateProduct,
-      deleteProduct,
-      toggleAvailable,
-      recordSale,
+      addPlan,
+      updatePlan,
+      deletePlan,
+      updateExtra,
+      recordIntake,
     }),
-    [currentStaff, products, sales, login, logout, addProduct, updateProduct, deleteProduct, toggleAvailable, recordSale],
+    [currentStaff, plans, extras, members, intakes, login, logout, addPlan, updatePlan, deletePlan, updateExtra, recordIntake],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
