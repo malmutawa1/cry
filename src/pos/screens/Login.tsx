@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { usePos } from '../store'
+import { Backspace } from '../../components/Icons'
 
 /** Staff PIN gate. Independent of the customer app's Auth screen. */
 export function Login() {
@@ -48,8 +49,8 @@ export function Login() {
             Clear
           </button>
           <button onClick={() => press('0')}>0</button>
-          <button className="ghost" onClick={() => setPin((p) => p.slice(0, -1))}>
-            ⌫
+          <button className="ghost" onClick={() => setPin((p) => p.slice(0, -1))} aria-label="Backspace">
+            <Backspace size={20} />
           </button>
         </div>
 

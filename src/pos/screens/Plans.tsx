@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { money, type ExtraBlock, type Plan } from '../data'
 import { usePos } from '../store'
+import { Pencil, Trash, Close } from '../../components/Icons'
 
 const EMPTY: Omit<Plan, 'id'> = { name: '', priceKwd: 15, capKg: 20, tagline: '' }
 
@@ -54,7 +55,7 @@ export function Plans() {
                 <td>
                   <div className="row-actions">
                     <button className="icon-btn" onClick={() => setEditing(p)} aria-label="Edit">
-                      ✎
+                      <Pencil size={16} />
                     </button>
                     <button
                       className="icon-btn danger"
@@ -67,7 +68,7 @@ export function Plans() {
                       }}
                       aria-label="Delete"
                     >
-                      🗑
+                      <Trash size={16} />
                     </button>
                   </div>
                 </td>
@@ -151,8 +152,8 @@ function PlanEditor({
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
           <h2>{initial.name ? 'Edit plan' : 'New plan'}</h2>
-          <button className="x" onClick={onCancel}>
-            ✕
+          <button className="x" onClick={onCancel} aria-label="Close">
+            <Close size={18} />
           </button>
         </div>
         <div className="modal-body">

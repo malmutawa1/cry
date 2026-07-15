@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { money, planById, suggestBlocks, type Intake as IntakeRec, type Member } from '../data'
 import { round3, usePos } from '../store'
+import { Search, Receipt, Hanger, Bolt } from '../../components/Icons'
 
 export function Intake() {
   const { members, plans, extras, recordIntake } = usePos()
@@ -22,7 +23,7 @@ export function Intake() {
     <div className="register">
       <div className="reg-catalog">
         <div className="intake-search">
-          <span className="g">🔍</span>
+          <span className="g"><Search size={16} /></span>
           <input
             placeholder="Search members by name, area or phone…"
             value={query}
@@ -74,7 +75,7 @@ export function Intake() {
           />
         ) : (
           <div className="cart-empty" style={{ height: '100%' }}>
-            <div className="big">📋</div>
+            <div className="big"><Receipt size={40} /></div>
             <div>Select a member to start intake</div>
           </div>
         )}
@@ -213,10 +214,10 @@ export function Intake() {
 
               <div className="addons">
                 <button className={`addon${hangers ? ' on' : ''}`} onClick={() => setHangers((v) => !v)}>
-                  <span className="g">🧷</span> On hangers
+                  <span className="g"><Hanger size={16} /></span> On hangers
                 </button>
                 <button className={`addon${express ? ' on' : ''}`} onClick={() => setExpress((v) => !v)}>
-                  <span className="g">⚡</span> Express
+                  <span className="g"><Bolt size={16} /></span> Express
                 </button>
               </div>
             </div>
