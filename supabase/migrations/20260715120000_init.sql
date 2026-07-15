@@ -223,6 +223,19 @@ create policy "payments select own" on public.payments
   for select to authenticated using ((select auth.uid()) = user_id);
 
 -- ===========================================================================
+-- Table privileges
+-- ===========================================================================
+-- Supabase's default privileges usually grant the API roles access to new
+-- public tables (RLS still gates rows), but that depends on project Data API
+-- settings. Grant explicitly so this migration is self-sufficient. Reads/writes
+-- not listed here happen only through SECURITY DEFINER RPCs, which run as owner.
+grant select on public.plans, public.rewards, public.extras to anon, authenticated;
+grant select, update on public.profiles to authenticated;
+grant select, insert, update, delete on public.cards to authenticated;
+grant select on public.loyalty, public.subscriptions, public.orders,
+  public.redemptions, public.payments to authenticated;
+
+-- ===========================================================================
 -- On-signup trigger: create the profile + loyalty rows
 -- ===========================================================================
 -- Signup metadata (name/phone/gender/address) is passed by the client in
@@ -238,9 +251,12 @@ declare
   v_gender text := nullif(new.raw_user_meta_data ->> 'gender', '');
   v_code   text;
 begin
-  -- A short, unambiguous referral code (no 0/O/1/I).
-  v_code := upper(regexp_replace(encode(extensions.gen_random_bytes(6), 'base64'), '[^A-Z0-9]', '', 'g'));
-  v_code := 'PR' || left(translate(v_code, '01IO', '2345'), 6);
+  -- A stable 8-char referral code: 'PR' + 6 hex chars. Retry on the (tiny)
+  -- chance of a collision against the unique index.
+  loop
+    v_code := 'PR' || upper(substr(encode(extensions.gen_random_bytes(5), 'hex'), 1, 6));
+    exit when not exists (select 1 from public.profiles where referral_code = v_code);
+  end loop;
 
   insert into public.profiles (id, name, email, phone, gender, accent, address, referral_code)
   values (
