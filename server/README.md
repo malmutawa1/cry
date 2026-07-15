@@ -14,19 +14,48 @@ npm start          # http://localhost:4000
 npm run dev        # same, with --watch reload
 ```
 
-Config via env vars (all optional): `PORT`, `JWT_SECRET`, `DB_PATH` (`:memory:` for tests),
-`CORS_ORIGIN`.
+## Test
+```bash
+cd server
+npm test          # node:test suite (in-memory DB, 24 cases)
+```
 
-## Auth
-Send the token from signup/login as `Authorization: Bearer <token>` on protected routes.
-Passwords are hashed with scrypt; tokens are HS256 JWTs signed with `JWT_SECRET`.
+## Config (env vars)
+| Var | Default | Notes |
+|-----|---------|-------|
+| `PORT` | `4000` | |
+| `JWT_SECRET` | dev value | **Required in production** (`NODE_ENV=production`) |
+| `STAFF_KEY` | dev value | **Required in production**; sent as `x-staff-key` |
+| `ACCESS_TTL` | `3600` (1h) | Access-token lifetime (seconds) |
+| `REFRESH_TTL` | 60 days | Refresh-token lifetime (seconds) |
+| `DB_PATH` | `data/pressd.db` | `:memory:` for tests |
+| `CORS_ORIGIN` | `*` | Allowed origin |
+| `MAX_BODY_BYTES` | `65536` | Bodies larger than this → `413` |
+| `TRUST_PROXY` | `0` (on in prod) | Use `X-Forwarded-For` for client IP |
+| `AUTH_RATE_MAX` / `AUTH_RATE_WINDOW_MS` | `15` / `60000` | Auth rate limit per IP |
+
+## Auth (access + refresh tokens)
+- `signup` / `login` return `{ token, refreshToken, ... }`. Send the **access token** as
+  `Authorization: Bearer <token>` on protected routes.
+- Access tokens are **short-lived HS256 JWTs**; when one expires, exchange the **refresh token** at
+  `POST /api/auth/refresh` for a new pair. Refresh tokens are stored **hashed** and **rotated** on every
+  use (the old one is revoked). `POST /api/auth/logout` revokes a refresh token.
+- Passwords are hashed with scrypt.
+
+## Hardening
+- Per-IP **rate limiting** on auth endpoints (`429` when exceeded).
+- Request **body-size cap** (`413`) and strict field validation (types, length, numeric ranges).
+- **Graceful shutdown** (SIGINT/SIGTERM → drain connections, close DB) and a DB-checked `/health`.
+- Production boot **refuses insecure defaults** for `JWT_SECRET` / `STAFF_KEY`.
 
 ## Endpoints
 | Method | Path | Auth | Purpose |
 |--------|------|:----:|---------|
 | GET | `/health` | – | Liveness check |
 | POST | `/api/auth/signup` | – | Create account → `{ token, user, loyalty, subscription }` |
-| POST | `/api/auth/login` | – | Log in → `{ token, ... }` |
+| POST | `/api/auth/login` | – | Log in → `{ token, refreshToken, ... }` |
+| POST | `/api/auth/refresh` | – | Exchange a refresh token for a new (rotated) session |
+| POST | `/api/auth/logout` | – | Revoke a refresh token |
 | GET | `/api/auth/me` | ✓ | Account snapshot |
 | PATCH | `/api/auth/me` | ✓ | Update name / email / phone / address |
 | GET | `/api/plans` | – | Plan catalog (monthly + annual pricing) |

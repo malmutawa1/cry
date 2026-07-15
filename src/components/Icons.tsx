@@ -154,3 +154,21 @@ export const Male = ({ size = 22, className }: P) => (
 export const Female = ({ size = 22, className }: P) => (
   <svg {...base(size, className)}><circle cx="12" cy="9" r="6" /><path d="M12 15v7M9 19h6" /></svg>
 )
+export const Search = ({ size = 20, className }: P) => (
+  <svg {...base(size, className)}><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+)
+export const BarChart = ({ size = 20, className }: P) => (
+  <svg {...base(size, className)}><path d="M3 21h18" /><path d="M7 21v-7M12 21V5M17 21v-4" /></svg>
+)
+export const Pencil = ({ size = 18, className }: P) => (
+  <svg {...base(size, className)}><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+)
+export const Backspace = ({ size = 20, className }: P) => (
+  <svg {...base(size, className)}><path d="M20 6H9L3 12l6 6h11a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1Z" /><path d="m17 9-5 6M12 9l5 6" /></svg>
+)
+export const Users = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><circle cx="9" cy="8" r="3.2" /><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 5.2a3.2 3.2 0 0 1 0 5.6M18 20a5.5 5.5 0 0 0-3-4.9" /></svg>
+)
+export const Bolt = ({ size = 22, className }: P) => (
+  <svg {...base(size, className)}><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" /></svg>
+)

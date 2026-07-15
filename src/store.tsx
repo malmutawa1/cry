@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { plans, type Billing, type Plan } from './data/plans'
 import { defaultDelivery, defaultPickup, type Slot } from './data/slots'
-import { api, apiEnabled, getToken, setToken, type ApiLoyalty, type Snapshot } from './api'
+import { api, apiEnabled, getToken, setSession, clearSession, type ApiLoyalty, type Snapshot } from './api'
 
 export interface User {
   name: string
@@ -243,10 +243,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setCards(s.cards.map((c) => ({ id: String(c.id), brand: c.brand, last4: c.last4 })))
   }
 
-  // Restore an existing session on load.
+  // Restore an existing session on load (auto-refreshes the access token if needed).
   useEffect(() => {
     if (apiEnabled && getToken()) {
-      api.me().then(hydrate).catch(() => setToken(null))
+      api.me().then(hydrate).catch(() => clearSession())
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -277,7 +277,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         api
           .login({ email, password })
           .then((r) => {
-            setToken(r.token)
+            setSession(r.token, r.refreshToken)
             hydrate(r)
           })
           .catch(() => setUser({ name: nameFromEmail(email), email })) // graceful offline fallback
@@ -291,7 +291,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         api
           .signup({ name, email, password: opts.password, phone: opts.phone, gender: opts.gender, address: opts.address })
           .then((r) => {
-            setToken(r.token)
+            setSession(r.token, r.refreshToken)
             hydrate(r)
           })
           .catch(() => setUser({ name: name.trim() || nameFromEmail(email), email }))
@@ -301,7 +301,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     loginWithApple: () => setUser(APPLE_RELAY),
     logout: () => {
-      setToken(null)
+      if (apiEnabled) api.logout().catch(() => {})
+      clearSession()
       setUser(null)
       setAccent('blue')
       setMode('light')

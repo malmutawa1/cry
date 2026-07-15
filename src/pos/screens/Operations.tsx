@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { money, ops, PLAN_COLOR, planById, throughputSeed, type Intake } from '../data'
 import { round3, usePos } from '../store'
+import { Cards, Users, Basket, Plus } from '../../components/Icons'
 
 type Range = 'today' | '7d' | '30d'
 const RANGE_DAYS: Record<Range, number> = { today: 1, '7d': 7, '30d': 30 }
@@ -73,10 +74,10 @@ export function Operations() {
       </div>
 
       <div className="kpis">
-        <Kpi glyph="💳" label="Recurring revenue" value={money(mrr)} sub="Active subscriptions / mo" tone="grad" />
-        <Kpi glyph="👥" label="Active members" value={String(activeMembers)} sub="On a subscription" tone="dark" />
-        <Kpi glyph="📦" label="Orders processed" value={String(ordersProcessed)} sub="Taken in this range" />
-        <Kpi glyph="➕" label="Extra-kg revenue" value={money(extraRevenue)} sub="Overflow blocks billed" />
+        <Kpi icon={<Cards size={18} />} label="Recurring revenue" value={money(mrr)} sub="Active subscriptions / mo" tone="grad" />
+        <Kpi icon={<Users size={18} />} label="Active members" value={String(activeMembers)} sub="On a subscription" tone="dark" />
+        <Kpi icon={<Basket size={18} />} label="Orders processed" value={String(ordersProcessed)} sub="Taken in this range" />
+        <Kpi icon={<Plus size={18} />} label="Extra-kg revenue" value={money(extraRevenue)} sub="Overflow blocks billed" />
       </div>
 
       <div className="grid-2">
@@ -151,11 +152,11 @@ export function Operations() {
   )
 }
 
-function Kpi({ glyph, label, value, sub, tone }: { glyph: string; label: string; value: string; sub: string; tone?: 'grad' | 'dark' }) {
+function Kpi({ icon, label, value, sub, tone }: { icon: ReactNode; label: string; value: string; sub: string; tone?: 'grad' | 'dark' }) {
   return (
     <div className={`kpi${tone ? ' ' + tone : ''}`}>
       <div className="k">
-        <span className="g">{glyph}</span>
+        <span className="g">{icon}</span>
         {label}
       </div>
       <div className="v">{value}</div>

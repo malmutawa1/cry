@@ -6,9 +6,12 @@ const BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/
 export const apiEnabled = BASE.length > 0
 
 const TOKEN_KEY = 'pressd.token'
+const REFRESH_KEY = 'pressd.refresh'
 let token: string | null = null
+let refreshToken: string | null = null
 try {
   token = localStorage.getItem(TOKEN_KEY)
+  refreshToken = localStorage.getItem(REFRESH_KEY)
 } catch {
   /* storage unavailable */
 }
@@ -25,6 +28,53 @@ export function setToken(t: string | null): void {
     /* storage unavailable */
   }
 }
+function setRefresh(rt: string | null): void {
+  refreshToken = rt
+  try {
+    if (rt) localStorage.setItem(REFRESH_KEY, rt)
+    else localStorage.removeItem(REFRESH_KEY)
+  } catch {
+    /* storage unavailable */
+  }
+}
+/** Store both tokens after a login / signup / refresh. */
+export function setSession(t: string | null, rt: string | null): void {
+  setToken(t)
+  setRefresh(rt)
+}
+/** Clear the session (logout or unrecoverable auth failure). */
+export function clearSession(): void {
+  setToken(null)
+  setRefresh(null)
+}
+
+let refreshing: Promise<boolean> | null = null
+async function tryRefresh(): Promise<boolean> {
+  if (!refreshToken) return false
+  if (!refreshing) {
+    refreshing = (async () => {
+      try {
+        const res = await fetch(BASE + '/api/auth/refresh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        })
+        if (!res.ok) {
+          clearSession()
+          return false
+        }
+        const d = (await res.json()) as { token: string; refreshToken: string }
+        setSession(d.token, d.refreshToken)
+        return true
+      } catch {
+        return false
+      } finally {
+        refreshing = null
+      }
+    })()
+  }
+  return refreshing
+}
 
 export class ApiError extends Error {
   status: number
@@ -34,7 +84,9 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
+const AUTH_ENTRY = /\/api\/auth\/(login|signup|refresh|logout)$/
+
+async function request<T = unknown>(method: string, path: string, body?: unknown, retried = false): Promise<T> {
   const res = await fetch(BASE + path, {
     method,
     headers: {
@@ -43,6 +95,10 @@ async function request<T = unknown>(method: string, path: string, body?: unknown
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   })
+  // Access token expired? transparently refresh once and retry.
+  if (res.status === 401 && !retried && refreshToken && !AUTH_ENTRY.test(path)) {
+    if (await tryRefresh()) return request<T>(method, path, body, true)
+  }
   const data = (await res.json().catch(() => ({}))) as Record<string, unknown>
   if (!res.ok) throw new ApiError(res.status, (data?.error as string) || `Request failed (${res.status})`)
   return data as T
@@ -101,12 +157,13 @@ export interface Snapshot {
   subscription: ApiSubscription | null
   cards: ApiCard[]
 }
-type AuthResponse = Snapshot & { token: string }
+type AuthResponse = Snapshot & { token: string; refreshToken: string }
 
 export const api = {
   signup: (b: { name: string; email: string; password: string; phone?: string; gender?: string; address?: string }) =>
     request<AuthResponse>('POST', '/api/auth/signup', b),
   login: (b: { email: string; password: string }) => request<AuthResponse>('POST', '/api/auth/login', b),
+  logout: () => request<{ ok: boolean }>('POST', '/api/auth/logout', { refreshToken }),
   me: () => request<Snapshot>('GET', '/api/auth/me'),
   updateProfile: (b: { name?: string; email?: string; phone?: string; address?: string }) =>
     request<Snapshot>('PATCH', '/api/auth/me', b),
