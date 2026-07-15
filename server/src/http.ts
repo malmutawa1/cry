@@ -35,14 +35,56 @@ export function json(res: ServerResponse, status: number, data: unknown): void {
 
 export async function readBody(req: IncomingMessage): Promise<unknown> {
   const chunks: Buffer[] = []
-  for await (const chunk of req) chunks.push(chunk as Buffer)
+  let size = 0
+  for await (const chunk of req) {
+    size += (chunk as Buffer).length
+    if (size > config.maxBodyBytes) throw new HttpError(413, 'Request body too large')
+    chunks.push(chunk as Buffer)
+  }
   if (chunks.length === 0) return undefined
   const raw = Buffer.concat(chunks).toString('utf8').trim()
   if (!raw) return undefined
   try {
-    return JSON.parse(raw)
+    const parsed = JSON.parse(raw)
+    if (parsed === null || typeof parsed !== 'object') throw new Error('not an object')
+    return parsed
   } catch {
     throw new HttpError(400, 'Invalid JSON body')
+  }
+}
+
+/** Client IP for logging / rate limiting (respects X-Forwarded-For when trusted). */
+export function clientIp(req: IncomingMessage): string {
+  if (config.trustProxy) {
+    const fwd = req.headers['x-forwarded-for']
+    if (typeof fwd === 'string' && fwd.length) return fwd.split(',')[0]!.trim()
+  }
+  return req.socket.remoteAddress ?? 'unknown'
+}
+
+// ---- Fixed-window in-memory rate limiter ----
+const buckets = new Map<string, { count: number; reset: number }>()
+export function rateLimit(key: string, max: number, windowMs: number): boolean {
+  const now = Date.now()
+  const b = buckets.get(key)
+  if (!b || b.reset <= now) {
+    buckets.set(key, { count: 1, reset: now + windowMs })
+    return true
+  }
+  if (b.count >= max) return false
+  b.count++
+  return true
+}
+// occasional cleanup so the map doesn't grow unbounded
+setInterval(() => {
+  const now = Date.now()
+  for (const [k, v] of buckets) if (v.reset <= now) buckets.delete(k)
+}, 60_000).unref?.()
+
+/** Throws 429 when the caller exceeds the limit for `bucket`. */
+export function requireRate(ctx: Ctx, bucket: string, max: number, windowMs: number): void {
+  if (!rateLimit(`${bucket}:${clientIp(ctx.req)}`, max, windowMs)) {
+    throw new HttpError(429, 'Too many requests — please slow down')
   }
 }
 
@@ -99,13 +141,29 @@ export class Router {
 }
 
 /** Minimal runtime validation helpers (no external deps). */
-export function str(body: unknown, key: string, opts: { min?: number; optional?: boolean } = {}): string {
+export function str(
+  body: unknown,
+  key: string,
+  opts: { min?: number; max?: number; optional?: boolean } = {},
+): string {
   const v = (body as Record<string, unknown> | undefined)?.[key]
   if (v === undefined || v === null || v === '') {
     if (opts.optional) return ''
     throw new HttpError(400, `Missing field: ${key}`)
   }
   if (typeof v !== 'string') throw new HttpError(400, `Field ${key} must be a string`)
+  const max = opts.max ?? 500
+  if (v.length > max) throw new HttpError(400, `Field ${key} is too long`)
   if (opts.min && v.trim().length < opts.min) throw new HttpError(400, `Field ${key} is too short`)
   return v
+}
+
+/** Validate and coerce a numeric field within an inclusive range. */
+export function num(body: unknown, key: string, opts: { min?: number; max?: number } = {}): number {
+  const v = (body as Record<string, unknown> | undefined)?.[key]
+  const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v) : NaN
+  if (!Number.isFinite(n)) throw new HttpError(400, `Field ${key} must be a number`)
+  if (opts.min !== undefined && n < opts.min) throw new HttpError(400, `Field ${key} is too small`)
+  if (opts.max !== undefined && n > opts.max) throw new HttpError(400, `Field ${key} is too large`)
+  return n
 }

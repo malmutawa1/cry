@@ -1,6 +1,7 @@
 import { db } from './db.ts'
-import { hashPassword, verifyPassword, signToken } from './auth.ts'
-import { Router, HttpError, json, requireAuth, requireStaff, str, type Ctx } from './http.ts'
+import { config } from './config.ts'
+import { hashPassword, verifyPassword, signToken, newRefreshToken, hashToken } from './auth.ts'
+import { Router, HttpError, json, requireAuth, requireStaff, requireRate, str, num, type Ctx } from './http.ts'
 import {
   PLANS,
   REWARDS,
@@ -48,6 +49,15 @@ function accountSnapshot(userId: number) {
   }
 }
 
+/** Issues an access token + a stored, rotatable refresh token for a user. */
+function issueSession(userId: number): { token: string; refreshToken: string } {
+  const rt = newRefreshToken()
+  db.prepare('INSERT INTO refresh_tokens (hash, user_id, expires_at, created_at) VALUES (?, ?, ?, ?)').run(
+    rt.hash, userId, rt.expiresAt, Date.now(),
+  )
+  return { token: signToken({ sub: userId }), refreshToken: rt.token }
+}
+
 function genOrderId(): string {
   for (let i = 0; i < 20; i++) {
     const id = 'PRS-' + Math.floor(1000 + Math.random() * 9000)
@@ -60,12 +70,13 @@ function genOrderId(): string {
 export function registerRoutes(r: Router): void {
   // ---------- Auth ----------
   r.post('/api/auth/signup', (ctx: Ctx) => {
-    const name = str(ctx.body, 'name', { min: 1 })
-    const email = str(ctx.body, 'email')
-    const password = str(ctx.body, 'password', { min: 4 })
-    const phone = str(ctx.body, 'phone', { optional: true })
-    const gender = str(ctx.body, 'gender', { optional: true })
-    const address = str(ctx.body, 'address', { optional: true })
+    requireRate(ctx, 'auth', config.authRateMax, config.authRateWindowMs)
+    const name = str(ctx.body, 'name', { min: 1, max: 80 })
+    const email = str(ctx.body, 'email', { max: 160 })
+    const password = str(ctx.body, 'password', { min: 4, max: 200 })
+    const phone = str(ctx.body, 'phone', { optional: true, max: 40 })
+    const gender = str(ctx.body, 'gender', { optional: true, max: 20 })
+    const address = str(ctx.body, 'address', { optional: true, max: 300 })
     if (!EMAIL_RE.test(email)) throw new HttpError(400, 'Invalid email address')
     if (findUserByEmail(email)) throw new HttpError(409, 'An account with that email already exists')
 
@@ -78,19 +89,38 @@ export function registerRoutes(r: Router): void {
       address,
       passwordHash: hashPassword(password),
     })
-    const token = signToken({ sub: user.id })
-    json(ctx.res, 201, { token, ...accountSnapshot(user.id) })
+    json(ctx.res, 201, { ...issueSession(user.id), ...accountSnapshot(user.id) })
   })
 
   r.post('/api/auth/login', (ctx: Ctx) => {
-    const email = str(ctx.body, 'email')
-    const password = str(ctx.body, 'password')
+    requireRate(ctx, 'auth', config.authRateMax, config.authRateWindowMs)
+    const email = str(ctx.body, 'email', { max: 160 })
+    const password = str(ctx.body, 'password', { max: 200 })
     const user = findUserByEmail(email)
     if (!user || !verifyPassword(password, user.password_hash)) {
       throw new HttpError(401, 'Incorrect email or password')
     }
-    const token = signToken({ sub: user.id })
-    json(ctx.res, 200, { token, ...accountSnapshot(user.id) })
+    json(ctx.res, 200, { ...issueSession(user.id), ...accountSnapshot(user.id) })
+  })
+
+  // exchange a refresh token for a new access token (rotates the refresh token)
+  r.post('/api/auth/refresh', (ctx: Ctx) => {
+    requireRate(ctx, 'auth', config.authRateMax, config.authRateWindowMs)
+    const refreshToken = str(ctx.body, 'refreshToken', { max: 200 })
+    const hash = hashToken(refreshToken)
+    const row = db.prepare('SELECT * FROM refresh_tokens WHERE hash = ?').get(hash) as
+      | { hash: string; user_id: number; expires_at: number; revoked: number }
+      | undefined
+    if (!row || row.revoked || row.expires_at < Date.now()) throw new HttpError(401, 'Invalid or expired refresh token')
+    db.prepare('UPDATE refresh_tokens SET revoked = 1 WHERE hash = ?').run(hash) // rotate
+    json(ctx.res, 200, { ...issueSession(row.user_id), ...accountSnapshot(row.user_id) })
+  })
+
+  // revoke a refresh token (log out)
+  r.post('/api/auth/logout', (ctx: Ctx) => {
+    const refreshToken = str(ctx.body, 'refreshToken', { optional: true, max: 200 })
+    if (refreshToken) db.prepare('UPDATE refresh_tokens SET revoked = 1 WHERE hash = ?').run(hashToken(refreshToken))
+    json(ctx.res, 200, { ok: true })
   })
 
   r.get('/api/auth/me', (ctx: Ctx) => {
@@ -219,7 +249,7 @@ export function registerRoutes(r: Router): void {
   // ---------- Extra-kg top-up (one-time) ----------
   r.post('/api/extra-kg', (ctx: Ctx) => {
     const userId = requireAuth(ctx)
-    const kg = Number((ctx.body as { kg?: unknown })?.kg)
+    const kg = num(ctx.body, 'kg', { min: 1, max: 100 })
     const extra = EXTRAS.find((e) => e.kg === kg)
     if (!extra) throw new HttpError(400, 'Invalid top-up amount')
     addPerk(userId, 'extra_kg', extra.kg)
