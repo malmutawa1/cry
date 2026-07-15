@@ -1,0 +1,33 @@
+# Supabase project config for Pressd.
+# Link with:  supabase link --project-ref pdebesxkkqzbcrkporcs
+project_id = "pdebesxkkqzbcrkporcs"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[auth]
+enabled = true
+# The deployed customer app + local dev origins. Update for production.
+site_url = "https://malmutawa1.github.io/cry/"
+additional_redirect_urls = ["http://localhost:5173"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+
+[auth.email]
+enable_signup = true
+# The demo app signs users in immediately after signup; disable confirmations
+# so the flow matches the previous backend. Turn this ON for production.
+enable_confirmations = false
+
+[studio]
+enabled = true
+port = 54323
