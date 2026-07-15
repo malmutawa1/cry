@@ -16,11 +16,8 @@ export function Plans() {
 
   return (
     <div className="page">
-      <div className="page-head">
-        <div>
-          <h1>Plans &amp; pricing</h1>
-          <p>Subscription tiers and extra-capacity blocks · edits save to this terminal instantly</p>
-        </div>
+      <div className="toolbar">
+        <p className="toolbar-note">Edits save to this terminal instantly</p>
         <button className="btn primary" onClick={() => setEditing('new')}>
           + New plan
         </button>
@@ -80,11 +77,9 @@ export function Plans() {
         </table>
       </div>
 
-      <div className="page-head" style={{ marginTop: 26 }}>
-        <div>
-          <h1 style={{ fontSize: 18 }}>Extra-capacity blocks</h1>
-          <p>Sold at intake when a batch runs past the monthly allowance</p>
-        </div>
+      <div className="section-head">
+        <h2>Extra-capacity blocks</h2>
+        <p>Sold at intake when a batch runs past the monthly allowance</p>
       </div>
       <div className="extra-grid">
         {extras.map((e) => (

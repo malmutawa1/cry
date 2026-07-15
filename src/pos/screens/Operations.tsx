@@ -54,15 +54,15 @@ export function Operations() {
   }, [mix])
 
   const maxKg = Math.max(1, ...throughputSeed.map((d) => d.kg))
+  const peakIdx = throughputSeed.reduce((best, d, i, arr) => (d.kg > arr[best].kg ? i : best), 0)
   const recent = [...inRange].sort((a, b) => b.ts - a.ts).slice(0, 8)
 
   return (
     <div className="page">
-      <div className="page-head">
-        <div>
-          <h1>Operations</h1>
-          <p>Facility overview · {ordersProcessed} order{ordersProcessed === 1 ? '' : 's'} and {kgProcessed} kg in view</p>
-        </div>
+      <div className="toolbar">
+        <p className="toolbar-note">
+          {ordersProcessed} order{ordersProcessed === 1 ? '' : 's'} and {kgProcessed} kg in view
+        </p>
         <div className="range">
           {(['today', '7d', '30d'] as Range[]).map((r) => (
             <button key={r} className={range === r ? 'on' : ''} onClick={() => setRange(r)}>
@@ -73,8 +73,8 @@ export function Operations() {
       </div>
 
       <div className="kpis">
-        <Kpi glyph="💳" label="Recurring revenue" value={money(mrr)} sub="Active subscriptions / mo" />
-        <Kpi glyph="👥" label="Active members" value={String(activeMembers)} sub="On a subscription" />
+        <Kpi glyph="💳" label="Recurring revenue" value={money(mrr)} sub="Active subscriptions / mo" tone="grad" />
+        <Kpi glyph="👥" label="Active members" value={String(activeMembers)} sub="On a subscription" tone="dark" />
         <Kpi glyph="📦" label="Orders processed" value={String(ordersProcessed)} sub="Taken in this range" />
         <Kpi glyph="➕" label="Extra-kg revenue" value={money(extraRevenue)} sub="Overflow blocks billed" />
       </div>
@@ -86,8 +86,11 @@ export function Operations() {
           <div className="bars">
             {throughputSeed.map((d, i) => (
               <div className="bar-col" key={i}>
-                <div className="amt">{d.kg}</div>
-                <div className="bar" style={{ height: `${Math.max(2, (d.kg / maxKg) * 100)}%` }} />
+                {i === peakIdx ? <div className="bar-tip">{d.kg} kg</div> : <div className="amt">{d.kg}</div>}
+                <div
+                  className={`bar${i === peakIdx ? ' hi' : ''}`}
+                  style={{ height: `${Math.max(2, (d.kg / maxKg) * 100)}%` }}
+                />
                 <div className="lbl">{d.label}</div>
               </div>
             ))}
@@ -148,9 +151,9 @@ export function Operations() {
   )
 }
 
-function Kpi({ glyph, label, value, sub }: { glyph: string; label: string; value: string; sub: string }) {
+function Kpi({ glyph, label, value, sub, tone }: { glyph: string; label: string; value: string; sub: string; tone?: 'grad' | 'dark' }) {
   return (
-    <div className="kpi">
+    <div className={`kpi${tone ? ' ' + tone : ''}`}>
       <div className="k">
         <span className="g">{glyph}</span>
         {label}

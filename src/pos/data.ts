@@ -173,9 +173,11 @@ export const throughputSeed: ThroughputDay[] = [
   { label: 'Fri', kg: 300 },
 ]
 
+// Membership-tier colours, drawn from the Zona lavender palette
+// (light lavender → purple → near-black → green).
 export const PLAN_COLOR: Record<string, string> = {
-  basic: '#6c6c74',
-  standard: '#4cc4ff',
-  premium: '#c9a24a',
-  'family-plus': '#34c759',
+  basic: '#DBD3F5',
+  standard: '#877FC1',
+  premium: '#222026',
+  'family-plus': '#34B37A',
 }
