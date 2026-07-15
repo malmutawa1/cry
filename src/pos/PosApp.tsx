@@ -1,21 +1,21 @@
 import { useState } from 'react'
 import { usePos } from './store'
 import { Login } from './screens/Login'
-import { Register } from './screens/Register'
-import { Menu } from './screens/Menu'
-import { Dashboard } from './screens/Dashboard'
+import { Intake } from './screens/Intake'
+import { Plans } from './screens/Plans'
+import { Operations } from './screens/Operations'
 
-type View = 'register' | 'menu' | 'dashboard'
+type View = 'intake' | 'plans' | 'operations'
 
 const NAV: { id: View; label: string; glyph: string }[] = [
-  { id: 'register', label: 'Register', glyph: '🧾' },
-  { id: 'menu', label: 'Menu', glyph: '🧺' },
-  { id: 'dashboard', label: 'Dashboard', glyph: '📊' },
+  { id: 'intake', label: 'Intake', glyph: '📋' },
+  { id: 'plans', label: 'Plans', glyph: '💳' },
+  { id: 'operations', label: 'Operations', glyph: '📊' },
 ]
 
 export function PosApp() {
   const { currentStaff, logout } = usePos()
-  const [view, setView] = useState<View>('register')
+  const [view, setView] = useState<View>('intake')
 
   if (!currentStaff) return <Login />
 
@@ -24,7 +24,7 @@ export function PosApp() {
       <header className="pos-top">
         <div className="brand">
           Pressd<span className="dot">.</span>
-          <span className="tag">POS</span>
+          <span className="tag">Ops</span>
         </div>
         <nav className="nav">
           {NAV.map((n) => (
@@ -48,9 +48,9 @@ export function PosApp() {
       </header>
 
       <main className="pos-body">
-        {view === 'register' && <Register />}
-        {view === 'menu' && <Menu />}
-        {view === 'dashboard' && <Dashboard />}
+        {view === 'intake' && <Intake />}
+        {view === 'plans' && <Plans />}
+        {view === 'operations' && <Operations />}
       </main>
     </div>
   )
