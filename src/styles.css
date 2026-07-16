@@ -49,6 +49,12 @@
   --radius: 18px;
   --radius-sm: 12px;
   --phone-w: 430px;
+  /* Motion tokens — Emil Kowalski easing curves. Enter/exit -> ease-out;
+     on-screen morphs -> ease-in-out; drawers/sheets -> ease-drawer. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
 }
@@ -775,10 +781,19 @@ button {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  animation: fade 0.2s ease;
+  animation: fade 0.2s var(--ease-out);
 }
 @keyframes fade {
   from {
+    opacity: 0;
+  }
+}
+/* Exit: dismiss faster than it entered (asymmetric timing). */
+.overlay.closing {
+  animation: fade-out 0.19s var(--ease-out) forwards;
+}
+@keyframes fade-out {
+  to {
     opacity: 0;
   }
 }
@@ -789,10 +804,18 @@ button {
   max-height: 82%;
   display: flex;
   flex-direction: column;
-  animation: slideup 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: slideup 0.32s var(--ease-drawer);
 }
 @keyframes slideup {
   from {
+    transform: translateY(100%);
+  }
+}
+.sheet.closing {
+  animation: slidedown 0.22s var(--ease-drawer) forwards;
+}
+@keyframes slidedown {
+  to {
     transform: translateY(100%);
   }
 }
@@ -2039,10 +2062,10 @@ button {
 .extra-banner,
 .link-btn,
 .nav button {
-  transition: transform 0.13s ease, background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  transition: transform 0.13s var(--ease-out), background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
 }
 .plan-card {
-  transition: transform 0.13s ease, border-color 0.15s ease, background 0.15s ease;
+  transition: transform 0.13s var(--ease-out), border-color 0.15s ease, background 0.15s ease;
 }
 .btn-primary:active,
 .btn-ghost:active,
@@ -3559,7 +3582,7 @@ button {
   font-weight: 600;
   text-align: center;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
-  animation: toast-in 0.28s ease both;
+  animation: toast-in 0.28s var(--ease-out) both;
 }
 .app-shell[data-mode='light'] .toast {
   background: var(--accent, #2f79c4);
@@ -3567,6 +3590,12 @@ button {
 @keyframes toast-in {
   from { opacity: 0; transform: translate(-50%, 12px); }
   to { opacity: 1; transform: translate(-50%, 0); }
+}
+.toast.closing {
+  animation: toast-out 0.19s var(--ease-out) forwards;
+}
+@keyframes toast-out {
+  to { opacity: 0; transform: translate(-50%, 10px); }
 }
 
 /* remember me checkbox on login */
@@ -3821,7 +3850,10 @@ button {
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
   transition: transform 0.15s ease;
 }
-.mem-annual:hover { transform: translateY(-1px); }
+/* Only lift on real pointers — avoids sticky hover after tap on touch devices. */
+@media (hover: hover) and (pointer: fine) {
+  .mem-annual:hover { transform: translateY(-1px); }
+}
 .mem-annual:active { transform: translateY(1px) scale(0.99); }
 .mem-annual > * { position: relative; z-index: 1; }
 .mem-annual::after {

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore, type PayMethod } from '../store'
 import { useI18n } from '../i18n'
+import { Sheet } from './Sheet'
 import { ApplePayMark, CardIcon, KnetMark, Plus } from './Icons'
 
 /** Renders the icon + label for the currently selected payment method. */
@@ -29,48 +30,51 @@ export function PaymentSheet({ onClose }: { onClose: () => void }) {
 
   if (adding) return <AddCardSheet onClose={onClose} onBack={() => setAdding(false)} />
 
-  function pick(m: PayMethod) {
-    choosePayment(m)
-    showToast(t('toast.paySaved'))
-    onClose()
-  }
-
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="grabber" />
-        <h3>{t('pay.sheet')}</h3>
-        <div className="sheet-scroll">
-          <button className="pay-row" onClick={() => pick('applepay')}>
-            <ApplePayMark />
-            <span className="pay-name">{t('pay.applepay')}</span>
-            <Radio on={payment === 'applepay'} />
-          </button>
+    <Sheet onClose={onClose}>
+      {(close) => {
+        const pick = (m: PayMethod) => {
+          choosePayment(m)
+          showToast(t('toast.paySaved'))
+          close()
+        }
+        return (
+          <>
+            <div className="grabber" />
+            <h3>{t('pay.sheet')}</h3>
+            <div className="sheet-scroll">
+              <button className="pay-row" onClick={() => pick('applepay')}>
+                <ApplePayMark />
+                <span className="pay-name">{t('pay.applepay')}</span>
+                <Radio on={payment === 'applepay'} />
+              </button>
 
-          <button className="pay-row" onClick={() => pick('knet')}>
-            <KnetMark />
-            <span className="pay-name">{t('pay.knet')}</span>
-            <Radio on={payment === 'knet'} />
-          </button>
+              <button className="pay-row" onClick={() => pick('knet')}>
+                <KnetMark />
+                <span className="pay-name">{t('pay.knet')}</span>
+                <Radio on={payment === 'knet'} />
+              </button>
 
-          {cards.map((c) => (
-            <button key={c.id} className="pay-row" onClick={() => pick(`card:${c.id}`)}>
-              <span className="pay-mark card-mark"><CardIcon size={18} /></span>
-              <span className="pay-name">{t('pay.card', { brand: c.brand, last4: c.last4 })}</span>
-              <Radio on={payment === `card:${c.id}`} />
-            </button>
-          ))}
+              {cards.map((c) => (
+                <button key={c.id} className="pay-row" onClick={() => pick(`card:${c.id}`)}>
+                  <span className="pay-mark card-mark"><CardIcon size={18} /></span>
+                  <span className="pay-name">{t('pay.card', { brand: c.brand, last4: c.last4 })}</span>
+                  <Radio on={payment === `card:${c.id}`} />
+                </button>
+              ))}
 
-          <button className="btn-ghost add-card" onClick={() => setAdding(true)} style={{ marginTop: 6 }}>
-            <Plus size={18} />
-            <span>
-              <span className="ac-title">{t('pay.add')}</span>
-              <span className="ac-sub">{t('pay.add.sub')}</span>
-            </span>
-          </button>
-        </div>
-      </div>
-    </div>
+              <button className="btn-ghost add-card" onClick={() => setAdding(true)} style={{ marginTop: 6 }}>
+                <Plus size={18} />
+                <span>
+                  <span className="ac-title">{t('pay.add')}</span>
+                  <span className="ac-sub">{t('pay.add.sub')}</span>
+                </span>
+              </button>
+            </div>
+          </>
+        )
+      }}
+    </Sheet>
   )
 }
 
@@ -94,56 +98,59 @@ function AddCardSheet({ onClose, onBack }: { onClose: () => void; onBack: () => 
   }
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="grabber" />
-        <h3>{t('pay.add')}</h3>
-        <div className="sheet-scroll">
-          <input
-            className="field"
-            inputMode="numeric"
-            placeholder={t('pay.card.number')}
-            value={number}
-            onChange={(e) => setNumber(formatNumber(e.target.value))}
-            autoFocus
-          />
-          <div style={{ display: 'flex', gap: 12 }}>
+    <Sheet onClose={onClose}>
+      {(close) => (
+        <>
+          <div className="grabber" />
+          <h3>{t('pay.add')}</h3>
+          <div className="sheet-scroll">
             <input
               className="field"
               inputMode="numeric"
-              placeholder={t('pay.card.exp')}
-              value={exp}
-              onChange={(e) => setExp(e.target.value.replace(/[^\d/]/g, '').slice(0, 5))}
-              style={{ flex: 1 }}
+              placeholder={t('pay.card.number')}
+              value={number}
+              onChange={(e) => setNumber(formatNumber(e.target.value))}
+              autoFocus
             />
+            <div style={{ display: 'flex', gap: 12 }}>
+              <input
+                className="field"
+                inputMode="numeric"
+                placeholder={t('pay.card.exp')}
+                value={exp}
+                onChange={(e) => setExp(e.target.value.replace(/[^\d/]/g, '').slice(0, 5))}
+                style={{ flex: 1 }}
+              />
+              <input
+                className="field"
+                inputMode="numeric"
+                placeholder={t('pay.card.cvv')}
+                value={cvv}
+                onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                style={{ flex: 1 }}
+              />
+            </div>
             <input
               className="field"
-              inputMode="numeric"
-              placeholder={t('pay.card.cvv')}
-              value={cvv}
-              onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-              style={{ flex: 1 }}
+              placeholder={t('pay.card.name')}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
+            <button
+              className="btn-primary"
+              disabled={!canSave}
+              onClick={() =>
+                close(() => {
+                  addCard(number)
+                  onBack()
+                })
+              }
+            >
+              {t('pay.card.save')}
+            </button>
           </div>
-          <input
-            className="field"
-            placeholder={t('pay.card.name')}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <button
-            className="btn-primary"
-            disabled={!canSave}
-            onClick={() => {
-              addCard(number)
-              onBack()
-              onClose()
-            }}
-          >
-            {t('pay.card.save')}
-          </button>
-        </div>
-      </div>
-    </div>
+        </>
+      )}
+    </Sheet>
   )
 }

@@ -10,6 +10,7 @@ import {
   type Plan,
 } from '../data/plans'
 import { CalendarIn, Check, Chevron, Close, Leaf, Star } from '../components/Icons'
+import { Sheet } from '../components/Sheet'
 import Reveal from '../components/Reveal'
 import { PaymentSheet, PaymentValue } from '../components/Payment'
 import { useStore } from '../store'
@@ -275,30 +276,33 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
       </div>
 
       {cancelOpen && (
-        <div className="overlay" onClick={() => setCancelOpen(false)}>
-          <div className="sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="grabber" />
-            <h3>{t('cancel.title')}</h3>
-            <div className="sheet-scroll">
-              <p className="extra-sheet-sub">{t('cancel.sub')}</p>
-              <RefundPolicy />
-              <button
-                className="btn-warn"
-                onClick={() => {
-                  cancelSubscription()
-                  setSelected(null)
-                  setCancelOpen(false)
-                  showToast(t('toast.cancelled'))
-                }}
-              >
-                {t('cancel.confirm')}
-              </button>
-              <button className="link-btn" onClick={() => setCancelOpen(false)}>
-                {t('cancel.keep')}
-              </button>
-            </div>
-          </div>
-        </div>
+        <Sheet onClose={() => setCancelOpen(false)}>
+          {(close) => (
+            <>
+              <div className="grabber" />
+              <h3>{t('cancel.title')}</h3>
+              <div className="sheet-scroll">
+                <p className="extra-sheet-sub">{t('cancel.sub')}</p>
+                <RefundPolicy />
+                <button
+                  className="btn-warn"
+                  onClick={() =>
+                    close(() => {
+                      cancelSubscription()
+                      setSelected(null)
+                      showToast(t('toast.cancelled'))
+                    })
+                  }
+                >
+                  {t('cancel.confirm')}
+                </button>
+                <button className="link-btn" onClick={() => close()}>
+                  {t('cancel.keep')}
+                </button>
+              </div>
+            </>
+          )}
+        </Sheet>
       )}
     </div>
   )
