@@ -1,0 +1,56 @@
+# Codemagic CI — builds & signs the Pressd iOS app in the cloud (no Mac needed)
+# and uploads it to TestFlight / App Store Connect.
+#
+# One-time setup in the Codemagic UI (see IOS_SETUP.md for the full walk-through):
+#   1. Connect this GitHub repo.
+#   2. Add an App Store Connect API key integration and note its name; put that
+#      name under `integrations.app_store_connect` below.
+#   3. Register your Bundle ID in App Store Connect and create the app record;
+#      put the numeric "Apple ID" under APP_STORE_APPLE_ID.
+#   4. Replace com.pressd.app everywhere with your real Bundle ID (also in
+#      capacitor.config.ts) if you change it.
+workflows:
+  ios-release:
+    name: Pressd iOS
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: CodemagicASC # <-- name of your App Store Connect API key integration
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.pressd.app # <-- your Bundle ID
+      vars:
+        XCODE_PROJECT: 'ios/App/App.xcodeproj'
+        XCODE_SCHEME: 'App'
+        APP_STORE_APPLE_ID: 0000000000 # <-- your app's numeric Apple ID from App Store Connect
+      node: 20
+      xcode: latest
+    scripts:
+      - name: Install npm dependencies
+        script: npm ci
+      - name: Build web bundle (relative base) + sync Capacitor
+        script: |
+          npm run build:ios
+          npx cap sync ios
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Increment build number
+        script: |
+          BUILD_NUMBER=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          cd ios/App
+          agvtool new-version -all $(($BUILD_NUMBER + 1))
+      - name: Build IPA
+        script: |
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        # Flip to true once you're ready to push a build to App Store review:
+        # submit_to_app_store: false

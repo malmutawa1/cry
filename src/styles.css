@@ -148,6 +148,25 @@ button {
   line-height: 1;
 }
 
+/* ---------- Native (Capacitor) app shell ---------- */
+/* On a real device the app fills the screen (no phone-mockup frame), uses the
+   OS status bar (the fake one is hidden), and pads for the notch + home bar. */
+.app-shell[data-native='true'] {
+  background: var(--bg);
+}
+.app-shell[data-native='true'] .phone {
+  max-width: none;
+  max-height: none;
+  height: 100dvh;
+  padding-top: env(safe-area-inset-top);
+}
+.app-shell[data-native='true'] .statusbar {
+  display: none;
+}
+.app-shell[data-native='true'] .nav {
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
+}
+
 /* ---------- Scroll area ---------- */
 .screen {
   flex: 1;

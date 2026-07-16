@@ -4,6 +4,7 @@ import { Toast } from './components/Toast'
 import { Bag, Cards, Home as HomeIcon, Route, User } from './components/Icons'
 import { StoreProvider, useStore } from './store'
 import { I18nProvider, useI18n } from './i18n'
+import { initNative, setStatusBarTheme } from './native'
 import Auth from './screens/Auth'
 import Home from './screens/Home'
 import Plans from './screens/Plans'
@@ -50,6 +51,14 @@ function Shell() {
       clearNeedsPlan()
     }
   }, [needsPlan, clearNeedsPlan])
+
+  // Native (Capacitor): dismiss the splash on start, keep the status bar in sync.
+  useEffect(() => {
+    initNative()
+  }, [])
+  useEffect(() => {
+    setStatusBarTheme(effMode === 'dark')
+  }, [effMode])
 
   function confirmPickup() {
     setOrder(createOrder())
