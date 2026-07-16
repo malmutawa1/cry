@@ -139,6 +139,7 @@ const en: Dict = {
   'success.track': 'Track order',
 
   'track.title': 'Track order',
+  'track.info': 'Delivery Info',
   'track.empty.title': 'No active orders',
   'track.empty.sub': 'Schedule a pickup and follow it here in real time.',
   'track.empty.cta': 'Schedule a pickup',
@@ -552,6 +553,7 @@ const ar: Dict = {
   'success.track': 'تتبّع الطلب',
 
   'track.title': 'تتبّع الطلب',
+  'track.info': 'معلومات التوصيل',
   'track.empty.title': 'لا توجد طلبات نشطة',
   'track.empty.sub': 'احجز موعد استلام وتابعه هنا مباشرة.',
   'track.empty.cta': 'احجز موعد استلام',

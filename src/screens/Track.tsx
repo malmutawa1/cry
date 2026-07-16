@@ -2,7 +2,7 @@ import { useStore, orderStage, STAGE_SECONDS, STAGE_COUNT } from '../store'
 import { useI18n } from '../i18n'
 import { useNow } from '../useNow'
 import { slotLabel } from '../data/slots'
-import RouteMap from '../components/RouteMap'
+import TrackMap from '../components/TrackMap'
 import { CalendarIn, CalendarOut, Car, Check, Phone, Pin, Route } from '../components/Icons'
 
 function formatClock(ts: number, lang: string): string {
@@ -62,7 +62,7 @@ export default function Track({ onSchedule }: { onSchedule: () => void }) {
       </div>
 
       <div className="screen">
-        <RouteMap stage={stage} frac={frac} />
+        <TrackMap stage={stage} frac={frac} />
 
         <div className="track-head">
           <div className="th-status">
@@ -92,25 +92,35 @@ export default function Track({ onSchedule }: { onSchedule: () => void }) {
           </div>
         )}
 
-        {/* timeline */}
-        <div className="timeline">
-          {Array.from({ length: STAGE_COUNT }).map((_, i) => {
-            const state = i < stage ? 'done' : i === stage ? 'active' : 'todo'
-            const ts = activeOrder.createdAt + i * STAGE_SECONDS * 1000
-            return (
-              <div key={i} className={`tl-step ${state}`}>
-                <div className="tl-marker">
-                  {state === 'done' ? <Check size={14} /> : <span className="tl-dot" />}
-                  {i < STAGE_COUNT - 1 && <span className="tl-line" />}
+        {/* delivery info + pipeline */}
+        <div className="delivery-info">
+          <div className="di-head">
+            <span className="di-label">{t('track.info')}</span>
+            <span className="di-more" aria-hidden="true">···</span>
+          </div>
+          <div className="di-id">{activeOrder.id}</div>
+          <div className="di-steps">
+            {Array.from({ length: STAGE_COUNT }, (_, i) => STAGE_COUNT - 1 - i).map((i, idx) => {
+              const state = i < stage ? 'done' : i === stage ? 'active' : 'todo'
+              const ts = activeOrder.createdAt + i * STAGE_SECONDS * 1000
+              const isLast = idx === STAGE_COUNT - 1
+              return (
+                <div key={i} className={`di-step ${state}`}>
+                  <div className="di-rail">
+                    <span className="di-ic">
+                      {state === 'done' ? <Check size={13} /> : state === 'active' ? <span className="di-live-dot" /> : null}
+                    </span>
+                    {!isLast && <span className="di-line" />}
+                  </div>
+                  <div className="di-body">
+                    <div className="di-title">{t(`st.${i}.t`)}</div>
+                    {state !== 'todo' && <div className="di-sub">{t(`st.${i}.d`, { driver })}</div>}
+                  </div>
+                  {state !== 'todo' && <div className="di-time">{formatClock(ts, lang)}</div>}
                 </div>
-                <div className="tl-body">
-                  <div className="tl-title">{t(`st.${i}.t`)}</div>
-                  {state !== 'todo' && <div className="tl-desc">{t(`st.${i}.d`, { driver })}</div>}
-                </div>
-                {state !== 'todo' && <div className="tl-time">{formatClock(ts, lang)}</div>}
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
 
         {/* order details */}
@@ -138,7 +148,6 @@ export default function Track({ onSchedule }: { onSchedule: () => void }) {
           </div>
         </div>
 
-        <div className="track-order-id">{t('track.order', { id: activeOrder.id })}</div>
         <div style={{ height: 12 }} />
       </div>
     </>
