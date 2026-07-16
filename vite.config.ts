@@ -1,10 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// Served from https://<user>.github.io/cry/ in production, so the asset base
-// must match the repo name. Dev keeps the root base.
+// Web is served from https://<user>.github.io/cry/, so the asset base must match
+// the repo name. Native (Capacitor) builds load from the app bundle root, so
+// they use a relative base — set CAP_BUILD=1 for those (see `npm run build:ios`).
+const isCap = process.env.CAP_BUILD === '1'
+
 export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/cry/' : '/',
+  base: isCap ? './' : mode === 'production' ? '/cry/' : '/',
   plugins: [react()],
   server: {
     host: true,
