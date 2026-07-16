@@ -25,6 +25,7 @@ const PLANS_KEY = 'pressd-pos:plans:v2'
 const EXTRAS_KEY = 'pressd-pos:extras:v2'
 const MEMBERS_KEY = 'pressd-pos:members:v2'
 const INTAKES_KEY = 'pressd-pos:intakes:v2'
+const OCCUPIED_KEY = 'pressd-pos:occupied:v1'
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -119,6 +120,8 @@ interface PosState {
   extras: ExtraBlock[]
   members: Member[]
   intakes: Intake[]
+  /** Composite slotKey()s the driver is marked occupied for (pickup/delivery). */
+  occupied: string[]
   login: (pin: string) => Staff | null
   logout: () => void
   addPlan: (p: Omit<Plan, 'id'>) => void
@@ -126,6 +129,9 @@ interface PosState {
   deletePlan: (id: string) => void
   updateExtra: (e: ExtraBlock) => void
   recordIntake: (draft: IntakeDraft) => Intake | null
+  toggleOccupied: (key: string) => void
+  /** Bulk mark/clear a set of slot keys (e.g. a whole day). */
+  setOccupied: (keys: string[], value: boolean) => void
 }
 
 const Ctx = createContext<PosState | null>(null)
@@ -142,11 +148,13 @@ export function PosProvider({ children }: { children: ReactNode }) {
     save(INTAKES_KEY, seeded)
     return seeded
   })
+  const [occupied, setOccupiedState] = useState<string[]>(() => load(OCCUPIED_KEY, []))
 
   useEffect(() => save(PLANS_KEY, plans), [plans])
   useEffect(() => save(EXTRAS_KEY, extras), [extras])
   useEffect(() => save(MEMBERS_KEY, members), [members])
   useEffect(() => save(INTAKES_KEY, intakes), [intakes])
+  useEffect(() => save(OCCUPIED_KEY, occupied), [occupied])
 
   const login = useCallback((pin: string) => {
     const match = staffList.find((s) => s.pin === pin) ?? null
@@ -203,6 +211,19 @@ export function PosProvider({ children }: { children: ReactNode }) {
     [currentStaff, members, plans],
   )
 
+  const toggleOccupied = useCallback((key: string) => {
+    setOccupiedState((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]))
+  }, [])
+
+  const setOccupied = useCallback((keys: string[], value: boolean) => {
+    setOccupiedState((prev) => {
+      const set = new Set(prev)
+      if (value) keys.forEach((k) => set.add(k))
+      else keys.forEach((k) => set.delete(k))
+      return [...set]
+    })
+  }, [])
+
   const value = useMemo<PosState>(
     () => ({
       staff: staffList,
@@ -211,6 +232,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
       extras,
       members,
       intakes,
+      occupied,
       login,
       logout,
       addPlan,
@@ -218,8 +240,10 @@ export function PosProvider({ children }: { children: ReactNode }) {
       deletePlan,
       updateExtra,
       recordIntake,
+      toggleOccupied,
+      setOccupied,
     }),
-    [currentStaff, plans, extras, members, intakes, login, logout, addPlan, updatePlan, deletePlan, updateExtra, recordIntake],
+    [currentStaff, plans, extras, members, intakes, occupied, login, logout, addPlan, updatePlan, deletePlan, updateExtra, recordIntake, toggleOccupied, setOccupied],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
