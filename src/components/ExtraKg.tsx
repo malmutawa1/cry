@@ -3,6 +3,7 @@ import { useStore } from '../store'
 import { useI18n } from '../i18n'
 import { extras, type Extra } from '../data/extras'
 import { PaymentSheet, PaymentValue } from './Payment'
+import { Sheet } from './Sheet'
 import { Chevron, Plus } from './Icons'
 
 /** Shared allowance math: usage sits at the plan cap until extra kg are bought. */
@@ -39,75 +40,78 @@ export function ExtraKgSheet({ onClose }: { onClose: () => void }) {
   const [sel, setSel] = useState<Extra | null>(null)
   const [payOpen, setPayOpen] = useState(false)
 
-  function pay() {
-    if (!sel) return
-    addExtraKg(sel.kg)
-    showToast(t('toast.extraAdded', { kg: sel.kg }))
-    onClose()
-  }
-
   return (
     <>
-      <div className="overlay" onClick={onClose}>
-        <div className="sheet" onClick={(e) => e.stopPropagation()}>
-          <div className="grabber" />
+      <Sheet onClose={onClose}>
+        {(close) => (
+          <>
+            <div className="grabber" />
 
-          {sel ? (
-            /* ---------- Payment step ---------- */
-            <>
-              <h3>{t('checkout.title')}</h3>
-              <div className="sheet-scroll anim-in" key="pay">
-                <div className="checkout-card">
-                  <div className="co-top">
-                    <div>
-                      <div className="co-plan">+{sel.kg} kg</div>
-                      <div className="co-period">{t('extra.oneTime')}</div>
+            {sel ? (
+              /* ---------- Payment step ---------- */
+              <>
+                <h3>{t('checkout.title')}</h3>
+                <div className="sheet-scroll anim-in" key="pay">
+                  <div className="checkout-card">
+                    <div className="co-top">
+                      <div>
+                        <div className="co-plan">+{sel.kg} kg</div>
+                        <div className="co-period">{t('extra.oneTime')}</div>
+                      </div>
+                      <span className="plan-cap">{t('extra.thisMonth')}</span>
                     </div>
-                    <span className="plan-cap">{t('extra.thisMonth')}</span>
+                    <div className="co-total">
+                      <span>{t('checkout.total')}</span>
+                      <strong>{sel.priceKwd}.000 KWD</strong>
+                    </div>
                   </div>
-                  <div className="co-total">
-                    <span>{t('checkout.total')}</span>
-                    <strong>{sel.priceKwd}.000 KWD</strong>
-                  </div>
-                </div>
 
-                <div className="section-title" style={{ fontSize: 18 }}>{t('checkout.method')}</div>
-                <div className="card-group">
-                  <button className="row" onClick={() => setPayOpen(true)}>
-                    <span className="pay-current"><PaymentValue /></span>
-                    <Chevron className="chev" />
+                  <div className="section-title" style={{ fontSize: 18 }}>{t('checkout.method')}</div>
+                  <div className="card-group">
+                    <button className="row" onClick={() => setPayOpen(true)}>
+                      <span className="pay-current"><PaymentValue /></span>
+                      <Chevron className="chev" />
+                    </button>
+                  </div>
+
+                  <button
+                    className="btn-primary"
+                    style={{ marginTop: 6 }}
+                    onClick={() => {
+                      addExtraKg(sel.kg)
+                      showToast(t('toast.extraAdded', { kg: sel.kg }))
+                      close()
+                    }}
+                  >
+                    {t('checkout.pay', { price: sel.priceKwd })}
                   </button>
+                  <button className="link-btn" onClick={() => setSel(null)}>{t('extra.back')}</button>
                 </div>
-
-                <button className="btn-primary" onClick={pay} style={{ marginTop: 6 }}>
-                  {t('checkout.pay', { price: sel.priceKwd })}
-                </button>
-                <button className="link-btn" onClick={() => setSel(null)}>{t('extra.back')}</button>
-              </div>
-            </>
-          ) : (
-            /* ---------- Pick a top-up ---------- */
-            <>
-              <h3>{t('extra.title')}</h3>
-              <div className="sheet-scroll anim-in" key="pick">
-                <p className="extra-sheet-sub">{t('extra.limit')} · {t('extra.sub')}</p>
-                <div className="extra-grid">
-                  {extras.map((e) => (
-                    <div key={e.kg} className="extra-card">
-                      <div className="ex-kg">+{e.kg} kg</div>
-                      <div className="ex-price">{e.priceKwd}.000 KWD</div>
-                      <button className="ex-add" onClick={() => setSel(e)}>
-                        <Plus size={16} />
-                        {t('extra.add')}
-                      </button>
-                    </div>
-                  ))}
+              </>
+            ) : (
+              /* ---------- Pick a top-up ---------- */
+              <>
+                <h3>{t('extra.title')}</h3>
+                <div className="sheet-scroll anim-in" key="pick">
+                  <p className="extra-sheet-sub">{t('extra.limit')} · {t('extra.sub')}</p>
+                  <div className="extra-grid">
+                    {extras.map((e) => (
+                      <div key={e.kg} className="extra-card">
+                        <div className="ex-kg">+{e.kg} kg</div>
+                        <div className="ex-price">{e.priceKwd}.000 KWD</div>
+                        <button className="ex-add" onClick={() => setSel(e)}>
+                          <Plus size={16} />
+                          {t('extra.add')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+              </>
+            )}
+          </>
+        )}
+      </Sheet>
 
       {payOpen && <PaymentSheet onClose={() => setPayOpen(false)} />}
     </>

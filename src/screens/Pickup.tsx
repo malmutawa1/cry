@@ -3,6 +3,7 @@ import { useStore } from '../store'
 import { useI18n } from '../i18n'
 import { pickupSlots, deliverySlots, slotLabel, type Slot } from '../data/slots'
 import { Toggle } from '../components/Common'
+import { Sheet } from '../components/Sheet'
 import LocationPicker from '../components/LocationPicker'
 import { ExtraKgBanner, ExtraKgSheet, useAllowance } from '../components/ExtraKg'
 import {
@@ -194,20 +195,26 @@ function SlotSheet({
 }) {
   const { lang } = useI18n()
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="grabber" />
-        <h3>{title}</h3>
-        <div className="sheet-scroll">
-          {options.map((o) => (
-            <button key={o.id} className={`opt-row ${o.id === current ? 'active' : ''}`} onClick={() => onPick(o)}>
-              <span className="o-day">{o.day[lang]}</span>
-              <span className="o-time">{o.time[lang]}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
+    <Sheet onClose={onClose}>
+      {(close) => (
+        <>
+          <div className="grabber" />
+          <h3>{title}</h3>
+          <div className="sheet-scroll">
+            {options.map((o) => (
+              <button
+                key={o.id}
+                className={`opt-row ${o.id === current ? 'active' : ''}`}
+                onClick={() => close(() => onPick(o))}
+              >
+                <span className="o-day">{o.day[lang]}</span>
+                <span className="o-time">{o.time[lang]}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </Sheet>
   )
 }
 
@@ -229,21 +236,23 @@ function EditSheet({
   const { t } = useI18n()
   const [v, setV] = useState(value)
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="grabber" />
-        <h3>{title}</h3>
-        <div className="sheet-scroll">
-          {multiline ? (
-            <textarea className="field" value={v} placeholder={placeholder} onChange={(e) => setV(e.target.value)} autoFocus />
-          ) : (
-            <input className="field" value={v} placeholder={placeholder} onChange={(e) => setV(e.target.value)} autoFocus />
-          )}
-          <button className="btn-primary" onClick={() => onSave(v)}>
-            {t('common.save')}
-          </button>
-        </div>
-      </div>
-    </div>
+    <Sheet onClose={onClose}>
+      {(close) => (
+        <>
+          <div className="grabber" />
+          <h3>{title}</h3>
+          <div className="sheet-scroll">
+            {multiline ? (
+              <textarea className="field" value={v} placeholder={placeholder} onChange={(e) => setV(e.target.value)} autoFocus />
+            ) : (
+              <input className="field" value={v} placeholder={placeholder} onChange={(e) => setV(e.target.value)} autoFocus />
+            )}
+            <button className="btn-primary" onClick={() => close(() => onSave(v))}>
+              {t('common.save')}
+            </button>
+          </div>
+        </>
+      )}
+    </Sheet>
   )
 }

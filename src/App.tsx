@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { StatusBar } from './components/Common'
+import { Toast } from './components/Toast'
 import { Bag, Cards, Home as HomeIcon, Route, User } from './components/Icons'
 import { StoreProvider, useStore } from './store'
 import { I18nProvider, useI18n } from './i18n'
@@ -66,7 +67,7 @@ function Shell() {
     <div className="app-shell" data-mode={effMode} data-accent={accent} data-reduce-motion={reduceMotion ? 'on' : undefined}>
       <div className="phone" dir={dir}>
         <StatusBar />
-        {toast && <div className="toast" key={toast}>{toast}</div>}
+        <Toast text={toast} />
 
         {!welcomed ? (
           <Welcome onStart={() => setWelcomed(true)} />
