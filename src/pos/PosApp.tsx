@@ -4,12 +4,14 @@ import { planById } from './data'
 import { Login } from './screens/Login'
 import { Intake } from './screens/Intake'
 import { Plans } from './screens/Plans'
+import { Schedule } from './screens/Schedule'
 import { Operations } from './screens/Operations'
 
-type View = 'intake' | 'plans' | 'operations'
+type View = 'intake' | 'schedule' | 'plans' | 'operations'
 
 const META: Record<View, { title: string; sub: string }> = {
   intake: { title: 'Intake', sub: "Take in a member's laundry" },
+  schedule: { title: 'Schedule', sub: 'Set pickup & delivery availability' },
   plans: { title: 'Plans & pricing', sub: 'Subscriptions and extra-capacity blocks' },
   operations: { title: 'Operations', sub: 'Detailed overview of your facility' },
 }
@@ -37,6 +39,9 @@ export function PosApp() {
         <nav className="rail-nav">
           <RailBtn label="Intake" active={view === 'intake'} onClick={() => setView('intake')}>
             <IcIntake />
+          </RailBtn>
+          <RailBtn label="Schedule" active={view === 'schedule'} onClick={() => setView('schedule')}>
+            <IcCalendar />
           </RailBtn>
           <RailBtn label="Plans" active={view === 'plans'} onClick={() => setView('plans')}>
             <IcPlans />
@@ -76,6 +81,7 @@ export function PosApp() {
 
         <main className="content">
           {view === 'intake' && <Intake />}
+          {view === 'schedule' && <Schedule />}
           {view === 'plans' && <Plans />}
           {view === 'operations' && <Operations />}
         </main>
@@ -117,6 +123,14 @@ function IcIntake() {
     <svg {...S} aria-hidden="true">
       <rect x="4" y="3" width="16" height="18" rx="2" />
       <path d="M9 3v3h6V3M8 11h8M8 15h5" />
+    </svg>
+  )
+}
+function IcCalendar() {
+  return (
+    <svg {...S} aria-hidden="true">
+      <rect x="3.5" y="4.5" width="17" height="16" rx="2.5" />
+      <path d="M3.5 9h17M8 3v3M16 3v3M7.5 13h3M13.5 13h3M7.5 16.5h3" />
     </svg>
   )
 }

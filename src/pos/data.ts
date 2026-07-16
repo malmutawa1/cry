@@ -173,6 +173,33 @@ export const throughputSeed: ThroughputDay[] = [
   { label: 'Fri', kg: 300 },
 ]
 
+// --- Driver scheduling (pickup & delivery availability) ---
+// Staff mark individual slots as "occupied" so they aren't offered to members.
+// The terminal deliberately records only the status, never a reason.
+export type SlotType = 'pickup' | 'delivery'
+
+/** Bookable hours in the working day (24h). */
+export const DAY_SLOTS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+
+export function formatHour(h: number): string {
+  const am = h < 12
+  const hh = h % 12 || 12
+  return `${String(hh).padStart(2, '0')}:00 ${am ? 'AM' : 'PM'}`
+}
+
+/** Local calendar key (YYYY-MM-DD) — avoids UTC drift from toISOString. */
+export function dateKey(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+/** Composite key identifying one driver slot. */
+export function slotKey(type: SlotType, day: string, hour: number): string {
+  return `${type}|${day}|${hour}`
+}
+
 // Membership-tier colours, drawn from the Zona lavender palette
 // (light lavender → purple → near-black → green).
 export const PLAN_COLOR: Record<string, string> = {
