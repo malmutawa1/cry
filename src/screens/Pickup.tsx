@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useStore } from '../store'
 import { useI18n } from '../i18n'
-import { pickupSlots, deliverySlots, slotLabel, type Slot } from '../data/slots'
+import { slotLabel } from '../data/slots'
 import { Toggle } from '../components/Common'
 import { Sheet } from '../components/Sheet'
+import { DateTimeSheet, ExpressCheckoutSheet } from '../components/DateTimeSheet'
 import LocationPicker from '../components/LocationPicker'
 import { ExtraKgBanner, ExtraKgSheet, useAllowance } from '../components/ExtraKg'
 import {
@@ -34,6 +35,7 @@ export default function Pickup({
   const { atLimit } = useAllowance()
   const [sheet, setSheet] = useState<Sheet>(null)
   const [extraOpen, setExtraOpen] = useState(false)
+  const [expressOpen, setExpressOpen] = useState(false)
 
   if (!s.activePlan) {
     return (
@@ -145,21 +147,25 @@ export default function Pickup({
       </div>
 
       {sheet === 'pickup' && (
-        <SlotSheet
+        <DateTimeSheet
           title={t('sheet.pickup')}
-          options={pickupSlots}
-          current={s.pickup.id}
           onPick={(slot) => { s.setPickup(slot); setSheet(null) }}
+          onUrgent={(slot) => { s.setPickup(slot); setSheet(null); setExpressOpen(true) }}
           onClose={() => setSheet(null)}
         />
       )}
       {sheet === 'delivery' && (
-        <SlotSheet
+        <DateTimeSheet
           title={t('sheet.delivery')}
-          options={deliverySlots}
-          current={s.delivery.id}
           onPick={(slot) => { s.setDelivery(slot); setSheet(null) }}
+          onUrgent={(slot) => { s.setDelivery(slot); setSheet(null); setExpressOpen(true) }}
           onClose={() => setSheet(null)}
+        />
+      )}
+      {expressOpen && (
+        <ExpressCheckoutSheet
+          onPaid={() => { setExpressOpen(false); onConfirm() }}
+          onClose={() => setExpressOpen(false)}
         />
       )}
       {sheet === 'address' && (
@@ -177,44 +183,6 @@ export default function Pickup({
         <EditSheet title={t('sheet.note')} value={s.note} multiline placeholder={t('sheet.note.ph')} onSave={(v) => { s.setNote(v); setSheet(null) }} onClose={() => setSheet(null)} />
       )}
     </>
-  )
-}
-
-function SlotSheet({
-  title,
-  options,
-  current,
-  onPick,
-  onClose,
-}: {
-  title: string
-  options: Slot[]
-  current: string
-  onPick: (s: Slot) => void
-  onClose: () => void
-}) {
-  const { lang } = useI18n()
-  return (
-    <Sheet onClose={onClose}>
-      {(close) => (
-        <>
-          <div className="grabber" />
-          <h3>{title}</h3>
-          <div className="sheet-scroll">
-            {options.map((o) => (
-              <button
-                key={o.id}
-                className={`opt-row ${o.id === current ? 'active' : ''}`}
-                onClick={() => close(() => onPick(o))}
-              >
-                <span className="o-day">{o.day[lang]}</span>
-                <span className="o-time">{o.time[lang]}</span>
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </Sheet>
   )
 }
 
