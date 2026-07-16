@@ -805,6 +805,9 @@ button {
   display: flex;
   flex-direction: column;
   animation: slideup 0.32s var(--ease-drawer);
+  /* Drag-to-dismiss: the handle/header pans the sheet, the list still scrolls. */
+  touch-action: none;
+  will-change: transform;
 }
 @keyframes slideup {
   from {
@@ -825,6 +828,7 @@ button {
   border-radius: 999px;
   background: #4a4a50;
   margin: 8px auto 6px;
+  cursor: grab;
 }
 .sheet h3 {
   text-align: center;
@@ -835,6 +839,7 @@ button {
 .sheet-scroll {
   overflow-y: auto;
   padding: 0 18px;
+  touch-action: pan-y;
 }
 .opt-row {
   display: flex;
