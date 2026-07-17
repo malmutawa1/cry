@@ -4759,25 +4759,43 @@ button {
     radial-gradient(34% 30% at 80% 60%, rgba(255, 70, 70, 0.45), transparent 62%),
     radial-gradient(30% 26% at 58% 90%, rgba(255, 195, 160, 0.35), transparent 62%);
   filter: blur(18px);
-  animation: rush-drift 10s ease-in-out infinite alternate;
+  animation: rush-drift 9s linear infinite;
   will-change: transform;
 }
 @keyframes rush-drift {
-  0% { transform: translate3d(-3%, -2%, 0) scale(1.08); }
-  50% { transform: translate3d(4%, 3%, 0) scale(1.18); }
-  100% { transform: translate3d(-2%, 4%, 0) scale(1.1); }
+  0% { transform: translate3d(-9%, -7%, 0) scale(1.12); }
+  25% { transform: translate3d(8%, -3%, 0) scale(1.24); }
+  50% { transform: translate3d(9%, 8%, 0) scale(1.14); }
+  75% { transform: translate3d(-6%, 5%, 0) scale(1.26); }
+  100% { transform: translate3d(-9%, -7%, 0) scale(1.12); }
 }
-/* Pulsing top glow */
+/* Top glow that slides side to side */
 .rush-glow {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(65% 42% at 50% 0%, rgba(255, 255, 255, 0.3), transparent 70%);
-  animation: rush-pulse 2.8s ease-in-out infinite;
+  background: radial-gradient(50% 42% at 30% 0%, rgba(255, 255, 255, 0.32), transparent 70%);
+  animation: rush-glow-move 6s ease-in-out infinite alternate;
+  will-change: transform, opacity;
 }
-@keyframes rush-pulse {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 1; }
+@keyframes rush-glow-move {
+  0% { transform: translateX(-28%); opacity: 0.55; }
+  100% { transform: translateX(28%); opacity: 1; }
+}
+/* Continuous diagonal light sweep behind the cards */
+.rush-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 34%, rgba(255, 255, 255, 0.16) 48%, transparent 60%);
+  animation: rush-sweep 4.5s linear infinite;
+  will-change: transform;
+}
+@keyframes rush-sweep {
+  0% { transform: translateX(-70%); }
+  100% { transform: translateX(70%); }
 }
 .rush-inner {
   position: relative;
