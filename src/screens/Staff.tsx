@@ -3,16 +3,16 @@ import { useStore, orderStage, STAGE_COUNT, STAGE_SECONDS } from '../store'
 import { api, apiEnabled, type ApiStaffOrder } from '../api'
 import { useI18n } from '../i18n'
 import { useNow } from '../useNow'
-import { TIERS, setRushSettings, type RushTier } from '../data/rush'
+import { TIERS, setRushSettings, readyBy, type RushTier } from '../data/rush'
 import { useRush } from '../useRush'
 import { useAppConfig } from '../useAppConfig'
 import { useDiscounts } from '../useDiscounts'
 import { setPlanOverride, setAnnouncement, type AnnouncementTone } from '../data/config'
 import { addDiscount, toggleDiscount, removeDiscount, type Discount, type DiscountKind, type DiscountScope } from '../data/discounts'
 import { getCustomers, toggleFreeze, grantCustomerCredit, subscribeCustomers, type Customer } from '../data/customers'
+import { getShiftNotes, addShiftNote, removeShiftNote, subscribeShiftNotes } from '../data/shiftnotes'
 import { planName, type Plan } from '../data/plans'
 import { Toggle } from '../components/Common'
-import { Trash } from '../components/Icons'
 import {
   bi,
   capacityPct,
@@ -21,7 +21,7 @@ import {
   throughput,
   STAFF_PASSCODE,
 } from '../data/staff'
-import { BarChart, Car, Check, Chevron, Clock, Close, Lock, Phone, Pin, Route, Sliders } from '../components/Icons'
+import { AlertTriangle, BarChart, Bell, Car, Check, Chevron, Clock, Close, Info, Lock, Phone, Pin, Plus, Route, Sliders, Trash } from '../components/Icons'
 import RouteMap from '../components/RouteMap'
 
 const CYCLE_MS = STAGE_COUNT * STAGE_SECONDS * 1000
@@ -900,11 +900,185 @@ function AdminView() {
   )
 }
 
+/* ---------- Action center (alerts + shift notes) ---------- */
+
+type Severity = 'critical' | 'warning' | 'info'
+interface Alert {
+  id: string
+  sev: Severity
+  title: string
+  detail: string
+}
+const SEV_RANK: Record<Severity, number> = { critical: 0, warning: 1, info: 2 }
+
+function startOfTodayMs(): number {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  return d.getTime()
+}
+
+/** Live list of operational alerts derived from current state. Shared so the
+ *  portal can badge the Alerts tab with the open (critical + warning) count. */
+function useAlerts(): Alert[] {
+  const { t } = useI18n()
+  const now = useNow(2000)
+  const { settings, ledger, countToday, capReached } = useRush()
+  const customers = useCustomers()
+  const { plans } = useAppConfig()
+  const { discounts } = useDiscounts()
+
+  return useMemo(() => {
+    const capOf = (id: string) => plans.find((p) => p.id === id)?.capKg ?? Infinity
+    const over = customers.filter((c) => c.kgUsed > capOf(c.planId))
+    const frozen = customers.filter((c) => c.frozen)
+    const todayStart = startOfTodayMs()
+    const late = ledger.filter((e) => e.ts >= todayStart && readyBy(e.tier, e.ts) < now)
+    const activeDisc = discounts.filter((d) => d.active).length
+    const nearCap = settings.dailyCap > 0 && !capReached && countToday / settings.dailyCap >= 0.8
+
+    const list: Alert[] = []
+    if (capReached) {
+      list.push({ id: 'cap', sev: 'critical', title: t('alerts.cap.title'), detail: t('alerts.cap.detail', { used: countToday, cap: settings.dailyCap }) })
+    } else if (nearCap) {
+      list.push({ id: 'capNear', sev: 'warning', title: t('alerts.capNear.title'), detail: t('alerts.capNear.detail', { used: countToday, cap: settings.dailyCap }) })
+    }
+    if (late.length) {
+      list.push({ id: 'late', sev: 'critical', title: t('alerts.late.title', { n: late.length }), detail: t('alerts.late.detail') })
+    }
+    if (over.length) {
+      list.push({ id: 'over', sev: 'warning', title: t('alerts.over.title', { n: over.length }), detail: over.map((c) => c.name).slice(0, 3).join(', ') })
+    }
+    if (frozen.length) {
+      list.push({ id: 'frozen', sev: 'info', title: t('alerts.frozen.title', { n: frozen.length }), detail: frozen.map((c) => c.name).slice(0, 3).join(', ') })
+    }
+    if (activeDisc) {
+      list.push({ id: 'disc', sev: 'info', title: t('alerts.disc.title', { n: activeDisc }), detail: t('alerts.disc.detail') })
+    }
+    return list.sort((a, b) => SEV_RANK[a.sev] - SEV_RANK[b.sev])
+  }, [t, now, settings.dailyCap, ledger, countToday, capReached, customers, plans, discounts])
+}
+
+function useShiftNotes() {
+  const [, force] = useState(0)
+  useEffect(() => subscribeShiftNotes(() => force((n) => n + 1)), [])
+  return getShiftNotes()
+}
+
+function relTime(ts: number, now: number, t: (k: string, v?: Record<string, string | number>) => string): string {
+  const mins = Math.round((now - ts) / 60000)
+  if (mins < 1) return t('alerts.note.now')
+  if (mins < 60) return t('alerts.note.min', { n: mins })
+  const hrs = Math.round(mins / 60)
+  if (hrs < 24) return t('alerts.note.hr', { n: hrs })
+  return t('alerts.note.day', { n: Math.round(hrs / 24) })
+}
+
+function AlertsView() {
+  const { t } = useI18n()
+  const now = useNow(30000)
+  const alerts = useAlerts()
+  const { countToday } = useRush()
+  const { orders } = useStore()
+  const notes = useShiftNotes()
+  const [draft, setDraft] = useState('')
+
+  const todayStart = startOfTodayMs()
+  const ordersToday = orders.filter((o) => o.createdAt >= todayStart).length
+  const openCount = alerts.filter((a) => a.sev !== 'info').length
+
+  const sevIcon = (sev: Severity) => (sev === 'info' ? <Info size={18} /> : <AlertTriangle size={18} />)
+
+  return (
+    <>
+      <div className="ops-summary alerts-glance">
+        <div className="ops-stat">
+          <strong className={openCount > 0 ? 'accent' : 'green'}>{openCount}</strong>
+          <span>{t('alerts.open')}</span>
+        </div>
+        <div className="ops-stat">
+          <strong>{ordersToday}</strong>
+          <span>{t('alerts.ordersToday')}</span>
+        </div>
+        <div className="ops-stat">
+          <strong>{countToday}</strong>
+          <span>{t('alerts.rushToday')}</span>
+        </div>
+      </div>
+
+      <div className="section-title staff-sec">{t('alerts.section')}</div>
+      {alerts.length === 0 ? (
+        <div className="alerts-clear">
+          <span className="alerts-clear-ic"><Check size={22} /></span>
+          <div>
+            <div className="alerts-clear-t">{t('alerts.clear.title')}</div>
+            <div className="alerts-clear-s">{t('alerts.clear.sub')}</div>
+          </div>
+        </div>
+      ) : (
+        <div className="alert-list">
+          {alerts.map((a) => (
+            <div key={a.id} className={`alert-row ${a.sev}`}>
+              <span className="alert-ic">{sevIcon(a.sev)}</span>
+              <div className="alert-body">
+                <div className="alert-title">{a.title}</div>
+                {a.detail && <div className="alert-detail">{a.detail}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="section-title staff-sec">{t('alerts.notes')}</div>
+      <div className="note-add">
+        <input
+          className="field"
+          value={draft}
+          placeholder={t('alerts.note.ph')}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && draft.trim()) {
+              addShiftNote(draft)
+              setDraft('')
+            }
+          }}
+        />
+        <button
+          className="note-add-btn"
+          disabled={!draft.trim()}
+          onClick={() => { addShiftNote(draft); setDraft('') }}
+          aria-label={t('alerts.note.add')}
+        >
+          <Plus size={20} />
+        </button>
+      </div>
+      {notes.length === 0 ? (
+        <div className="staff-card center" style={{ padding: 18 }}>{t('alerts.note.empty')}</div>
+      ) : (
+        <div className="card-group">
+          {notes.map((n) => (
+            <div key={n.id} className="note-row">
+              <div className="note-body">
+                <div className="note-text">{n.text}</div>
+                <div className="note-time">{relTime(n.ts, now, t)}</div>
+              </div>
+              <button className="note-del" onClick={() => removeShiftNote(n.id)} aria-label={t('alerts.note.remove')}>
+                <Trash size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ height: 12 }} />
+    </>
+  )
+}
+
 /* ---------- Dashboard shell ---------- */
 
 function StaffDashboard({ onExit, staffKey }: { onExit: () => void; staffKey: string | null }) {
   const { t, lang } = useI18n()
-  const [tab, setTab] = useState<'kpi' | 'orders' | 'admin'>('kpi')
+  const [tab, setTab] = useState<'kpi' | 'orders' | 'alerts' | 'admin'>('kpi')
+  const openAlerts = useAlerts().filter((a) => a.sev !== 'info').length
 
   return (
     <>
@@ -930,6 +1104,13 @@ function StaffDashboard({ onExit, staffKey }: { onExit: () => void; staffKey: st
           <Route size={17} />
           {t('staff.tab.orders')}
         </button>
+        <button className={`seg ${tab === 'alerts' ? 'on' : ''}`} onClick={() => setTab('alerts')}>
+          <span className="seg-ic-wrap">
+            <Bell size={17} />
+            {openAlerts > 0 && <span className="seg-badge">{openAlerts}</span>}
+          </span>
+          {t('staff.tab.alerts')}
+        </button>
         <button className={`seg ${tab === 'admin' ? 'on' : ''}`} onClick={() => setTab('admin')}>
           <Sliders size={17} />
           {t('staff.tab.admin')}
@@ -942,6 +1123,8 @@ function StaffDashboard({ onExit, staffKey }: { onExit: () => void; staffKey: st
             <KpiView lang={lang} />
           ) : tab === 'orders' ? (
             <OrdersView lang={lang} staffKey={staffKey} />
+          ) : tab === 'alerts' ? (
+            <AlertsView />
           ) : (
             <AdminView />
           )}
