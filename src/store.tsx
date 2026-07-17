@@ -135,6 +135,10 @@ interface Store {
   credit: number
   /** free months banked from rewards */
   freeMonths: number
+  /** staff-side: grant account credit (KWD) to this customer */
+  grantCredit: (kwd: number) => void
+  /** staff-side: comp free membership months to this customer */
+  grantFreeMonths: (n: number) => void
 
   // ephemeral feedback
   toast: string | null
@@ -431,6 +435,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     credit,
     freeMonths,
+    grantCredit: (kwd) => setCredit((c) => Math.max(0, c + kwd)),
+    grantFreeMonths: (n) => setFreeMonths((m) => Math.max(0, m + n)),
     toast,
     showToast,
   }
