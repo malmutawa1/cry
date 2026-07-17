@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { StatusBar } from './components/Common'
 import { Toast } from './components/Toast'
-import { Bag, Cards, Home as HomeIcon, Route, User } from './components/Icons'
+import { Bag, Cards, Home as HomeIcon, Route, User, Bolt } from './components/Icons'
 import { StoreProvider, useStore } from './store'
 import { I18nProvider, useI18n } from './i18n'
 import { initNative, setStatusBarTheme } from './native'
@@ -16,8 +16,9 @@ import Success from './screens/Success'
 import Staff from './screens/Staff'
 import Loyalty from './screens/Loyalty'
 import Welcome from './screens/Welcome'
+import Rush from './screens/Rush'
 
-type Tab = 'home' | 'plans' | 'pickup' | 'track' | 'account'
+type Tab = 'home' | 'plans' | 'pickup' | 'track' | 'rush' | 'account'
 
 function useSystemDark() {
   const [dark, setDark] = useState(() =>
@@ -70,6 +71,7 @@ function Shell() {
     { id: 'plans' as const, label: t('nav.plans'), icon: <Cards /> },
     { id: 'pickup' as const, label: t('nav.pickup'), icon: <Bag /> },
     { id: 'track' as const, label: t('nav.track'), icon: <Route /> },
+    { id: 'rush' as const, label: t('nav.rush'), icon: <Bolt /> },
     { id: 'account' as const, label: t('nav.account'), icon: <User /> },
   ]
 
@@ -129,6 +131,7 @@ function Shell() {
                 />
               )}
               {tab === 'track' && <Track onSchedule={() => setTab('pickup')} />}
+              {tab === 'rush' && <Rush onConfirm={confirmPickup} />}
               {tab === 'account' && (
                 <Account onSeePlans={() => setTab('plans')} onTrack={() => setTab('track')} onRewards={() => setRewards(true)} />
               )}
