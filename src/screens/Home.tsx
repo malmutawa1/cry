@@ -10,6 +10,7 @@ import { ExtraKgSheet, useAllowance } from '../components/ExtraKg'
 import { tierInfo } from '../data/rewards'
 import { useAppConfig } from '../useAppConfig'
 import { Info } from '../components/Icons'
+import NotificationsBell from '../components/NotificationsBell'
 
 export default function Home({
   onSchedule,
@@ -47,9 +48,12 @@ export default function Home({
           <span className="brand-mark">P</span>
           {t('brand')}
         </div>
-        <button className="round-btn" onClick={toggle} aria-label="Language">
-          <Globe />
-        </button>
+        <div className="topbar-actions">
+          <NotificationsBell />
+          <button className="round-btn" onClick={toggle} aria-label="Language">
+            <Globe />
+          </button>
+        </div>
       </div>
 
       <div className="screen">
