@@ -5,8 +5,10 @@
 // by same-origin localStorage + change events (the rush.ts pattern), so the
 // three surfaces — customer app, staff portal, POS terminal — stay in sync.
 
-export type NotifAudience = 'customer' | 'pos' | 'both'
-export type NotifSurface = 'customer' | 'pos'
+// 'both' is shorthand for customer + pos (a customer-facing broadcast); it does
+// NOT include staff. The POS reaches the staff portal with audience 'staff'.
+export type NotifAudience = 'customer' | 'pos' | 'staff' | 'both'
+export type NotifSurface = 'customer' | 'pos' | 'staff'
 
 export interface Notification {
   id: string
@@ -23,6 +25,7 @@ const DAY = 86400000
 const SEED: Notification[] = [
   { id: 'seed-c', text: 'Welcome to Pressd! Your first pickup earns 50 points.', audience: 'customer', ts: Date.now() - DAY },
   { id: 'seed-p', text: 'Reminder: log QC before dispatching rush orders.', audience: 'pos', ts: Date.now() - DAY },
+  { id: 'seed-s', text: 'Facility: 3 rush orders queued — please confirm drivers.', audience: 'staff', ts: Date.now() - 2 * 3600_000 },
 ]
 
 function emit() {
@@ -55,7 +58,10 @@ function write(list: Notification[]) {
 
 /** Is a message delivered to a given surface's bell? */
 function reaches(n: Notification, surface: NotifSurface): boolean {
-  return n.audience === 'both' || n.audience === surface
+  if (n.audience === surface) return true
+  // 'both' is a customer-facing broadcast (customer + pos), never staff.
+  if (n.audience === 'both') return surface === 'customer' || surface === 'pos'
+  return false
 }
 
 /** Messages for a surface, newest first. */

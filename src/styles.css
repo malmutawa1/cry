@@ -5186,3 +5186,6 @@ button {
 .notif-text { font-size: 14px; font-weight: 600; line-height: 1.4; }
 .notif-time { font-size: 12px; color: var(--muted); margin-top: 3px; }
 .msg-both { color: var(--accent-strong); font-weight: 700; }
+
+/* Staff dashboard: bell + exit grouped on the right */
+.staff-top-actions { display: inline-flex; align-items: center; gap: 8px; }
