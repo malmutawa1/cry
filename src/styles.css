@@ -818,6 +818,9 @@ button {
 }
 .sheet {
   background: var(--surface-2);
+  /* Always use the theme text colour — never inherit an ancestor's (e.g. the
+     red Rush page sets color:#fff, which would make sheet text unreadable). */
+  color: var(--text);
   border-radius: 26px 26px 0 0;
   padding: 10px 0 calc(18px + env(safe-area-inset-bottom));
   max-height: 82%;
