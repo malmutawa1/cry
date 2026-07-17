@@ -1709,3 +1709,194 @@ table.tbl tbody tr:hover td {
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================================
+   Rush service — intake tier picker, ops rush card, badges
+   ============================================================ */
+.rush-pick {
+  margin-top: 14px;
+}
+.rush-pick-h {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tier-seg {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.tier-seg-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  transition: border-color 0.15s, background 0.15s, transform 0.08s;
+}
+.tier-seg-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.tier-seg-btn.on {
+  border-color: var(--tier);
+  background: color-mix(in srgb, var(--tier) 8%, var(--surface));
+}
+.tier-seg-btn:disabled {
+  opacity: 0.4;
+}
+.tsb-name {
+  font-weight: 700;
+  font-size: 13px;
+}
+.tsb-fee {
+  font-size: 12px;
+  color: var(--muted);
+}
+.tier-seg-btn.on .tsb-fee {
+  color: var(--tier);
+  font-weight: 600;
+}
+.rush-cap-note {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--red);
+  font-weight: 600;
+}
+
+.rush-card {
+  margin-bottom: 16px;
+}
+.rush-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.rush-h-ic {
+  display: inline-flex;
+  vertical-align: middle;
+  color: var(--accent-strong);
+  margin-inline-end: 4px;
+}
+.rush-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.rush-counter b {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.rush-counter span {
+  color: var(--muted);
+  font-size: 14px;
+}
+.rush-counter.full b {
+  color: var(--red);
+}
+.rush-cap-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  overflow: hidden;
+  margin: 12px 0 16px;
+}
+.rush-cap-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  transition: width 0.3s var(--ease-out);
+}
+.rush-cap-bar i.full {
+  background: var(--red);
+}
+.rush-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.rush-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.rush-stat .rs-label {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rush-stat b {
+  font-size: 18px;
+  font-weight: 800;
+}
+.rush-stat b.over {
+  color: var(--red);
+}
+.rs-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.rush-foot {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.rush-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.rush-late {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: var(--red);
+  padding: 2px 7px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.rrow.urgent {
+  box-shadow: inset 3px 0 0 var(--red);
+  padding-inline-start: 10px;
+  border-radius: 8px;
+}
+
+.rush-settings {
+  padding: 18px;
+}
+.rs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.rush-settings .field label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rs-hint {
+  font-size: 12px;
+  color: var(--faint);
+  margin-top: 4px;
+  display: block;
+}

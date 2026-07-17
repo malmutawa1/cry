@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { money, planById, suggestBlocks, type Intake as IntakeRec, type Member } from '../data'
 import { round3, usePos } from '../store'
-import { Search, Receipt, Hanger, Bolt } from '../../components/Icons'
+import { RUSH_TIER_ORDER, TIERS, tierFee, type RushTier } from '../../data/rush'
+import { useRush } from '../../useRush'
+import { Search, Receipt, Hanger } from '../../components/Icons'
 
 export function Intake() {
   const { members, plans, extras, recordIntake } = usePos()
@@ -98,7 +100,9 @@ export function Intake() {
     const [k5, setK5] = useState(0)
     const [k8, setK8] = useState(0)
     const [hangers, setHangers] = useState(true)
-    const [express, setExpress] = useState(false)
+    const { settings, capReached } = useRush()
+    const [tierSel, setTierSel] = useState<RushTier>('standard')
+    const tier: RushTier = capReached && tierSel !== 'standard' ? 'standard' : tierSel
 
     // Auto-suggest the cheapest block cover whenever the overflow changes.
     useEffect(() => {
@@ -111,6 +115,8 @@ export function Intake() {
     const price8 = extras.find((e) => e.kg === 8)?.priceKwd ?? 5
     const extraKgAdded = k5 * 5 + k8 * 8
     const extraCharge = round3(k5 * price5 + k8 * price8)
+    const rushFee = tierFee(tier, settings)
+    const totalCharge = round3(extraCharge + rushFee)
     const shortfall = round3(Math.max(0, overflowKg - extraKgAdded))
 
     function submit() {
@@ -124,7 +130,8 @@ export function Intake() {
         extraKgAdded,
         extraCharge,
         hangers,
-        express,
+        tier,
+        rushFee,
       })
       if (rec) onDone(rec)
     }
@@ -212,12 +219,33 @@ export function Intake() {
                 </div>
               )}
 
+              <div className="rush-pick">
+                <div className="rush-pick-h">Service speed</div>
+                <div className="tier-seg">
+                  {RUSH_TIER_ORDER.map((tid) => {
+                    const meta = TIERS[tid]
+                    const fee = tierFee(tid, settings)
+                    const disabled = tid !== 'standard' && capReached
+                    return (
+                      <button
+                        key={tid}
+                        className={`tier-seg-btn${tier === tid ? ' on' : ''}`}
+                        style={{ '--tier': meta.color } as CSSProperties}
+                        disabled={disabled}
+                        onClick={() => setTierSel(tid)}
+                      >
+                        <span className="tsb-name">{meta.label.en}</span>
+                        <span className="tsb-fee">{fee > 0 ? `+${fee} KD` : 'Included'}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+                {capReached && <div className="rush-cap-note">Rush cap reached — Express/Urgent unavailable today</div>}
+              </div>
+
               <div className="addons">
                 <button className={`addon${hangers ? ' on' : ''}`} onClick={() => setHangers((v) => !v)}>
                   <span className="g"><Hanger size={16} /></span> On hangers
-                </button>
-                <button className={`addon${express ? ' on' : ''}`} onClick={() => setExpress((v) => !v)}>
-                  <span className="g"><Bolt size={16} /></span> Express
                 </button>
               </div>
             </div>
@@ -230,11 +258,17 @@ export function Intake() {
               <span>Extra capacity</span>
               <span>{extraKgAdded > 0 ? `+${extraKgAdded} kg` : '—'}</span>
             </div>
+            {rushFee > 0 && (
+              <div className="row">
+                <span>{TIERS[tier].label.en} rush</span>
+                <span>+{money(rushFee)}</span>
+              </div>
+            )}
             <div className="row total">
-              <span>{overflowKg > 0 ? 'Bill to card' : 'Charge'}</span>
-              <span>{money(extraCharge)}</span>
+              <span>{totalCharge > 0 ? 'Bill to card' : 'Charge'}</span>
+              <span>{money(totalCharge)}</span>
             </div>
-            {overflowKg > 0 && (
+            {totalCharge > 0 && (
               <div className="row bill-note">
                 <span>Card on file</span>
                 <span>•••• {member.cardLast4}</span>

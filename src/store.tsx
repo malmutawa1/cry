@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { plans, type Billing, type Plan } from './data/plans'
 import { defaultDelivery, defaultPickup, type Slot } from './data/slots'
+import { isRush, recordRush, type RushTier } from './data/rush'
 import { api, apiEnabled, getToken, setSession, clearSession, type ApiLoyalty, type Snapshot } from './api'
 
 export interface User {
@@ -31,6 +32,9 @@ export interface Order {
   delivery: Slot
   address: string
   phone: string
+  /** Service speed. Rush tiers (express/urgent) carry an extra fee. */
+  tier?: RushTier
+  rushFee?: number
 }
 
 /** Seconds each tracking stage takes in this prototype (demo-paced). */
@@ -115,7 +119,7 @@ interface Store {
 
   // tracking
   activeOrder: Order | null
-  createOrder: () => string
+  createOrder: (opts?: { tier?: RushTier; rushFee?: number }) => string
   cancelOrder: () => void
   orders: Order[]
 
@@ -387,13 +391,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     cards,
     addCard,
     activeOrder,
-    createOrder: () => {
+    createOrder: (opts) => {
       const id = 'PRS-' + Math.floor(1000 + Math.random() * 9000)
-      const o: Order = { id, createdAt: Date.now(), pickup, delivery, address, phone }
+      const tier: RushTier = opts?.tier ?? 'standard'
+      const rushFee = opts?.rushFee ?? 0
+      const o: Order = { id, createdAt: Date.now(), pickup, delivery, address, phone, tier, rushFee }
       setActiveOrder(o)
       setOrders((prev) => [o, ...prev])
       setPoints((p) => p + POINTS_PER_PICKUP)
       setLifetimePoints((p) => p + POINTS_PER_PICKUP)
+      // Log accepted rush orders to the shared cap/report ledger.
+      if (isRush(tier)) recordRush(tier, rushFee, id)
       if (authed()) {
         api
           .createOrder({ pickup: pickup.id, delivery: delivery.id, address, phone })

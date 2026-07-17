@@ -20,11 +20,18 @@ import {
   type Plan,
   type Staff,
 } from './data'
+import {
+  RUSH_DEFAULTS,
+  tierFee,
+  readyBy as rushReadyBy,
+  recordRush,
+  type RushTier,
+} from '../data/rush'
 
 const PLANS_KEY = 'pressd-pos:plans:v2'
 const EXTRAS_KEY = 'pressd-pos:extras:v2'
 const MEMBERS_KEY = 'pressd-pos:members:v2'
-const INTAKES_KEY = 'pressd-pos:intakes:v2'
+const INTAKES_KEY = 'pressd-pos:intakes:v3'
 const OCCUPIED_KEY = 'pressd-pos:occupied:v1'
 
 function load<T>(key: string, fallback: T): T {
@@ -76,6 +83,7 @@ function seedIntakes(plans: Plan[], extras: ExtraBlock[], members: Member[]): In
       const d = new Date(now - day * 86400000)
       d.setHours(9 + Math.floor(rng() * 11), Math.floor(rng() * 60), 0, 0)
       const clerk = staffList[Math.floor(rng() * staffList.length)]
+      const tier: RushTier = rng() > 0.82 ? (rng() > 0.6 ? 'urgent' : 'express') : 'standard'
       out.push({
         id: `PRS-${7000 + out.length}`,
         ts: d.getTime(),
@@ -91,7 +99,10 @@ function seedIntakes(plans: Plan[], extras: ExtraBlock[], members: Member[]): In
         extraKgAdded: s.kg,
         extraCharge: round3(s.price),
         hangers: rng() > 0.4,
-        express: rng() > 0.85,
+        tier,
+        rushFee: tierFee(tier, RUSH_DEFAULTS),
+        readyBy: rushReadyBy(tier, d.getTime()),
+        express: tier !== 'standard',
         staffId: clerk.id,
         staffName: clerk.name,
       })
@@ -110,7 +121,8 @@ export interface IntakeDraft {
   extraKgAdded: number
   extraCharge: number
   hangers: boolean
-  express: boolean
+  tier: RushTier
+  rushFee: number
 }
 
 interface PosState {
@@ -146,6 +158,12 @@ export function PosProvider({ children }: { children: ReactNode }) {
     if (existing) return existing
     const seeded = seedIntakes(seedPlans, seedExtras, seedMembers)
     save(INTAKES_KEY, seeded)
+    // Seed today's rush intakes into the shared cap ledger so the live counter
+    // matches the day's accepted rush orders (recordRush de-dupes by id).
+    const startToday = new Date().setHours(0, 0, 0, 0)
+    for (const i of seeded) {
+      if (i.tier !== 'standard' && i.ts >= startToday) recordRush(i.tier, i.rushFee, i.id)
+    }
     return seeded
   })
   const [occupied, setOccupiedState] = useState<string[]>(() => load(OCCUPIED_KEY, []))
@@ -197,11 +215,16 @@ export function PosProvider({ children }: { children: ReactNode }) {
         extraKgAdded: draft.extraKgAdded,
         extraCharge: draft.extraCharge,
         hangers: draft.hangers,
-        express: draft.express,
+        tier: draft.tier,
+        rushFee: draft.rushFee,
+        readyBy: rushReadyBy(draft.tier, Date.now()),
+        express: draft.tier !== 'standard',
         staffId: currentStaff.id,
         staffName: currentStaff.name,
       }
       setIntakes((prev) => [...prev, intake])
+      // Rush intakes count toward the shared daily cap + reporting ledger.
+      if (draft.tier !== 'standard') recordRush(draft.tier, draft.rushFee, intake.id)
       // Deduct the batch from the member's monthly allowance usage.
       setMembers((prev) =>
         prev.map((m) => (m.id === member.id ? { ...m, kgUsed: round3(m.kgUsed + draft.kg) } : m)),

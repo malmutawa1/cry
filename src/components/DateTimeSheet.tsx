@@ -1,13 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import { useI18n } from '../i18n'
 import { useStore } from '../store'
 import type { Slot } from '../data/slots'
+import { useRush } from '../useRush'
+import { RUSH_TIER_ORDER, TIERS, tierFee, type RushTier } from '../data/rush'
 import { Sheet } from './Sheet'
 import { PaymentSheet, PaymentValue } from './Payment'
-import { Bolt, Chevron } from './Icons'
-
-/** Express (urgent) pickup surcharge, in KWD. */
-export const URGENT_PRICE_KWD = 2
+import { Chevron } from './Icons'
 
 interface TimeOpt {
   id: string
@@ -41,23 +40,32 @@ function monthCells(year: number, month: number): (Date | null)[] {
   return cells
 }
 
+function feeLabel(fee: number): string {
+  return `+${fee}.000 KWD`
+}
+
 /**
- * Calendar date + time picker used for both pick-up and delivery. Confirming
- * schedules the slot; the red Urgent button reveals the express price and, once
- * confirmed, hands off to the express payment page.
+ * Calendar date + time picker. On the pick-up sheet it also shows the three
+ * service-speed tiers (Standard / Express / Urgent) with their fee and promised
+ * ready-by time. Standard confirms directly (covered by the subscription);
+ * Express/Urgent hand off to the rush payment page. When the daily rush cap is
+ * reached, Express + Urgent are disabled for the rest of the day.
  */
 export function DateTimeSheet({
   title,
+  showRush = false,
   onPick,
-  onUrgent,
+  onRush,
   onClose,
 }: {
   title: string
+  showRush?: boolean
   onPick: (s: Slot) => void
-  onUrgent: (s: Slot) => void
+  onRush: (tier: 'express' | 'urgent', s: Slot) => void
   onClose: () => void
 }) {
   const { t, lang } = useI18n()
+  const { settings, capReached } = useRush()
   const locale = lang === 'ar' ? 'ar' : 'en-US'
   const today = startOfDay(new Date())
 
@@ -67,7 +75,7 @@ export function DateTimeSheet({
     const nowH = new Date().getHours()
     return (TIMES.find((tm) => tm.h > nowH) ?? TIMES[0]).id
   })
-  const [armed, setArmed] = useState(false)
+  const [selTier, setSelTier] = useState<RushTier>('standard')
 
   const cells = useMemo(() => monthCells(view.y, view.m), [view])
   const monthLabel = new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric' }).format(new Date(view.y, view.m, 1))
@@ -84,6 +92,8 @@ export function DateTimeSheet({
     const tm = TIMES.find((x) => x.id === selTime)
     return !!tm && !timeDisabled(tm.h)
   })()
+  // If the cap is reached, a rush tier can't be the effective choice.
+  const tier: RushTier = capReached && selTier !== 'standard' ? 'standard' : selTier
 
   function stepMonth(delta: number) {
     setView((v) => {
@@ -156,20 +166,46 @@ export function DateTimeSheet({
               ))}
             </div>
 
-            <button
-              className={`btn-urgent${armed ? ' armed' : ''}`}
-              disabled={!selValid}
-              onClick={() => (armed ? close(() => onUrgent(synth())) : setArmed(true))}
-            >
-              <span className="urg-row">
-                <span className="urg-ic"><Bolt size={18} /></span>
-                {armed ? t('dt.urgent.confirm', { price: URGENT_PRICE_KWD }) : t('dt.urgent')}
-              </span>
-              {armed && <span className="urg-sub">{t('dt.urgent.sub')}</span>}
-            </button>
+            {showRush && (
+              <>
+                <div className="dt-times-label">{t('dt.speed')}</div>
+                <div className="tier-list">
+                  {RUSH_TIER_ORDER.map((tid) => {
+                    const meta = TIERS[tid]
+                    const fee = tierFee(tid, settings)
+                    const disabled = tid !== 'standard' && capReached
+                    return (
+                      <button
+                        key={tid}
+                        className={`tier-opt${tier === tid ? ' sel' : ''}${disabled ? ' disabled' : ''}`}
+                        style={{ '--tier': meta.color } as CSSProperties}
+                        disabled={disabled}
+                        onClick={() => setSelTier(tid)}
+                      >
+                        <span className="tier-dot" />
+                        <span className="tier-main">
+                          <span className="tier-name">{lang === 'ar' ? meta.label.ar : meta.label.en}</span>
+                          <span className="tier-ready">{lang === 'ar' ? meta.ready.ar : meta.ready.en}</span>
+                        </span>
+                        <span className="tier-fee">{fee > 0 ? feeLabel(fee) : t('dt.included')}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+                {capReached && <div className="tier-capnote">{t('dt.capReached')}</div>}
+              </>
+            )}
 
-            <button className="btn-primary dt-continue" disabled={!selValid} onClick={() => close(() => onPick(synth()))}>
-              {t('dt.continue')}
+            <button
+              className="btn-primary dt-continue"
+              disabled={!selValid}
+              onClick={() => {
+                const slot = synth()
+                if (tier === 'standard') close(() => onPick(slot))
+                else close(() => onRush(tier, slot))
+              }}
+            >
+              {tier === 'standard' ? t('dt.continue') : `${t('dt.continue')} · ${feeLabel(tierFee(tier, settings))}`}
             </button>
           </div>
         </>
@@ -178,11 +214,22 @@ export function DateTimeSheet({
   )
 }
 
-/** Express-pickup payment page: shows the surcharge, then completes the order. */
-export function ExpressCheckoutSheet({ onPaid, onClose }: { onPaid: () => void; onClose: () => void }) {
-  const { t } = useI18n()
+/** Rush payment page: shows the tier + surcharge, then completes the order. */
+export function RushCheckoutSheet({
+  tier,
+  fee,
+  onPaid,
+  onClose,
+}: {
+  tier: 'express' | 'urgent'
+  fee: number
+  onPaid: () => void
+  onClose: () => void
+}) {
+  const { t, lang } = useI18n()
   const { showToast } = useStore()
   const [payOpen, setPayOpen] = useState(false)
+  const meta = TIERS[tier]
 
   return (
     <>
@@ -195,14 +242,19 @@ export function ExpressCheckoutSheet({ onPaid, onClose }: { onPaid: () => void; 
               <div className="checkout-card">
                 <div className="co-top">
                   <div>
-                    <div className="co-plan">{t('express.name')}</div>
-                    <div className="co-period">{t('express.desc')}</div>
+                    <div className="co-plan">{lang === 'ar' ? meta.label.ar : meta.label.en}</div>
+                    <div className="co-period">{lang === 'ar' ? meta.ready.ar : meta.ready.en}</div>
                   </div>
-                  <span className="plan-cap urgent-tag">{t('dt.urgent')}</span>
+                  <span
+                    className="plan-cap"
+                    style={{ background: `${meta.color}22`, color: meta.color, border: `1px solid ${meta.color}66` }}
+                  >
+                    {t('dt.rush')}
+                  </span>
                 </div>
                 <div className="co-total">
                   <span>{t('checkout.total')}</span>
-                  <strong>{URGENT_PRICE_KWD}.000 KWD</strong>
+                  <strong>{fee}.000 KWD</strong>
                 </div>
               </div>
 
@@ -219,7 +271,7 @@ export function ExpressCheckoutSheet({ onPaid, onClose }: { onPaid: () => void; 
                 style={{ marginTop: 6 }}
                 onClick={() => close(() => { showToast(t('toast.express')); onPaid() })}
               >
-                {t('checkout.pay', { price: URGENT_PRICE_KWD })}
+                {t('checkout.pay', { price: fee })}
               </button>
               <p className="extra-sheet-sub" style={{ textAlign: 'center', marginTop: 10 }}>{t('checkout.secure')}</p>
             </div>

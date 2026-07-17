@@ -1,7 +1,9 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { money, ops, PLAN_COLOR, planById, throughputSeed, type Intake } from '../data'
 import { round3, usePos } from '../store'
-import { Cards, Users, Basket, Plus } from '../../components/Icons'
+import { TIERS } from '../../data/rush'
+import { useRush } from '../../useRush'
+import { Cards, Users, Basket, Plus, Bolt } from '../../components/Icons'
 
 type Range = 'today' | '7d' | '30d'
 const RANGE_DAYS: Record<Range, number> = { today: 1, '7d': 7, '30d': 30 }
@@ -12,14 +14,31 @@ function startOfDay(ts: number): number {
   return d.getTime()
 }
 
+/** Sort weight so Urgent floats above Express above Standard. */
+function rushRank(i: Intake): number {
+  return i.tier === 'urgent' ? 2 : i.tier === 'express' ? 1 : 0
+}
+function isLate(i: Intake, now: number): boolean {
+  return i.tier !== 'standard' && i.readyBy < now && startOfDay(i.ts) === startOfDay(now)
+}
+
 export function Operations() {
   const { intakes, members, plans } = usePos()
+  const { settings, countToday } = useRush()
   const [range, setRange] = useState<Range>('7d')
 
   const inRange = useMemo(() => {
     const cutoff = startOfDay(Date.now()) - (RANGE_DAYS[range] - 1) * 86400000
     return intakes.filter((i) => i.ts >= cutoff)
   }, [intakes, range])
+
+  // Rush reporting for the selected range.
+  const expressCount = inRange.filter((i) => i.tier === 'express').length
+  const urgentCount = inRange.filter((i) => i.tier === 'urgent').length
+  const rushCount = expressCount + urgentCount
+  const rushRevenue = round3(inRange.reduce((s, i) => s + (i.rushFee ?? 0), 0))
+  const rushPct = inRange.length ? Math.round((rushCount / inRange.length) * 100) : 0
+  const capPct = settings.dailyCap ? Math.min(100, Math.round((countToday / settings.dailyCap) * 100)) : 0
 
   // Recurring revenue and membership are "current state", not range-derived.
   const mrr = useMemo(
@@ -56,7 +75,9 @@ export function Operations() {
 
   const maxKg = Math.max(1, ...throughputSeed.map((d) => d.kg))
   const peakIdx = throughputSeed.reduce((best, d, i, arr) => (d.kg > arr[best].kg ? i : best), 0)
-  const recent = [...inRange].sort((a, b) => b.ts - a.ts).slice(0, 8)
+  // Rush orders float to the top of the queue, then most-recent first.
+  const now = Date.now()
+  const recent = [...inRange].sort((a, b) => rushRank(b) - rushRank(a) || b.ts - a.ts).slice(0, 8)
 
   return (
     <div className="page">
@@ -78,6 +99,47 @@ export function Operations() {
         <Kpi icon={<Users size={18} />} label="Active members" value={String(activeMembers)} sub="On a subscription" tone="dark" />
         <Kpi icon={<Basket size={18} />} label="Orders processed" value={String(ordersProcessed)} sub="Taken in this range" />
         <Kpi icon={<Plus size={18} />} label="Extra-kg revenue" value={money(extraRevenue)} sub="Overflow blocks billed" />
+      </div>
+
+      <div className="card rush-card">
+        <div className="rush-card-top">
+          <div>
+            <h3><span className="rush-h-ic"><Bolt size={16} /></span> Rush service</h3>
+            <div className="csub">Accepted today vs. the daily cap</div>
+          </div>
+          <div className={`rush-counter${countToday >= settings.dailyCap ? ' full' : ''}`}>
+            <b>{countToday}</b>
+            <span>/ {settings.dailyCap}</span>
+          </div>
+        </div>
+        <div className="rush-cap-bar">
+          <i style={{ width: `${capPct}%` }} className={countToday >= settings.dailyCap ? 'full' : ''} />
+        </div>
+        <div className="rush-stats">
+          <div className="rush-stat">
+            <span className="rs-dot" style={{ background: TIERS.express.color }} />
+            <span className="rs-label">Express</span>
+            <b>{expressCount}</b>
+          </div>
+          <div className="rush-stat">
+            <span className="rs-dot" style={{ background: TIERS.urgent.color }} />
+            <span className="rs-label">Urgent</span>
+            <b>{urgentCount}</b>
+          </div>
+          <div className="rush-stat">
+            <span className="rs-label">Rush revenue</span>
+            <b>{money(rushRevenue)}</b>
+          </div>
+          <div className="rush-stat">
+            <span className="rs-label">Share of orders</span>
+            <b className={rushPct > 20 ? 'over' : ''}>{rushPct}%</b>
+          </div>
+        </div>
+        <div className="rush-foot">
+          {rushPct > 20
+            ? `Rush is ${rushPct}% of orders — above the ~15–20% target.`
+            : `Rush is ${rushPct}% of orders — within the ~15–20% target.`}
+        </div>
       </div>
 
       <div className="grid-2">
@@ -143,7 +205,7 @@ export function Operations() {
           <div className="recent">
             {recent.length === 0 && <div className="muted">No intakes in this range.</div>}
             {recent.map((i) => (
-              <IntakeRow key={i.id} rec={i} />
+              <IntakeRow key={i.id} rec={i} now={now} />
             ))}
           </div>
         </div>
@@ -202,17 +264,26 @@ function QStat({ label, value, sub }: { label: string; value: string; sub: strin
   )
 }
 
-function IntakeRow({ rec }: { rec: Intake }) {
+function IntakeRow({ rec, now }: { rec: Intake; now: number }) {
   const time = new Date(rec.ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   const date = new Date(rec.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  const rush = rec.tier === 'express' || rec.tier === 'urgent'
+  const late = isLate(rec, now)
+  const total = round3((rec.extraCharge ?? 0) + (rec.rushFee ?? 0))
   return (
-    <div className="rrow">
+    <div className={`rrow${rush ? ' rush' : ''}${rec.tier === 'urgent' ? ' urgent' : ''}`}>
       <span className="rid">{rec.id}</span>
+      {rush && (
+        <span className="rush-badge" style={{ background: TIERS[rec.tier].color }}>
+          {rec.tier === 'urgent' ? 'URGENT' : 'EXPRESS'}
+        </span>
+      )}
+      {late && <span className="rush-late">LATE</span>}
       <span className="rmeta">
         {rec.memberName} · {rec.kg} kg · {date} {time}
       </span>
       <span className={`rm-pill plan ${rec.planId}`}>{rec.planName}</span>
-      <span className="rtotal">{rec.overflowKg > 0 ? money(rec.extraCharge) : '—'}</span>
+      <span className="rtotal">{total > 0 ? money(total) : '—'}</span>
     </div>
   )
 }

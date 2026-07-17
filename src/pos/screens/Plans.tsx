@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { money, type ExtraBlock, type Plan } from '../data'
 import { usePos } from '../store'
+import { setRushSettings, TIERS } from '../../data/rush'
+import { useRush } from '../../useRush'
 import { Pencil, Trash, Close } from '../../components/Icons'
 
 const EMPTY: Omit<Plan, 'id'> = { name: '', priceKwd: 15, capKg: 20, tagline: '' }
@@ -88,6 +90,12 @@ export function Plans() {
         ))}
       </div>
 
+      <div className="section-head">
+        <h2>Rush service pricing</h2>
+        <p>Express &amp; Urgent fees and the daily cap. Shared with the customer app instantly.</p>
+      </div>
+      <RushSettingsCard />
+
       {editing && (
         <PlanEditor
           initial={editing === 'new' ? { ...EMPTY } : editing}
@@ -99,6 +107,46 @@ export function Plans() {
           }}
         />
       )}
+    </div>
+  )
+}
+
+function RushSettingsCard() {
+  const { settings, countToday } = useRush()
+  const [express, setExpress] = useState(String(settings.expressFee))
+  const [urgent, setUrgent] = useState(String(settings.urgentFee))
+  const [cap, setCap] = useState(String(settings.dailyCap))
+  const dirty =
+    Number(express) !== settings.expressFee ||
+    Number(urgent) !== settings.urgentFee ||
+    Math.round(Number(cap)) !== settings.dailyCap
+
+  return (
+    <div className="card rush-settings">
+      <div className="rs-grid">
+        <div className="field">
+          <label><span className="rs-dot" style={{ background: TIERS.express.color }} /> Express fee (KWD)</label>
+          <input type="number" inputMode="decimal" min={0} step={0.5} value={express} onChange={(e) => setExpress(e.target.value)} />
+          <span className="rs-hint">≤ 24-hour turnaround</span>
+        </div>
+        <div className="field">
+          <label><span className="rs-dot" style={{ background: TIERS.urgent.color }} /> Urgent fee (KWD)</label>
+          <input type="number" inputMode="decimal" min={0} step={0.5} value={urgent} onChange={(e) => setUrgent(e.target.value)} />
+          <span className="rs-hint">Same-day · a few hours</span>
+        </div>
+        <div className="field">
+          <label>Daily rush cap</label>
+          <input type="number" inputMode="numeric" min={0} step={1} value={cap} onChange={(e) => setCap(e.target.value)} />
+          <span className="rs-hint">Max Express + Urgent / day · {countToday} used today</span>
+        </div>
+      </div>
+      <button
+        className="btn primary wide"
+        disabled={!dirty}
+        onClick={() => setRushSettings({ expressFee: Number(express), urgentFee: Number(urgent), dailyCap: Math.round(Number(cap)) })}
+      >
+        {dirty ? 'Save rush settings' : 'Saved'}
+      </button>
     </div>
   )
 }

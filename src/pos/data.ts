@@ -6,6 +6,7 @@
 //
 // It stays self-contained (its own copy of the plan/extra figures that mirror
 // the customer app) and persists to localStorage with no backend.
+import type { RushTier } from '../data/rush'
 
 export interface Plan {
   id: string
@@ -64,6 +65,13 @@ export interface Intake {
   /** Amount billed to the card on file for extra kg (KWD). */
   extraCharge: number
   hangers: boolean
+  /** Service speed. Express/Urgent add a rush fee and a tighter ready-by. */
+  tier: RushTier
+  /** Rush surcharge billed for this order (KWD); 0 for standard. */
+  rushFee: number
+  /** Promised ready-by time (epoch ms) derived from the tier SLA. */
+  readyBy: number
+  /** Legacy flag — kept in sync with `tier !== 'standard'` for older records. */
   express: boolean
   staffId: string
   staffName: string
