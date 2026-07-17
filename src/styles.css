@@ -5189,3 +5189,16 @@ button {
 
 /* Staff dashboard: bell + exit grouped on the right */
 .staff-top-actions { display: inline-flex; align-items: center; gap: 8px; }
+
+/* ===== Staff message inbox ===== */
+.msg-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.msg-head .note-time { margin: 0; }
+/* Five tabs now — shrink the staff segmented control so nothing clips. */
+.staff-seg .seg { font-size: 11.5px; gap: 4px; padding: 10px 3px; }
+.staff-seg .seg svg { width: 15px; height: 15px; }
