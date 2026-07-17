@@ -903,13 +903,21 @@ function AdminView() {
 /* ---------- Action center (alerts + shift notes) ---------- */
 
 type Severity = 'critical' | 'warning' | 'info'
+/** Where an alert is routed. 'both' shows under Customers *and* POS. */
+type Audience = 'customer' | 'pos' | 'both'
 interface Alert {
   id: string
   sev: Severity
   title: string
   detail: string
+  audience: Audience
 }
 const SEV_RANK: Record<Severity, number> = { critical: 0, warning: 1, info: 2 }
+
+/** Does an alert belong to the given branch (customers vs pos)? */
+function inBranch(a: Alert, branch: 'customer' | 'pos'): boolean {
+  return a.audience === 'both' || a.audience === branch
+}
 
 function startOfTodayMs(): number {
   const d = new Date()
@@ -938,21 +946,25 @@ function useAlerts(): Alert[] {
 
     const list: Alert[] = []
     if (capReached) {
-      list.push({ id: 'cap', sev: 'critical', title: t('alerts.cap.title'), detail: t('alerts.cap.detail', { used: countToday, cap: settings.dailyCap }) })
+      // Customers can't book rush; the facility (POS) also needs to know.
+      list.push({ id: 'cap', sev: 'critical', audience: 'both', title: t('alerts.cap.title'), detail: t('alerts.cap.detail', { used: countToday, cap: settings.dailyCap }) })
     } else if (nearCap) {
-      list.push({ id: 'capNear', sev: 'warning', title: t('alerts.capNear.title'), detail: t('alerts.capNear.detail', { used: countToday, cap: settings.dailyCap }) })
+      list.push({ id: 'capNear', sev: 'warning', audience: 'pos', title: t('alerts.capNear.title'), detail: t('alerts.capNear.detail', { used: countToday, cap: settings.dailyCap }) })
     }
     if (late.length) {
-      list.push({ id: 'late', sev: 'critical', title: t('alerts.late.title', { n: late.length }), detail: t('alerts.late.detail') })
+      // Facility must prioritise these — a POS/ops concern.
+      list.push({ id: 'late', sev: 'critical', audience: 'pos', title: t('alerts.late.title', { n: late.length }), detail: t('alerts.late.detail') })
     }
     if (over.length) {
-      list.push({ id: 'over', sev: 'warning', title: t('alerts.over.title', { n: over.length }), detail: over.map((c) => c.name).slice(0, 3).join(', ') })
+      // Nudge the customer to buy extra kg; POS bills the overflow.
+      list.push({ id: 'over', sev: 'warning', audience: 'both', title: t('alerts.over.title', { n: over.length }), detail: over.map((c) => c.name).slice(0, 3).join(', ') })
     }
     if (frozen.length) {
-      list.push({ id: 'frozen', sev: 'info', title: t('alerts.frozen.title', { n: frozen.length }), detail: frozen.map((c) => c.name).slice(0, 3).join(', ') })
+      list.push({ id: 'frozen', sev: 'info', audience: 'pos', title: t('alerts.frozen.title', { n: frozen.length }), detail: frozen.map((c) => c.name).slice(0, 3).join(', ') })
     }
     if (activeDisc) {
-      list.push({ id: 'disc', sev: 'info', title: t('alerts.disc.title', { n: activeDisc }), detail: t('alerts.disc.detail') })
+      // A promo customers can redeem.
+      list.push({ id: 'disc', sev: 'info', audience: 'customer', title: t('alerts.disc.title', { n: activeDisc }), detail: t('alerts.disc.detail') })
     }
     return list.sort((a, b) => SEV_RANK[a.sev] - SEV_RANK[b.sev])
   }, [t, now, settings.dailyCap, ledger, countToday, capReached, customers, plans, discounts])
@@ -981,10 +993,16 @@ function AlertsView() {
   const { orders } = useStore()
   const notes = useShiftNotes()
   const [draft, setDraft] = useState('')
+  // The "branch": which channel's alerts we're viewing.
+  const [branch, setBranch] = useState<'customer' | 'pos'>('customer')
 
   const todayStart = startOfTodayMs()
   const ordersToday = orders.filter((o) => o.createdAt >= todayStart).length
   const openCount = alerts.filter((a) => a.sev !== 'info').length
+
+  const customerAlerts = alerts.filter((a) => inBranch(a, 'customer'))
+  const posAlerts = alerts.filter((a) => inBranch(a, 'pos'))
+  const shown = branch === 'customer' ? customerAlerts : posAlerts
 
   const sevIcon = (sev: Severity) => (sev === 'info' ? <Info size={18} /> : <AlertTriangle size={18} />)
 
@@ -1006,21 +1024,39 @@ function AlertsView() {
       </div>
 
       <div className="section-title staff-sec">{t('alerts.section')}</div>
-      {alerts.length === 0 ? (
+
+      {/* Branch: separate the alerts routed to customers vs. to the POS. */}
+      <div className="adm-subnav alerts-branch">
+        <button className={branch === 'customer' ? 'on' : ''} onClick={() => setBranch('customer')}>
+          {t('alerts.branch.customers')}
+          <span className="branch-count">{customerAlerts.length}</span>
+        </button>
+        <button className={branch === 'pos' ? 'on' : ''} onClick={() => setBranch('pos')}>
+          {t('alerts.branch.pos')}
+          <span className="branch-count">{posAlerts.length}</span>
+        </button>
+      </div>
+
+      {shown.length === 0 ? (
         <div className="alerts-clear">
           <span className="alerts-clear-ic"><Check size={22} /></span>
           <div>
             <div className="alerts-clear-t">{t('alerts.clear.title')}</div>
-            <div className="alerts-clear-s">{t('alerts.clear.sub')}</div>
+            <div className="alerts-clear-s">
+              {branch === 'customer' ? t('alerts.clear.customers') : t('alerts.clear.pos')}
+            </div>
           </div>
         </div>
       ) : (
         <div className="alert-list">
-          {alerts.map((a) => (
+          {shown.map((a) => (
             <div key={a.id} className={`alert-row ${a.sev}`}>
               <span className="alert-ic">{sevIcon(a.sev)}</span>
               <div className="alert-body">
-                <div className="alert-title">{a.title}</div>
+                <div className="alert-title-row">
+                  <span className="alert-title">{a.title}</span>
+                  <span className={`alert-route ${a.audience}`}>{t(`alerts.route.${a.audience}`)}</span>
+                </div>
                 {a.detail && <div className="alert-detail">{a.detail}</div>}
               </div>
             </div>
