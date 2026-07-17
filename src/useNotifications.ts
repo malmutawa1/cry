@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
+  getNotifications,
   notificationsFor,
   unreadCount,
   markSeen,
@@ -17,4 +18,11 @@ export function useNotifications(surface: NotifSurface) {
     unread: unreadCount(surface),
     markSeen: () => markSeen(surface),
   }
+}
+
+/** Live view of every message (all audiences) — for the staff message center. */
+export function useAllNotifications() {
+  const [, force] = useState(0)
+  useEffect(() => subscribeNotifications(() => force((n) => n + 1)), [])
+  return getNotifications()
 }

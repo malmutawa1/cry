@@ -11,8 +11,8 @@ import { setPlanOverride, setAnnouncement, type AnnouncementTone } from '../data
 import { addDiscount, toggleDiscount, removeDiscount, type Discount, type DiscountKind, type DiscountScope } from '../data/discounts'
 import { getCustomers, toggleFreeze, grantCustomerCredit, subscribeCustomers, type Customer } from '../data/customers'
 import { getShiftNotes, addShiftNote, removeShiftNote, subscribeShiftNotes } from '../data/shiftnotes'
-import { sendNotification, removeNotification } from '../data/notifications'
-import { useNotifications } from '../useNotifications'
+import { sendNotification, removeNotification, markSeen as markNotifSeen, type NotifAudience } from '../data/notifications'
+import { useNotifications, useAllNotifications } from '../useNotifications'
 import NotificationsBell from '../components/NotificationsBell'
 import { planName, type Plan } from '../data/plans'
 import { Toggle } from '../components/Common'
@@ -24,7 +24,7 @@ import {
   throughput,
   STAFF_PASSCODE,
 } from '../data/staff'
-import { AlertTriangle, BarChart, Bell, Car, Check, Chevron, Clock, Close, Info, Lock, Phone, Pin, Plus, Route, Sliders, Trash } from '../components/Icons'
+import { AlertTriangle, BarChart, Bell, Car, Check, Chevron, Clock, Close, Info, Lock, Mail, Phone, Pin, Plus, Route, Sliders, Trash } from '../components/Icons'
 import RouteMap from '../components/RouteMap'
 
 const CYCLE_MS = STAGE_COUNT * STAGE_SECONDS * 1000
@@ -1156,12 +1156,98 @@ function AlertsView() {
   )
 }
 
+/* ---------- Message inbox ---------- */
+
+function InboxView() {
+  const { t } = useI18n()
+  const now = useNow(30000)
+  const all = useAllNotifications()
+  // Opening the inbox (and new arrivals while open) clear the staff unread badge.
+  useEffect(() => { markNotifSeen('staff') }, [all.length])
+
+  const received = all.filter((n) => n.audience === 'staff').sort((a, b) => b.ts - a.ts)
+  const sent = all.filter((n) => n.audience !== 'staff').sort((a, b) => b.ts - a.ts)
+
+  const [view, setView] = useState<'received' | 'sent'>('received')
+  const [draft, setDraft] = useState('')
+  const [target, setTarget] = useState<NotifAudience>('customer')
+  const rows = view === 'received' ? received : sent
+
+  function send() {
+    if (!draft.trim()) return
+    sendNotification({ text: draft, audience: target })
+    setDraft('')
+    setView('sent')
+  }
+
+  return (
+    <>
+      <div className="adm-subnav alerts-branch">
+        <button className={view === 'received' ? 'on' : ''} onClick={() => setView('received')}>
+          {t('inbox.received')}<span className="branch-count">{received.length}</span>
+        </button>
+        <button className={view === 'sent' ? 'on' : ''} onClick={() => setView('sent')}>
+          {t('inbox.sent')}<span className="branch-count">{sent.length}</span>
+        </button>
+      </div>
+
+      {rows.length === 0 ? (
+        <div className="staff-card center" style={{ padding: 20 }}>
+          {view === 'received' ? t('inbox.empty.received') : t('inbox.empty.sent')}
+        </div>
+      ) : (
+        <div className="card-group">
+          {rows.map((n) => (
+            <div key={n.id} className="note-row">
+              <div className="note-body">
+                <div className="msg-head">
+                  <span className={`alert-route ${n.audience === 'staff' ? 'pos' : n.audience}`}>
+                    {n.audience === 'staff' ? t('inbox.fromPos') : `${t('inbox.to')} ${t('alerts.route.' + n.audience)}`}
+                  </span>
+                  <span className="note-time">{relTime(n.ts, now, t)}</span>
+                </div>
+                <div className="note-text">{n.text}</div>
+              </div>
+              <button className="note-del" onClick={() => removeNotification(n.id)} aria-label={t('alerts.msg.remove')}>
+                <Trash size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="section-title staff-sec">{t('inbox.compose')}</div>
+      <div className="adm-seg">
+        {(['customer', 'pos', 'both'] as NotifAudience[]).map((a) => (
+          <button key={a} className={`adm-seg-btn ${target === a ? 'on' : ''}`} onClick={() => setTarget(a)}>
+            {t('alerts.route.' + a)}
+          </button>
+        ))}
+      </div>
+      <div className="note-add">
+        <input
+          className="field"
+          value={draft}
+          placeholder={t('inbox.compose.ph')}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') send() }}
+        />
+        <button className="note-add-btn" disabled={!draft.trim()} onClick={send} aria-label={t('inbox.send')}>
+          <Bell size={18} />
+        </button>
+      </div>
+      <div style={{ height: 12 }} />
+    </>
+  )
+}
+
 /* ---------- Dashboard shell ---------- */
 
 function StaffDashboard({ onExit, staffKey }: { onExit: () => void; staffKey: string | null }) {
   const { t, lang } = useI18n()
-  const [tab, setTab] = useState<'kpi' | 'orders' | 'alerts' | 'admin'>('kpi')
+  const [tab, setTab] = useState<'kpi' | 'orders' | 'alerts' | 'inbox' | 'admin'>('kpi')
   const openAlerts = useAlerts().filter((a) => a.sev !== 'info').length
+  const inboxUnread = useNotifications('staff').unread
 
   return (
     <>
@@ -1197,6 +1283,13 @@ function StaffDashboard({ onExit, staffKey }: { onExit: () => void; staffKey: st
           </span>
           {t('staff.tab.alerts')}
         </button>
+        <button className={`seg ${tab === 'inbox' ? 'on' : ''}`} onClick={() => setTab('inbox')}>
+          <span className="seg-ic-wrap">
+            <Mail size={17} />
+            {inboxUnread > 0 && <span className="seg-badge">{inboxUnread}</span>}
+          </span>
+          {t('staff.tab.inbox')}
+        </button>
         <button className={`seg ${tab === 'admin' ? 'on' : ''}`} onClick={() => setTab('admin')}>
           <Sliders size={17} />
           {t('staff.tab.admin')}
@@ -1211,6 +1304,8 @@ function StaffDashboard({ onExit, staffKey }: { onExit: () => void; staffKey: st
             <OrdersView lang={lang} staffKey={staffKey} />
           ) : tab === 'alerts' ? (
             <AlertsView />
+          ) : tab === 'inbox' ? (
+            <InboxView />
           ) : (
             <AdminView />
           )}
