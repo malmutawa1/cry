@@ -13,6 +13,7 @@ import { getCustomers, toggleFreeze, grantCustomerCredit, subscribeCustomers, ty
 import { getShiftNotes, addShiftNote, removeShiftNote, subscribeShiftNotes } from '../data/shiftnotes'
 import { sendNotification, removeNotification } from '../data/notifications'
 import { useNotifications } from '../useNotifications'
+import NotificationsBell from '../components/NotificationsBell'
 import { planName, type Plan } from '../data/plans'
 import { Toggle } from '../components/Common'
 import {
@@ -1172,9 +1173,12 @@ function StaffDashboard({ onExit, staffKey }: { onExit: () => void; staffKey: st
           <h1 style={{ marginTop: 6 }}>{t('staff.title')}</h1>
           <div className="staff-subtitle">{t('staff.updated')}</div>
         </div>
-        <button className="round-btn" onClick={onExit} aria-label={t('staff.exit')}>
-          <Close />
-        </button>
+        <div className="staff-top-actions">
+          <NotificationsBell surface="staff" />
+          <button className="round-btn" onClick={onExit} aria-label={t('staff.exit')}>
+            <Close />
+          </button>
+        </div>
       </div>
 
       <div className="segmented staff-seg">

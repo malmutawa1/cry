@@ -2092,3 +2092,35 @@ table.tbl tbody tr:hover td {
   border-radius: 6px;
 }
 .notif-pop-del:hover { background: var(--surface-3); color: var(--text); }
+
+/* POS notifications: compose-to-staff */
+.notif-pop-compose {
+  padding: 4px 6px 8px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 4px;
+}
+.notif-compose-row { display: flex; gap: 6px; }
+.notif-compose-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--line-2);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13px;
+}
+.notif-compose-row input:focus { outline: none; border-color: var(--accent, #877FC1); }
+.notif-send {
+  flex: none;
+  padding: 0 14px;
+  border-radius: 9px;
+  border: none;
+  background: #222026;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.notif-send:disabled { opacity: 0.45; cursor: default; }
+.notif-sent { font-size: 12px; color: var(--green); font-weight: 700; margin-top: 6px; padding-inline-start: 2px; }

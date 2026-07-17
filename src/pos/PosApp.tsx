@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { usePos } from './store'
 import { useNotifications } from '../useNotifications'
 import type { Notification } from '../data/notifications'
-import { removeNotification } from '../data/notifications'
+import { removeNotification, sendNotification } from '../data/notifications'
 import { Login } from './screens/Login'
 import { Intake } from './screens/Intake'
 import { Plans } from './screens/Plans'
@@ -130,13 +130,39 @@ function relTime(ts: number): string {
   return `${Math.round(hrs / 24)} d ago`
 }
 
-/** Dropdown showing messages the staff portal routed to the POS. */
+/** Dropdown showing messages routed to the POS, plus a composer that sends a
+ *  message up to the staff portal. */
 function NotifPanel({ list, onClose }: { list: Notification[]; onClose: () => void }) {
+  const [draft, setDraft] = useState('')
+  const [sent, setSent] = useState(false)
+
+  function send() {
+    if (!draft.trim()) return
+    sendNotification({ text: draft, audience: 'staff' })
+    setDraft('')
+    setSent(true)
+    setTimeout(() => setSent(false), 1800)
+  }
+
   return (
     <>
       <div className="notif-scrim" onClick={onClose} />
       <div className="notif-pop" role="dialog" aria-label="Notifications">
-        <div className="notif-pop-head">Notifications</div>
+        <div className="notif-pop-compose">
+          <div className="notif-pop-head" style={{ padding: '2px 2px 6px' }}>Message staff</div>
+          <div className="notif-compose-row">
+            <input
+              value={draft}
+              placeholder="Send a note to the staff portal…"
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') send() }}
+            />
+            <button className="notif-send" disabled={!draft.trim()} onClick={send}>Send</button>
+          </div>
+          {sent && <div className="notif-sent">Sent to staff ✓</div>}
+        </div>
+
+        <div className="notif-pop-head">Inbox</div>
         {list.length === 0 ? (
           <div className="notif-pop-empty">No messages yet.</div>
         ) : (

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useI18n } from '../i18n'
 import { useNotifications } from '../useNotifications'
+import type { NotifSurface } from '../data/notifications'
 import { Sheet } from './Sheet'
 import { Bell } from './Icons'
 
@@ -13,10 +14,10 @@ function relTime(ts: number, t: (k: string, v?: Record<string, string | number>)
   return t('alerts.note.day', { n: Math.round(hrs / 24) })
 }
 
-/** Bell button (with unread badge) that opens the customer's message inbox. */
-export default function NotificationsBell() {
+/** Bell button (with unread badge) that opens a surface's message inbox. */
+export default function NotificationsBell({ surface = 'customer' }: { surface?: NotifSurface }) {
   const { t } = useI18n()
-  const { list, unread, markSeen } = useNotifications('customer')
+  const { list, unread, markSeen } = useNotifications(surface)
   const [open, setOpen] = useState(false)
 
   return (
