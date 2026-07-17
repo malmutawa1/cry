@@ -11,6 +11,8 @@ import { setPlanOverride, setAnnouncement, type AnnouncementTone } from '../data
 import { addDiscount, toggleDiscount, removeDiscount, type Discount, type DiscountKind, type DiscountScope } from '../data/discounts'
 import { getCustomers, toggleFreeze, grantCustomerCredit, subscribeCustomers, type Customer } from '../data/customers'
 import { getShiftNotes, addShiftNote, removeShiftNote, subscribeShiftNotes } from '../data/shiftnotes'
+import { sendNotification, removeNotification } from '../data/notifications'
+import { useNotifications } from '../useNotifications'
 import { planName, type Plan } from '../data/plans'
 import { Toggle } from '../components/Common'
 import {
@@ -993,8 +995,16 @@ function AlertsView() {
   const { orders } = useStore()
   const notes = useShiftNotes()
   const [draft, setDraft] = useState('')
-  // The "branch": which channel's alerts we're viewing.
+  // The "branch": which channel's alerts + messages we're viewing.
   const [branch, setBranch] = useState<'customer' | 'pos'>('customer')
+  const { list: channelMsgs } = useNotifications(branch)
+  const [msg, setMsg] = useState('')
+
+  function sendMsg() {
+    if (!msg.trim()) return
+    sendNotification({ text: msg, audience: branch })
+    setMsg('')
+  }
 
   const todayStart = startOfTodayMs()
   const ordersToday = orders.filter((o) => o.createdAt >= todayStart).length
@@ -1059,6 +1069,42 @@ function AlertsView() {
                 </div>
                 {a.detail && <div className="alert-detail">{a.detail}</div>}
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="section-title staff-sec">
+        {branch === 'customer' ? t('alerts.msg.toCustomers') : t('alerts.msg.toPos')}
+      </div>
+      <div className="note-add">
+        <input
+          className="field"
+          value={msg}
+          placeholder={branch === 'customer' ? t('alerts.msg.phCustomer') : t('alerts.msg.phPos')}
+          onChange={(e) => setMsg(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') sendMsg() }}
+        />
+        <button className="note-add-btn" disabled={!msg.trim()} onClick={sendMsg} aria-label={t('alerts.msg.send')}>
+          <Bell size={18} />
+        </button>
+      </div>
+      {channelMsgs.length === 0 ? (
+        <div className="staff-card center" style={{ padding: 16 }}>{t('alerts.msg.empty')}</div>
+      ) : (
+        <div className="card-group">
+          {channelMsgs.map((m) => (
+            <div key={m.id} className="note-row">
+              <div className="note-body">
+                <div className="note-text">{m.text}</div>
+                <div className="note-time">
+                  {relTime(m.ts, now, t)}
+                  {m.audience === 'both' && <span className="msg-both"> · {t('alerts.route.both')}</span>}
+                </div>
+              </div>
+              <button className="note-del" onClick={() => removeNotification(m.id)} aria-label={t('alerts.msg.remove')}>
+                <Trash size={16} />
+              </button>
             </div>
           ))}
         </div>

@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { usePos } from './store'
-import { planById } from './data'
+import { useNotifications } from '../useNotifications'
+import type { Notification } from '../data/notifications'
+import { removeNotification } from '../data/notifications'
 import { Login } from './screens/Login'
 import { Intake } from './screens/Intake'
 import { Plans } from './screens/Plans'
@@ -19,14 +21,16 @@ const META: Record<View, { title: string; sub: string }> = {
 }
 
 export function PosApp() {
-  const { currentStaff, logout, members, plans } = usePos()
+  const { currentStaff, logout } = usePos()
   const [view, setView] = useState<View>('intake')
+  const [notifOpen, setNotifOpen] = useState(false)
+  const { list: notifs, unread, markSeen } = useNotifications('pos')
 
-  // Bell badge = members currently past their monthly allowance (a real signal).
-  const overCount = useMemo(
-    () => members.filter((m) => m.kgUsed > (planById(plans, m.planId)?.capKg ?? Infinity)).length,
-    [members, plans],
-  )
+  function toggleNotif() {
+    const willOpen = !notifOpen
+    setNotifOpen(willOpen)
+    if (willOpen) markSeen()
+  }
 
   if (!currentStaff) return <Login />
 
@@ -70,10 +74,13 @@ export function PosApp() {
             <button className="tb-icon" aria-label="Search">
               <IcSearch />
             </button>
-            <button className="tb-icon" aria-label="Notifications">
-              <IcBell />
-              {overCount > 0 && <span className="tb-badge">{overCount}</span>}
-            </button>
+            <div className="tb-notif">
+              <button className="tb-icon" aria-label="Notifications" onClick={toggleNotif}>
+                <IcBell />
+                {unread > 0 && <span className="tb-badge">{unread}</span>}
+              </button>
+              {notifOpen && <NotifPanel list={notifs} onClose={() => setNotifOpen(false)} />}
+            </div>
             <div className="tb-user">
               <div className="avatar">{currentStaff.name[0]}</div>
               <div className="tb-user-meta">
@@ -111,6 +118,44 @@ function RailBtn({
     <button className={`rail-btn${active ? ' on' : ''}`} onClick={onClick} aria-label={label} title={label}>
       {children}
     </button>
+  )
+}
+
+function relTime(ts: number): string {
+  const mins = Math.round((Date.now() - ts) / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins} min ago`
+  const hrs = Math.round(mins / 60)
+  if (hrs < 24) return `${hrs} h ago`
+  return `${Math.round(hrs / 24)} d ago`
+}
+
+/** Dropdown showing messages the staff portal routed to the POS. */
+function NotifPanel({ list, onClose }: { list: Notification[]; onClose: () => void }) {
+  return (
+    <>
+      <div className="notif-scrim" onClick={onClose} />
+      <div className="notif-pop" role="dialog" aria-label="Notifications">
+        <div className="notif-pop-head">Notifications</div>
+        {list.length === 0 ? (
+          <div className="notif-pop-empty">No messages yet.</div>
+        ) : (
+          <div className="notif-pop-list">
+            {list.map((n) => (
+              <div key={n.id} className="notif-pop-item">
+                <div className="notif-pop-text">{n.text}</div>
+                <div className="notif-pop-meta">
+                  <span>{relTime(n.ts)}</span>
+                  <button className="notif-pop-del" onClick={() => removeNotification(n.id)} aria-label="Dismiss">
+                    <IcX />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 
@@ -182,6 +227,13 @@ function IcBell() {
   return (
     <svg {...S} width="19" height="19" aria-hidden="true">
       <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0" />
+    </svg>
+  )
+}
+function IcX() {
+  return (
+    <svg {...S} width="15" height="15" aria-hidden="true">
+      <path d="M18 6 6 18M6 6l12 12" />
     </svg>
   )
 }
