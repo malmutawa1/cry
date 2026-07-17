@@ -1097,6 +1097,32 @@ button {
 .tier-opt.sel .tier-fee {
   color: var(--tier);
 }
+/* Express + Urgent carry their colour and animate; Standard stays calm. */
+.tier-opt.tier-express,
+.tier-opt.tier-urgent {
+  border-color: color-mix(in srgb, var(--tier) 42%, var(--line));
+  animation: tier-breathe 3s ease-in-out infinite;
+}
+.tier-opt.tier-express .tier-fee,
+.tier-opt.tier-urgent .tier-fee {
+  color: var(--tier);
+}
+.tier-opt.tier-express .tier-dot,
+.tier-opt.tier-urgent .tier-dot {
+  animation: tier-pulse 1.8s ease-in-out infinite;
+}
+/* Urgent is the loudest — its dot beats faster. */
+.tier-opt.tier-urgent .tier-dot {
+  animation-duration: 1.2s;
+}
+@keyframes tier-breathe {
+  0%, 100% { background: color-mix(in srgb, var(--tier) 8%, var(--surface)); }
+  50% { background: color-mix(in srgb, var(--tier) 18%, var(--surface)); }
+}
+@keyframes tier-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--tier) 60%, transparent); }
+  70%, 100% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--tier) 0%, transparent); }
+}
 .tier-capnote {
   margin-top: 10px;
   text-align: center;

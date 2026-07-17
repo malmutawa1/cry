@@ -177,7 +177,7 @@ export function DateTimeSheet({
                     return (
                       <button
                         key={tid}
-                        className={`tier-opt${tier === tid ? ' sel' : ''}${disabled ? ' disabled' : ''}`}
+                        className={`tier-opt tier-${tid}${tier === tid ? ' sel' : ''}${disabled ? ' disabled' : ''}`}
                         style={{ '--tier': meta.color } as CSSProperties}
                         disabled={disabled}
                         onClick={() => setSelTier(tid)}

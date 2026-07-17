@@ -152,17 +152,17 @@ export default function Pickup({
       {sheet === 'pickup' && (
         <DateTimeSheet
           title={t('sheet.pickup')}
-          showRush
           onPick={(slot) => { s.setPickup(slot); setSheet(null) }}
-          onRush={(tier, slot) => { s.setPickup(slot); setSheet(null); setRush({ tier, fee: tierFee(tier, settings) }) }}
+          onRush={() => {}}
           onClose={() => setSheet(null)}
         />
       )}
       {sheet === 'delivery' && (
         <DateTimeSheet
           title={t('sheet.delivery')}
+          showRush
           onPick={(slot) => { s.setDelivery(slot); setSheet(null) }}
-          onRush={() => {}}
+          onRush={(tier, slot) => { s.setDelivery(slot); setSheet(null); setRush({ tier, fee: tierFee(tier, settings) }) }}
           onClose={() => setSheet(null)}
         />
       )}
