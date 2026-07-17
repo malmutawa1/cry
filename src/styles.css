@@ -4741,7 +4741,7 @@ button {
   position: relative;
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden auto;
   color: #fff;
   background: radial-gradient(120% 90% at 50% -10%, #ff4d4d 0%, #e01e26 45%, #a10e15 100%);
   animation: rush-enter 0.5s var(--ease-out) both;
@@ -4749,19 +4749,23 @@ button {
 @keyframes rush-enter {
   from { opacity: 0; filter: saturate(1.7) brightness(1.25); transform: scale(1.03); }
 }
-/* Moving caution-stripe texture */
+/* Drifting molten light blobs (lava-glow) */
 .rush-tex {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.13;
-  background: repeating-linear-gradient(45deg, #000 0 14px, transparent 14px 34px);
-  background-size: 48px 48px;
-  animation: rush-stripes 2.4s linear infinite;
-  mix-blend-mode: multiply;
+  background:
+    radial-gradient(38% 34% at 22% 26%, rgba(255, 150, 130, 0.5), transparent 62%),
+    radial-gradient(34% 30% at 80% 60%, rgba(255, 70, 70, 0.45), transparent 62%),
+    radial-gradient(30% 26% at 58% 90%, rgba(255, 195, 160, 0.35), transparent 62%);
+  filter: blur(18px);
+  animation: rush-drift 10s ease-in-out infinite alternate;
+  will-change: transform;
 }
-@keyframes rush-stripes {
-  to { background-position: 48px 48px; }
+@keyframes rush-drift {
+  0% { transform: translate3d(-3%, -2%, 0) scale(1.08); }
+  50% { transform: translate3d(4%, 3%, 0) scale(1.18); }
+  100% { transform: translate3d(-2%, 4%, 0) scale(1.1); }
 }
 /* Pulsing top glow */
 .rush-glow {
