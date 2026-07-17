@@ -6,14 +6,16 @@ import { Intake } from './screens/Intake'
 import { Plans } from './screens/Plans'
 import { Schedule } from './screens/Schedule'
 import { Operations } from './screens/Operations'
+import { Quality } from './screens/Quality'
 
-type View = 'intake' | 'schedule' | 'plans' | 'operations'
+type View = 'intake' | 'schedule' | 'plans' | 'operations' | 'quality'
 
 const META: Record<View, { title: string; sub: string }> = {
   intake: { title: 'Intake', sub: "Take in a member's laundry" },
   schedule: { title: 'Schedule', sub: 'Set pickup & delivery availability' },
   plans: { title: 'Plans & pricing', sub: 'Subscriptions and extra-capacity blocks' },
   operations: { title: 'Operations', sub: 'Detailed overview of your facility' },
+  quality: { title: 'Quality control', sub: 'Inspections, defects & pass rate' },
 }
 
 export function PosApp() {
@@ -48,6 +50,9 @@ export function PosApp() {
           </RailBtn>
           <RailBtn label="Operations" active={view === 'operations'} onClick={() => setView('operations')}>
             <IcChart />
+          </RailBtn>
+          <RailBtn label="Quality" active={view === 'quality'} onClick={() => setView('quality')}>
+            <IcQuality />
           </RailBtn>
         </nav>
         <button className="rail-btn logout" onClick={logout} aria-label="Sign out" title="Sign out">
@@ -84,6 +89,7 @@ export function PosApp() {
           {view === 'schedule' && <Schedule />}
           {view === 'plans' && <Plans />}
           {view === 'operations' && <Operations />}
+          {view === 'quality' && <Quality />}
         </main>
       </div>
     </div>
@@ -146,6 +152,14 @@ function IcChart() {
   return (
     <svg {...S} aria-hidden="true">
       <path d="M4 20V4M4 20h16M8 20v-6M12 20v-9M16 20v-4" />
+    </svg>
+  )
+}
+function IcQuality() {
+  return (
+    <svg {...S} aria-hidden="true">
+      <path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z" />
+      <path d="M9 12l2 2 4-4" />
     </svg>
   )
 }

@@ -16,17 +16,10 @@ import { Trash } from '../components/Icons'
 import {
   bi,
   capacityPct,
-  defects,
-  inspectors,
   kpis,
   liveFleet,
-  qc,
-  qcChecklist,
-  qcSeed,
   throughput,
   STAFF_PASSCODE,
-  type QcResult,
-  type QcRecord,
 } from '../data/staff'
 import { BarChart, Car, Check, Chevron, Clock, Close, Lock, Phone, Pin, Route, Sliders } from '../components/Icons'
 import RouteMap from '../components/RouteMap'
@@ -87,11 +80,6 @@ function Ring({ pct, tone = 'accent', label }: { pct: number; tone?: string; lab
       </div>
     </div>
   )
-}
-
-function ResultBadge({ result }: { result: QcResult }) {
-  const { t } = useI18n()
-  return <span className={`qc-badge ${result}`}>{t(`staff.qc.result.${result}`)}</span>
 }
 
 /* ---------- Passcode gate ---------- */
@@ -568,127 +556,6 @@ function LocalOrdersView({ lang }: { lang: 'en' | 'ar' }) {
   )
 }
 
-function QcView({ lang }: { lang: 'en' | 'ar' }) {
-  const { t } = useI18n()
-  const { orders } = useStore()
-  const now = useNow(1000)
-  const maxDefect = Math.max(...defects.map((d) => d.count))
-
-  // Interactive per-order checklist for the next order awaiting dispatch.
-  const [checks, setChecks] = useState<boolean[]>(() => qcChecklist.map(() => false))
-  const [logged, setLogged] = useState(false)
-  const allChecked = checks.every(Boolean)
-
-  // Recent inspections: live orders from the customer app first, then history.
-  const rows: QcRecord[] = useMemo(() => {
-    const live: QcRecord[] = orders.map((o, i) => {
-      const done = orderStage(o, now) >= STAGE_COUNT - 1
-      return {
-        id: o.id,
-        kg: orderKg(o.id),
-        inspector: inspectors[i % inspectors.length].name,
-        result: done ? 'pass' : 'pending',
-        note: done
-          ? { en: 'Cleared for delivery', ar: 'جاهز للتوصيل' }
-          : { en: 'Awaiting inspection', ar: 'بانتظار الفحص' },
-      }
-    })
-    const seen = new Set(live.map((r) => r.id))
-    const extra = qcSeed.filter((r) => !seen.has(r.id))
-    return [...live, ...extra].slice(0, 7)
-  }, [orders, now])
-
-  const nextOrder = orders[0]
-
-  return (
-    <>
-      <div className="staff-two">
-        <div className="staff-card center">
-          <Ring pct={qc.passRate} tone="green" label={t('staff.qc.pass')} />
-          <div className="staff-card-note">{t('staff.qc.checks', { n: qc.inspected })}</div>
-        </div>
-        <div className="staff-card">
-          <div className="staff-card-title">{t('staff.qc.defects')}</div>
-          <div className="defect-list">
-            {defects.map((d, i) => (
-              <div key={i} className="defect-row">
-                <span className="defect-label">{bi(d.label, lang)}</span>
-                <span className="defect-bar">
-                  <span style={{ width: `${(d.count / maxDefect) * 100}%` }} />
-                </span>
-                <span className="defect-count">{d.count}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Per-order QC checklist tied to the next order in the pipeline */}
-      <div className="section-title staff-sec">{t('staff.qc.checklist')}</div>
-      <div className="staff-card">
-        <div className="qc-order-head">
-          <span>{t('staff.qc.order', { id: nextOrder ? nextOrder.id : '—' })}</span>
-          <span className="qc-order-kg">{nextOrder ? orderKg(nextOrder.id) : 0} kg</span>
-        </div>
-        <div className="qc-check-list">
-          {qcChecklist.map((item, i) => (
-            <button
-              key={i}
-              className={`qc-check ${checks[i] ? 'on' : ''}`}
-              onClick={() =>
-                setChecks((prev) => prev.map((v, j) => (j === i ? !v : v)))
-              }
-            >
-              <span className="qc-box">{checks[i] && <Check size={14} />}</span>
-              {bi(item, lang)}
-            </button>
-          ))}
-        </div>
-        <button
-          className="btn-primary"
-          disabled={!allChecked || logged}
-          onClick={() => setLogged(true)}
-          style={{ marginTop: 8 }}
-        >
-          {logged ? t('staff.qc.logged') : t('staff.qc.log')}
-        </button>
-      </div>
-
-      {/* Recent inspections */}
-      <div className="section-title staff-sec">{t('staff.qc.recent')}</div>
-      <div className="card-group">
-        {rows.map((r, i) => (
-          <div key={r.id + i} className="row">
-            <span className="row-body">
-              <span className="value">{r.id}</span>
-              <span className="label">
-                {r.kg} kg · {bi(r.inspector, lang)} · {bi(r.note, lang)}
-              </span>
-            </span>
-            <ResultBadge result={r.result} />
-          </div>
-        ))}
-      </div>
-
-      {/* Inspector performance */}
-      <div className="section-title staff-sec">{t('staff.qc.inspectors')}</div>
-      <div className="card-group">
-        {inspectors.map((ins, i) => (
-          <div key={i} className="row">
-            <span className="row-ic">{bi(ins.name, lang).charAt(0)}</span>
-            <span className="row-body">
-              <span className="value">{bi(ins.name, lang)}</span>
-              <span className="label">{t('staff.qc.inspChecks', { n: ins.checks })}</span>
-            </span>
-            <span className="insp-pass">{ins.passPct}%</span>
-          </div>
-        ))}
-      </div>
-      <div style={{ height: 12 }} />
-    </>
-  )
-}
-
 /* ---------- Admin console ---------- */
 
 /** Live view of the staff-managed customer roster. */
@@ -1037,7 +904,7 @@ function AdminView() {
 
 function StaffDashboard({ onExit, staffKey }: { onExit: () => void; staffKey: string | null }) {
   const { t, lang } = useI18n()
-  const [tab, setTab] = useState<'kpi' | 'orders' | 'qc' | 'admin'>('kpi')
+  const [tab, setTab] = useState<'kpi' | 'orders' | 'admin'>('kpi')
 
   return (
     <>
@@ -1063,10 +930,6 @@ function StaffDashboard({ onExit, staffKey }: { onExit: () => void; staffKey: st
           <Route size={17} />
           {t('staff.tab.orders')}
         </button>
-        <button className={`seg ${tab === 'qc' ? 'on' : ''}`} onClick={() => setTab('qc')}>
-          <Check size={17} />
-          {t('staff.tab.qc')}
-        </button>
         <button className={`seg ${tab === 'admin' ? 'on' : ''}`} onClick={() => setTab('admin')}>
           <Sliders size={17} />
           {t('staff.tab.admin')}
@@ -1079,8 +942,6 @@ function StaffDashboard({ onExit, staffKey }: { onExit: () => void; staffKey: st
             <KpiView lang={lang} />
           ) : tab === 'orders' ? (
             <OrdersView lang={lang} staffKey={staffKey} />
-          ) : tab === 'qc' ? (
-            <QcView lang={lang} />
           ) : (
             <AdminView />
           )}
