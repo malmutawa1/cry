@@ -16,7 +16,6 @@ import Success from './screens/Success'
 import Staff from './screens/Staff'
 import Loyalty from './screens/Loyalty'
 import Welcome from './screens/Welcome'
-import Onboarding from './screens/Onboarding'
 
 type Tab = 'home' | 'plans' | 'pickup' | 'track' | 'account'
 
@@ -38,7 +37,6 @@ function useSystemDark() {
 function Shell() {
   const [tab, setTab] = useState<Tab>('home')
   const [welcomed, setWelcomed] = useState(false)
-  const [onboarded, setOnboarded] = useState(false)
   const [order, setOrder] = useState<string | null>(null)
   const [staff, setStaff] = useState(false)
   const [rewards, setRewards] = useState(false)
@@ -86,11 +84,7 @@ function Shell() {
         ) : staff ? (
           <Staff onExit={() => setStaff(false)} />
         ) : !user ? (
-          !onboarded ? (
-            <Onboarding onStart={() => setOnboarded(true)} />
-          ) : (
-            <Auth onStaff={() => setStaff(true)} />
-          )
+          <Auth onStaff={() => setStaff(true)} />
         ) : order ? (
           <Success
             orderId={order}
