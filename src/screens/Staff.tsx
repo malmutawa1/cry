@@ -3,6 +3,8 @@ import { useStore, orderStage, STAGE_COUNT, STAGE_SECONDS } from '../store'
 import { api, apiEnabled, type ApiStaffOrder } from '../api'
 import { useI18n } from '../i18n'
 import { useNow } from '../useNow'
+import { TIERS, type RushTier } from '../data/rush'
+import { useRush } from '../useRush'
 import {
   bi,
   capacityPct,
@@ -228,6 +230,7 @@ interface BoardRow {
   createdAt: number
   stage: number
   delivered: boolean
+  tier?: RushTier
 }
 
 /** Per-order tracking view — the staff-side counterpart to the customer Track
@@ -426,8 +429,27 @@ function ApiOrdersView({ staffKey }: { lang: 'en' | 'ar'; staffKey: string }) {
 
 /** Picks the live server board (staff API) when available, else the local demo board. */
 function OrdersView({ lang, staffKey }: { lang: 'en' | 'ar'; staffKey: string | null }) {
-  if (apiEnabled && staffKey) return <ApiOrdersView lang={lang} staffKey={staffKey} />
-  return <LocalOrdersView lang={lang} />
+  return (
+    <>
+      <RushCounterBanner />
+      {apiEnabled && staffKey ? <ApiOrdersView lang={lang} staffKey={staffKey} /> : <LocalOrdersView lang={lang} />}
+    </>
+  )
+}
+
+/** Live count of accepted Express + Urgent orders today vs. the daily cap. */
+function RushCounterBanner() {
+  const { t } = useI18n()
+  const { settings, countToday } = useRush()
+  const full = countToday >= settings.dailyCap
+  return (
+    <div className={`rush-bar${full ? ' full' : ''}`}>
+      <span className="rush-bar-l">{t('staff.rush')}</span>
+      <span className="rush-bar-c">
+        <b>{countToday}</b> / {settings.dailyCap}
+      </span>
+    </div>
+  )
 }
 
 function LocalOrdersView({ lang }: { lang: 'en' | 'ar' }) {
@@ -443,7 +465,7 @@ function LocalOrdersView({ lang }: { lang: 'en' | 'ar' }) {
     // Real orders coming from the customer app.
     const fromApp: BoardRow[] = orders.map((o) => {
       const stage = orderStage(o, now)
-      return { id: o.id, kg: orderKg(o.id), address: o.address, createdAt: o.createdAt, stage, delivered: stage >= STAGE_COUNT - 1 }
+      return { id: o.id, kg: orderKg(o.id), address: o.address, createdAt: o.createdAt, stage, delivered: stage >= STAGE_COUNT - 1, tier: o.tier }
     })
     // Synthetic fleet that keeps cycling through the pipeline.
     const fleet: BoardRow[] = liveFleet.map((lo) => {
@@ -452,9 +474,10 @@ function LocalOrdersView({ lang }: { lang: 'en' | 'ar' }) {
       const stage = stageAt(createdAt)
       return { id: lo.id, kg: lo.kg, address: bi(lo.address, lang), createdAt, stage, delivered: stage >= STAGE_COUNT - 1 }
     })
-    // Active orders first (closest to delivery on top), delivered last.
+    // Active first, then rush (Urgent above Express), then closest to delivery.
+    const rank = (r: BoardRow) => (r.tier === 'urgent' ? 2 : r.tier === 'express' ? 1 : 0)
     return [...fleet, ...fromApp].sort(
-      (a, b) => Number(a.delivered) - Number(b.delivered) || b.stage - a.stage,
+      (a, b) => Number(a.delivered) - Number(b.delivered) || rank(b) - rank(a) || b.stage - a.stage,
     )
   }, [orders, now, lang])
 
@@ -492,7 +515,14 @@ function LocalOrdersView({ lang }: { lang: 'en' | 'ar' }) {
         {rows.map((r) => (
           <button key={r.id} className="ops-card" onClick={() => setSelected(r)}>
             <div className="ops-top">
-              <span className="ops-id">{r.id}</span>
+              <span className="ops-idwrap">
+                <span className="ops-id">{r.id}</span>
+                {(r.tier === 'express' || r.tier === 'urgent') && (
+                  <span className="rush-chip" style={{ background: TIERS[r.tier].color }}>
+                    {r.tier === 'urgent' ? 'URGENT' : 'EXPRESS'}
+                  </span>
+                )}
+              </span>
               <span className="ops-right">
                 <span className={`ops-eta ${r.delivered ? 'done' : ''}`}>
                   {r.delivered ? (

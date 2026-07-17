@@ -5,6 +5,7 @@ import { Bag, Cards, Home as HomeIcon, Route, User } from './components/Icons'
 import { StoreProvider, useStore } from './store'
 import { I18nProvider, useI18n } from './i18n'
 import { initNative, setStatusBarTheme } from './native'
+import type { RushTier } from './data/rush'
 import Auth from './screens/Auth'
 import Home from './screens/Home'
 import Plans from './screens/Plans'
@@ -60,8 +61,8 @@ function Shell() {
     setStatusBarTheme(effMode === 'dark')
   }, [effMode])
 
-  function confirmPickup() {
-    setOrder(createOrder())
+  function confirmPickup(opts?: { tier?: RushTier; rushFee?: number }) {
+    setOrder(createOrder(opts))
   }
 
   const nav = [

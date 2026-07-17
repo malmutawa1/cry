@@ -4,7 +4,9 @@ import { useI18n } from '../i18n'
 import { slotLabel } from '../data/slots'
 import { Toggle } from '../components/Common'
 import { Sheet } from '../components/Sheet'
-import { DateTimeSheet, ExpressCheckoutSheet } from '../components/DateTimeSheet'
+import { DateTimeSheet, RushCheckoutSheet } from '../components/DateTimeSheet'
+import { tierFee, type RushTier } from '../data/rush'
+import { useRush } from '../useRush'
 import LocationPicker from '../components/LocationPicker'
 import { ExtraKgBanner, ExtraKgSheet, useAllowance } from '../components/ExtraKg'
 import {
@@ -27,15 +29,16 @@ export default function Pickup({
   onSeePlans,
 }: {
   onClose: () => void
-  onConfirm: () => void
+  onConfirm: (opts?: { tier?: RushTier; rushFee?: number }) => void
   onSeePlans: () => void
 }) {
   const s = useStore()
   const { t, lang } = useI18n()
   const { atLimit } = useAllowance()
+  const { settings } = useRush()
   const [sheet, setSheet] = useState<Sheet>(null)
   const [extraOpen, setExtraOpen] = useState(false)
-  const [expressOpen, setExpressOpen] = useState(false)
+  const [rush, setRush] = useState<{ tier: 'express' | 'urgent'; fee: number } | null>(null)
 
   if (!s.activePlan) {
     return (
@@ -141,7 +144,7 @@ export default function Pickup({
       </div>
 
       <div className="bottom-cta">
-        <button className="btn-primary" onClick={onConfirm}>
+        <button className="btn-primary" onClick={() => onConfirm()}>
           {t('pickup.confirm')}
         </button>
       </div>
@@ -149,8 +152,9 @@ export default function Pickup({
       {sheet === 'pickup' && (
         <DateTimeSheet
           title={t('sheet.pickup')}
+          showRush
           onPick={(slot) => { s.setPickup(slot); setSheet(null) }}
-          onUrgent={(slot) => { s.setPickup(slot); setSheet(null); setExpressOpen(true) }}
+          onRush={(tier, slot) => { s.setPickup(slot); setSheet(null); setRush({ tier, fee: tierFee(tier, settings) }) }}
           onClose={() => setSheet(null)}
         />
       )}
@@ -158,14 +162,16 @@ export default function Pickup({
         <DateTimeSheet
           title={t('sheet.delivery')}
           onPick={(slot) => { s.setDelivery(slot); setSheet(null) }}
-          onUrgent={(slot) => { s.setDelivery(slot); setSheet(null); setExpressOpen(true) }}
+          onRush={() => {}}
           onClose={() => setSheet(null)}
         />
       )}
-      {expressOpen && (
-        <ExpressCheckoutSheet
-          onPaid={() => { setExpressOpen(false); onConfirm() }}
-          onClose={() => setExpressOpen(false)}
+      {rush && (
+        <RushCheckoutSheet
+          tier={rush.tier}
+          fee={rush.fee}
+          onPaid={() => { onConfirm({ tier: rush.tier, rushFee: rush.fee }); setRush(null) }}
+          onClose={() => setRush(null)}
         />
       )}
       {sheet === 'address' && (
