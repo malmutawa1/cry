@@ -8,6 +8,8 @@ import Reveal from '../components/Reveal'
 import { useCountUp } from '../useCountUp'
 import { ExtraKgSheet, useAllowance } from '../components/ExtraKg'
 import { tierInfo } from '../data/rewards'
+import { useAppConfig } from '../useAppConfig'
+import { Info } from '../components/Icons'
 
 export default function Home({
   onSchedule,
@@ -23,6 +25,8 @@ export default function Home({
   const { activePlan, user, activeOrder, points, lifetimePoints } = useStore()
   const shownPoints = useCountUp(points)
   const { t, lang, toggle } = useI18n()
+  const { announcement } = useAppConfig()
+  const annText = lang === 'ar' ? announcement.ar : announcement.en
   const now = useNow(1000)
   const { usedKg: used, allowance, atLimit } = useAllowance()
   const tier = tierInfo(lifetimePoints).current
@@ -57,6 +61,13 @@ export default function Home({
           />
           <div className="greeting-sub reveal-sub">{t('home.subtitle')}</div>
         </div>
+
+        {announcement.on && annText.trim() && (
+          <div className={`announce announce-${announcement.tone}`}>
+            <Info size={18} />
+            <span>{annText}</span>
+          </div>
+        )}
 
         {activeOrder && (
           <button className="track-card" onClick={onTrack}>

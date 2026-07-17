@@ -15,8 +15,11 @@ import Reveal from '../components/Reveal'
 import { PaymentSheet, PaymentValue } from '../components/Payment'
 import { useStore } from '../store'
 import { useI18n } from '../i18n'
+import { useAppConfig } from '../useAppConfig'
+import { applyDiscount, findDiscount, recordDiscountUse, type Discount } from '../data/discounts'
 
 const planIndex = (p: Plan) => plans.findIndex((x) => x.id === p.id)
+const fmt3 = (n: number) => n.toFixed(3)
 
 /** Reusable refund / cancellation policy quote. */
 function RefundPolicy() {
@@ -35,12 +38,17 @@ function RefundPolicy() {
 export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
   const { activePlan, billing, setBilling, subscribedAt, subscribe, cancelSubscription, showToast } = useStore()
   const { t, lang } = useI18n()
+  const { plans: livePlans } = useAppConfig()
   const [payOpen, setPayOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [selected, setSelected] = useState<Plan | null>(activePlan)
   // what we're paying for right now (plan + billing), decoupled from live state
   const [intent, setIntent] = useState<{ plan: Plan; billing: Billing } | null>(null)
   const [view, setView] = useState<'select' | 'checkout'>('select')
+  // promo code applied to the current checkout
+  const [promo, setPromo] = useState<Discount | null>(null)
+  const [promoInput, setPromoInput] = useState('')
+  const [promoErr, setPromoErr] = useState(false)
 
   const annual = billing === 'annual'
   const subscribed = activePlan != null
@@ -61,11 +69,26 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
 
   function goCheckout(plan: Plan, b: Billing) {
     setIntent({ plan, billing: b })
+    setPromo(null)
+    setPromoInput('')
+    setPromoErr(false)
     setView('checkout')
+  }
+
+  function applyPromo() {
+    const d = findDiscount(promoInput, 'plans')
+    if (d) {
+      setPromo(d)
+      setPromoErr(false)
+    } else {
+      setPromo(null)
+      setPromoErr(true)
+    }
   }
 
   function confirmPayment() {
     if (!intent) return
+    if (promo) recordDiscountUse(promo.code)
     const wasSubscribed = activePlan != null
     const sameePlan = activePlan?.id === intent.plan.id
     subscribe(intent.plan, intent.billing) // sets plan + billing + fresh period; persists to backend
@@ -80,6 +103,8 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
   // ---------- Checkout (payment) step ----------
   if (view === 'checkout' && intent) {
     const price = planPrice(intent.plan, intent.billing)
+    const disc = promo ? applyDiscount(price, promo) : null
+    const finalPrice = disc ? disc.total : price
     const isAnnual = intent.billing === 'annual'
     return (
       <div className="anim-in" key="checkout">
@@ -102,9 +127,45 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
             </div>
             <div className="co-total">
               <span>{t('checkout.total')}</span>
-              <strong>{price}.000 KWD</strong>
+              {disc ? (
+                <span className="co-total-disc">
+                  <s>{fmt3(price)}</s>
+                  <strong>{fmt3(finalPrice)} KWD</strong>
+                </span>
+              ) : (
+                <strong>{price}.000 KWD</strong>
+              )}
             </div>
           </div>
+
+          <div className="section-title" style={{ fontSize: 20 }}>{t('promo.title')}</div>
+          {promo ? (
+            <div className="promo-applied">
+              <div className="promo-applied-l">
+                <span className="promo-tag">{promo.code}</span>
+                <span className="promo-save">{t('promo.saved', { amt: fmt3(disc!.saved) })}</span>
+              </div>
+              <button className="promo-remove" onClick={() => { setPromo(null); setPromoInput(''); setPromoErr(false) }}>
+                {t('promo.remove')}
+              </button>
+            </div>
+          ) : (
+            <div className="promo-row">
+              <input
+                className="field promo-input"
+                value={promoInput}
+                placeholder={t('promo.ph')}
+                onChange={(e) => { setPromoInput(e.target.value); setPromoErr(false) }}
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck={false}
+              />
+              <button className="btn-ghost promo-apply" disabled={!promoInput.trim()} onClick={applyPromo}>
+                {t('promo.apply')}
+              </button>
+            </div>
+          )}
+          {promoErr && <p className="field-err" style={{ marginTop: 4 }}>{t('promo.invalid')}</p>}
 
           <div className="section-title" style={{ fontSize: 20 }}>{t('checkout.method')}</div>
           <div className="card-group">
@@ -118,7 +179,7 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
 
         <div className="bottom-cta">
           <button className="btn-primary" onClick={confirmPayment}>
-            {t('checkout.pay', { price })}
+            {t('checkout.payAmt', { amt: fmt3(finalPrice) })}
             <span className="sub">{t('checkout.secure')}</span>
           </button>
         </div>
@@ -132,7 +193,7 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
   const curIdx = activePlan ? planIndex(activePlan) : -1
   const selIdx = selected ? planIndex(selected) : -1
 
-  const planCards = plans.map((p) => {
+  const planCards = livePlans.map((p) => {
     const isSel = selected?.id === p.id
     const isCurrent = activePlan?.id === p.id
     return (

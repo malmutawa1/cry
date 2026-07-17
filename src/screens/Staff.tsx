@@ -3,8 +3,16 @@ import { useStore, orderStage, STAGE_COUNT, STAGE_SECONDS } from '../store'
 import { api, apiEnabled, type ApiStaffOrder } from '../api'
 import { useI18n } from '../i18n'
 import { useNow } from '../useNow'
-import { TIERS, type RushTier } from '../data/rush'
+import { TIERS, setRushSettings, type RushTier } from '../data/rush'
 import { useRush } from '../useRush'
+import { useAppConfig } from '../useAppConfig'
+import { useDiscounts } from '../useDiscounts'
+import { setPlanOverride, setAnnouncement, type AnnouncementTone } from '../data/config'
+import { addDiscount, toggleDiscount, removeDiscount, type Discount, type DiscountKind, type DiscountScope } from '../data/discounts'
+import { getCustomers, toggleFreeze, grantCustomerCredit, subscribeCustomers, type Customer } from '../data/customers'
+import { planName, type Plan } from '../data/plans'
+import { Toggle } from '../components/Common'
+import { Trash } from '../components/Icons'
 import {
   bi,
   capacityPct,
@@ -20,7 +28,7 @@ import {
   type QcResult,
   type QcRecord,
 } from '../data/staff'
-import { Car, Check, Chevron, Clock, Close, Lock, Phone, Pin, Route, Sliders } from '../components/Icons'
+import { BarChart, Car, Check, Chevron, Clock, Close, Lock, Phone, Pin, Route, Sliders } from '../components/Icons'
 import RouteMap from '../components/RouteMap'
 
 const CYCLE_MS = STAGE_COUNT * STAGE_SECONDS * 1000
@@ -681,11 +689,355 @@ function QcView({ lang }: { lang: 'en' | 'ar' }) {
   )
 }
 
+/* ---------- Admin console ---------- */
+
+/** Live view of the staff-managed customer roster. */
+function useCustomers() {
+  const [, force] = useState(0)
+  useEffect(() => subscribeCustomers(() => force((n) => n + 1)), [])
+  return getCustomers()
+}
+
+/** Configure customer-app plan pricing / allowance. */
+function PlanConfigCard({ plan }: { plan: Plan }) {
+  const { t, lang } = useI18n()
+  const [price, setPrice] = useState(String(plan.priceKwd))
+  const [cap, setCap] = useState(String(plan.capKg))
+  // keep inputs in sync if the resolved plan changes elsewhere
+  useEffect(() => {
+    setPrice(String(plan.priceKwd))
+    setCap(String(plan.capKg))
+  }, [plan.priceKwd, plan.capKg])
+  const dirty = Number(price) !== plan.priceKwd || Math.round(Number(cap)) !== plan.capKg
+
+  return (
+    <div className="adm-plan">
+      <div className="adm-plan-name">
+        <span className={`dot-plan ${plan.id}`} />
+        {planName(plan, lang)}
+      </div>
+      <div className="adm-two">
+        <label className="adm-field">
+          <span>{t('admin.config.price')}</span>
+          <input type="number" inputMode="decimal" min={0} step={1} value={price} onChange={(e) => setPrice(e.target.value)} />
+        </label>
+        <label className="adm-field">
+          <span>{t('admin.config.cap')}</span>
+          <input type="number" inputMode="numeric" min={0} step={5} value={cap} onChange={(e) => setCap(e.target.value)} />
+        </label>
+      </div>
+      <button
+        className="btn-ghost adm-save"
+        disabled={!dirty}
+        onClick={() => setPlanOverride(plan.id, { priceKwd: Number(price), capKg: Math.round(Number(cap)) })}
+      >
+        {dirty ? t('admin.save') : t('admin.saved')}
+      </button>
+    </div>
+  )
+}
+
+function RushConfigCard() {
+  const { t } = useI18n()
+  const { settings, countToday } = useRush()
+  const [express, setExpress] = useState(String(settings.expressFee))
+  const [urgent, setUrgent] = useState(String(settings.urgentFee))
+  const [cap, setCap] = useState(String(settings.dailyCap))
+  useEffect(() => {
+    setExpress(String(settings.expressFee))
+    setUrgent(String(settings.urgentFee))
+    setCap(String(settings.dailyCap))
+  }, [settings.expressFee, settings.urgentFee, settings.dailyCap])
+  const dirty =
+    Number(express) !== settings.expressFee ||
+    Number(urgent) !== settings.urgentFee ||
+    Math.round(Number(cap)) !== settings.dailyCap
+
+  return (
+    <div className="staff-card">
+      <div className="adm-two">
+        <label className="adm-field">
+          <span><span className="rs-dot" style={{ background: TIERS.express.color }} /> {t('admin.config.expressFee')}</span>
+          <input type="number" inputMode="decimal" min={0} step={0.5} value={express} onChange={(e) => setExpress(e.target.value)} />
+        </label>
+        <label className="adm-field">
+          <span><span className="rs-dot" style={{ background: TIERS.urgent.color }} /> {t('admin.config.urgentFee')}</span>
+          <input type="number" inputMode="decimal" min={0} step={0.5} value={urgent} onChange={(e) => setUrgent(e.target.value)} />
+        </label>
+      </div>
+      <label className="adm-field">
+        <span>{t('admin.config.rushCap')} · {t('admin.config.usedToday', { n: countToday })}</span>
+        <input type="number" inputMode="numeric" min={0} step={1} value={cap} onChange={(e) => setCap(e.target.value)} />
+      </label>
+      <button
+        className="btn-ghost adm-save"
+        disabled={!dirty}
+        onClick={() => setRushSettings({ expressFee: Number(express), urgentFee: Number(urgent), dailyCap: Math.round(Number(cap)) })}
+      >
+        {dirty ? t('admin.save') : t('admin.saved')}
+      </button>
+    </div>
+  )
+}
+
+function AnnouncementCard() {
+  const { t } = useI18n()
+  const { announcement } = useAppConfig()
+  const [en, setEn] = useState(announcement.en)
+  const [ar, setAr] = useState(announcement.ar)
+  const [tone, setTone] = useState<AnnouncementTone>(announcement.tone)
+  const dirty = en !== announcement.en || ar !== announcement.ar || tone !== announcement.tone
+
+  return (
+    <div className="staff-card">
+      <div className="adm-toggle-row">
+        <span>{t('admin.config.announceOn')}</span>
+        <Toggle on={announcement.on} onChange={(v) => setAnnouncement({ on: v })} />
+      </div>
+      <label className="adm-field">
+        <span>{t('admin.config.announceEn')}</span>
+        <input value={en} onChange={(e) => setEn(e.target.value)} placeholder="20% off Premium this week" />
+      </label>
+      <label className="adm-field">
+        <span>{t('admin.config.announceAr')}</span>
+        <input value={ar} dir="rtl" onChange={(e) => setAr(e.target.value)} placeholder="خصم ٢٠٪ على بريميوم هذا الأسبوع" />
+      </label>
+      <div className="adm-seg">
+        {(['promo', 'info'] as AnnouncementTone[]).map((tn) => (
+          <button key={tn} className={`adm-seg-btn ${tone === tn ? 'on' : ''}`} onClick={() => setTone(tn)}>
+            {t(`admin.tone.${tn}`)}
+          </button>
+        ))}
+      </div>
+      <button
+        className="btn-ghost adm-save"
+        disabled={!dirty}
+        onClick={() => setAnnouncement({ en: en.trim(), ar: ar.trim(), tone })}
+      >
+        {dirty ? t('admin.save') : t('admin.saved')}
+      </button>
+    </div>
+  )
+}
+
+function DiscountsSection() {
+  const { t } = useI18n()
+  const { discounts } = useDiscounts()
+  const [code, setCode] = useState('')
+  const [kind, setKind] = useState<DiscountKind>('percent')
+  const [value, setValue] = useState('10')
+  const [scope, setScope] = useState<DiscountScope>('plans')
+  const [err, setErr] = useState(false)
+
+  function create() {
+    const res = addDiscount({ code, kind, value: Number(value), scope })
+    if (res) {
+      setCode('')
+      setValue(kind === 'percent' ? '10' : '5')
+      setErr(false)
+    } else {
+      setErr(true)
+    }
+  }
+
+  function offLabel(d: Discount): string {
+    return d.kind === 'percent' ? `${d.value}%` : `${d.value.toFixed(3)} KWD`
+  }
+
+  return (
+    <>
+      <div className="staff-card">
+        <div className="adm-two">
+          <label className="adm-field">
+            <span>{t('admin.disc.code')}</span>
+            <input
+              value={code}
+              onChange={(e) => { setCode(e.target.value.toUpperCase()); setErr(false) }}
+              placeholder="SUMMER25"
+              autoCapitalize="characters"
+              autoCorrect="off"
+              spellCheck={false}
+            />
+          </label>
+          <label className="adm-field">
+            <span>{t('admin.disc.value')}</span>
+            <input type="number" inputMode="decimal" min={0} step={kind === 'percent' ? 1 : 0.5} value={value} onChange={(e) => setValue(e.target.value)} />
+          </label>
+        </div>
+        <div className="adm-seg">
+          {(['percent', 'fixed'] as DiscountKind[]).map((k) => (
+            <button key={k} className={`adm-seg-btn ${kind === k ? 'on' : ''}`} onClick={() => setKind(k)}>
+              {t(`admin.disc.${k}`)}
+            </button>
+          ))}
+        </div>
+        <div className="adm-seg">
+          {(['plans', 'rush', 'all'] as DiscountScope[]).map((sc) => (
+            <button key={sc} className={`adm-seg-btn ${scope === sc ? 'on' : ''}`} onClick={() => setScope(sc)}>
+              {t(`admin.disc.scope.${sc}`)}
+            </button>
+          ))}
+        </div>
+        {err && <p className="field-err">{t('admin.disc.dup')}</p>}
+        <button className="btn-primary adm-save" disabled={!code.trim() || !(Number(value) > 0)} onClick={create}>
+          {t('admin.disc.add')}
+        </button>
+      </div>
+
+      {discounts.length === 0 ? (
+        <div className="staff-card center" style={{ padding: 20 }}>{t('admin.disc.empty')}</div>
+      ) : (
+        <div className="card-group">
+          {discounts.map((d) => (
+            <div key={d.code} className={`adm-disc-row ${d.active ? '' : 'off'}`}>
+              <div className="adm-disc-main">
+                <span className="promo-tag">{d.code}</span>
+                <span className="adm-disc-meta">
+                  {offLabel(d)} · {t(`admin.disc.scope.${d.scope}`)} · {t('admin.disc.uses', { n: d.uses })}
+                </span>
+              </div>
+              <button
+                className={`adm-disc-toggle ${d.active ? 'on' : ''}`}
+                onClick={() => toggleDiscount(d.code)}
+              >
+                {d.active ? t('admin.disc.active') : t('admin.disc.paused')}
+              </button>
+              <button className="adm-disc-del" onClick={() => removeDiscount(d.code)} aria-label={t('admin.disc.delete')}>
+                <Trash size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  )
+}
+
+/** One manageable customer in the roster. */
+function CustomerCard({ cust, plans, onToast }: { cust: Customer; plans: Plan[]; onToast: (m: string) => void }) {
+  const { t, lang } = useI18n()
+  const plan = plans.find((p) => p.id === cust.planId)
+  return (
+    <div className="staff-card adm-cust">
+      <div className="adm-cust-head">
+        <span className="adm-cust-avatar">{cust.name.charAt(0)}</span>
+        <div>
+          <div className="adm-cust-name">
+            {cust.name}
+            {cust.frozen && <span className="adm-frozen">{t('admin.cust.frozen')}</span>}
+          </div>
+          <div className="adm-cust-email">{cust.area}</div>
+        </div>
+      </div>
+      <div className="adm-cust-stats">
+        <div><b>{plan ? planName(plan, lang) : cust.planId}</b><span>{t('admin.cust.plan')}</span></div>
+        <div><b>{cust.kgUsed}</b><span>{t('admin.cust.kg')}</span></div>
+        <div><b>{cust.credit.toFixed(3)}</b><span>{t('admin.cust.credit')}</span></div>
+      </div>
+      <div className="adm-cust-actions">
+        <button className="btn-ghost" onClick={() => { grantCustomerCredit(cust.id, 5); onToast(t('admin.cust.grantedCredit')) }}>
+          {t('admin.cust.addCredit')}
+        </button>
+        <button className="btn-ghost" onClick={() => toggleFreeze(cust.id)}>
+          {cust.frozen ? t('admin.cust.unfreeze') : t('admin.cust.freeze')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function CustomersSection({ plans }: { plans: Plan[] }) {
+  const { t, lang } = useI18n()
+  const { user, activePlan, points, credit, freeMonths, frozen, grantCredit, grantFreeMonths, freeze, showToast } = useStore()
+  const customers = useCustomers()
+
+  return (
+    <>
+      {user && (
+        <>
+          <div className="section-title staff-sec">{t('admin.cust.live')}</div>
+          <div className="staff-card adm-cust">
+            <div className="adm-cust-head">
+              <span className="adm-cust-avatar">{user.name.charAt(0).toUpperCase()}</span>
+              <div>
+                <div className="adm-cust-name">
+                  {user.name}
+                  {frozen && <span className="adm-frozen">{t('admin.cust.frozen')}</span>}
+                </div>
+                <div className="adm-cust-email">{user.email}</div>
+              </div>
+            </div>
+            <div className="adm-cust-stats">
+              <div><b>{activePlan ? planName(activePlan, lang) : t('admin.cust.noPlan')}</b><span>{t('admin.cust.plan')}</span></div>
+              <div><b>{points}</b><span>{t('admin.cust.points')}</span></div>
+              <div><b>{credit.toFixed(3)}</b><span>{t('admin.cust.credit')}</span></div>
+              <div><b>{freeMonths}</b><span>{t('admin.cust.freeMonths')}</span></div>
+            </div>
+            <div className="adm-cust-actions">
+              <button className="btn-ghost" onClick={() => { grantCredit(5); showToast(t('admin.cust.grantedCredit')) }}>
+                {t('admin.cust.addCredit')}
+              </button>
+              <button className="btn-ghost" onClick={() => { grantFreeMonths(1); showToast(t('admin.cust.grantedMonth')) }}>
+                {t('admin.cust.freeMonth')}
+              </button>
+              <button className="btn-ghost" onClick={() => freeze(!frozen)}>
+                {frozen ? t('admin.cust.unfreeze') : t('admin.cust.freeze')}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      <div className="section-title staff-sec">{t('admin.cust.roster')}</div>
+      <div className="adm-plan-list">
+        {customers.map((c) => (
+          <CustomerCard key={c.id} cust={c} plans={plans} onToast={showToast} />
+        ))}
+      </div>
+      <div style={{ height: 12 }} />
+    </>
+  )
+}
+
+function AdminView() {
+  const { t } = useI18n()
+  const { plans } = useAppConfig()
+  const [sub, setSub] = useState<'config' | 'discounts' | 'customers'>('config')
+
+  return (
+    <>
+      <div className="adm-subnav">
+        <button className={sub === 'config' ? 'on' : ''} onClick={() => setSub('config')}>{t('admin.sub.config')}</button>
+        <button className={sub === 'discounts' ? 'on' : ''} onClick={() => setSub('discounts')}>{t('admin.sub.discounts')}</button>
+        <button className={sub === 'customers' ? 'on' : ''} onClick={() => setSub('customers')}>{t('admin.sub.customers')}</button>
+      </div>
+
+      <div className="anim-in" key={sub}>
+        {sub === 'config' && (
+          <>
+            <div className="section-title staff-sec">{t('admin.config.plans')}</div>
+            <div className="adm-plan-list">
+              {plans.map((p) => <PlanConfigCard key={p.id} plan={p} />)}
+            </div>
+            <div className="section-title staff-sec">{t('admin.config.rush')}</div>
+            <RushConfigCard />
+            <div className="section-title staff-sec">{t('admin.config.announce')}</div>
+            <AnnouncementCard />
+            <div style={{ height: 12 }} />
+          </>
+        )}
+        {sub === 'discounts' && <DiscountsSection />}
+        {sub === 'customers' && <CustomersSection plans={plans} />}
+      </div>
+    </>
+  )
+}
+
 /* ---------- Dashboard shell ---------- */
 
 function StaffDashboard({ onExit, staffKey }: { onExit: () => void; staffKey: string | null }) {
   const { t, lang } = useI18n()
-  const [tab, setTab] = useState<'kpi' | 'orders' | 'qc'>('kpi')
+  const [tab, setTab] = useState<'kpi' | 'orders' | 'qc' | 'admin'>('kpi')
 
   return (
     <>
@@ -704,7 +1056,7 @@ function StaffDashboard({ onExit, staffKey }: { onExit: () => void; staffKey: st
 
       <div className="segmented staff-seg">
         <button className={`seg ${tab === 'kpi' ? 'on' : ''}`} onClick={() => setTab('kpi')}>
-          <Sliders size={17} />
+          <BarChart size={17} />
           {t('staff.tab.kpi')}
         </button>
         <button className={`seg ${tab === 'orders' ? 'on' : ''}`} onClick={() => setTab('orders')}>
@@ -715,11 +1067,23 @@ function StaffDashboard({ onExit, staffKey }: { onExit: () => void; staffKey: st
           <Check size={17} />
           {t('staff.tab.qc')}
         </button>
+        <button className={`seg ${tab === 'admin' ? 'on' : ''}`} onClick={() => setTab('admin')}>
+          <Sliders size={17} />
+          {t('staff.tab.admin')}
+        </button>
       </div>
 
       <div className="screen">
         <div className="anim-in" key={tab}>
-          {tab === 'kpi' ? <KpiView lang={lang} /> : tab === 'orders' ? <OrdersView lang={lang} staffKey={staffKey} /> : <QcView lang={lang} />}
+          {tab === 'kpi' ? (
+            <KpiView lang={lang} />
+          ) : tab === 'orders' ? (
+            <OrdersView lang={lang} staffKey={staffKey} />
+          ) : tab === 'qc' ? (
+            <QcView lang={lang} />
+          ) : (
+            <AdminView />
+          )}
         </div>
       </div>
     </>
