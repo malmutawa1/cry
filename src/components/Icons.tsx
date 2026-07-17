@@ -67,6 +67,12 @@ export const Check = ({ size = 20, className }: P) => (
 export const Info = ({ size = 20, className }: P) => (
   <svg {...base(size, className)}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></svg>
 )
+export const Bell = ({ size = 20, className }: P) => (
+  <svg {...base(size, className)}><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0" /></svg>
+)
+export const AlertTriangle = ({ size = 20, className }: P) => (
+  <svg {...base(size, className)}><path d="M12 3.5 22 20H2L12 3.5ZM12 10v4M12 17h.01" /></svg>
+)
 export const Sliders = ({ size = 20, className }: P) => (
   <svg {...base(size, className)}><path d="M4 8h9M17 8h3M4 16h3M11 16h9" /><circle cx="15" cy="8" r="2" /><circle cx="9" cy="16" r="2" /></svg>
 )
