@@ -16,8 +16,12 @@ import Success from './screens/Success'
 import Staff from './screens/Staff'
 import Loyalty from './screens/Loyalty'
 import Welcome from './screens/Welcome'
+import TermsGate from './components/TermsGate'
 
 type Tab = 'home' | 'plans' | 'pickup' | 'track' | 'account'
+
+/** Bump when the Terms & Conditions change to re-prompt every customer. */
+const TERMS_VERSION = '2026-07'
 
 function useSystemDark() {
   const [dark, setDark] = useState(() =>
@@ -40,6 +44,21 @@ function Shell() {
   const [order, setOrder] = useState<string | null>(null)
   const [staff, setStaff] = useState(false)
   const [rewards, setRewards] = useState(false)
+  const [termsOk, setTermsOk] = useState(() => {
+    try {
+      return localStorage.getItem('pressd.terms') === TERMS_VERSION
+    } catch {
+      return false
+    }
+  })
+  function acceptTerms() {
+    try {
+      localStorage.setItem('pressd.terms', TERMS_VERSION)
+    } catch {
+      /* storage unavailable */
+    }
+    setTermsOk(true)
+  }
   const { t, dir } = useI18n()
   const { user, createOrder, needsPlan, clearNeedsPlan, accent, mode, reduceMotion, toast } = useStore()
   const systemDark = useSystemDark()
@@ -144,6 +163,8 @@ function Shell() {
             </nav>
           </>
         )}
+
+        {welcomed && user && !staff && !termsOk && <TermsGate onAccept={acceptTerms} />}
       </div>
     </div>
   )
