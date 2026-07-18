@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useI18n } from '../i18n'
-import Terms from '../screens/Terms'
+import Privacy from '../screens/Privacy'
 
-/** Document-with-pen mark, echoing the "terms updated" prompt. */
-function TermsMark() {
+/** Document-with-pen mark, echoing the consent prompt. */
+function ConsentMark() {
   return (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
       <path
@@ -28,38 +28,37 @@ function TermsMark() {
 }
 
 /**
- * Blocking consent modal shown when the Terms & Conditions have changed. The
- * "Terms and Conditions" link opens the full Terms page; "Accept & Continue"
- * records acceptance so the gate does not show again for this version.
+ * Privacy consent shown once, right after a new customer signs up. The
+ * "Privacy Policy" link opens the full policy; "Agree & Continue" dismisses it.
  */
-export default function TermsGate({ onAccept }: { onAccept: () => void }) {
+export default function PrivacyGate({ onAccept }: { onAccept: () => void }) {
   const { t } = useI18n()
-  const [showTerms, setShowTerms] = useState(false)
+  const [showPolicy, setShowPolicy] = useState(false)
 
-  if (showTerms) {
+  if (showPolicy) {
     return (
       <div className="terms-page-overlay">
-        <Terms onBack={() => setShowTerms(false)} />
+        <Privacy onBack={() => setShowPolicy(false)} />
       </div>
     )
   }
 
   return (
     <div className="terms-scrim">
-      <div className="terms-card" role="dialog" aria-modal="true" aria-label={t('terms.gate.title')}>
+      <div className="terms-card" role="dialog" aria-modal="true" aria-label={t('privacy.gate.title')}>
         <div className="terms-mark">
-          <TermsMark />
+          <ConsentMark />
         </div>
-        <h2 className="terms-gate-title">{t('terms.gate.title')}</h2>
+        <h2 className="terms-gate-title">{t('privacy.gate.title')}</h2>
         <p className="terms-gate-body">
-          {t('terms.gate.body1')}{' '}
-          <button className="terms-inline-link" onClick={() => setShowTerms(true)}>
-            {t('terms.link')}
+          {t('privacy.gate.body1')}{' '}
+          <button className="terms-inline-link" onClick={() => setShowPolicy(true)}>
+            {t('privacy.link')}
           </button>{' '}
-          {t('terms.gate.body2')}
+          {t('privacy.gate.body2')}
         </p>
         <button className="terms-accept" onClick={onAccept}>
-          {t('terms.gate.accept')}
+          {t('privacy.gate.accept')}
         </button>
       </div>
     </div>
