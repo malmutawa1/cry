@@ -64,6 +64,9 @@ interface Store {
   /** true right after a fresh sign-up, so the app can open the plans screen */
   needsPlan: boolean
   clearNeedsPlan: () => void
+  /** true right after a fresh sign-up, so the app can show the privacy consent */
+  justSignedUp: boolean
+  acknowledgeSignup: () => void
   /** accent colour (blue = male/default, pink = female), chosen at sign-up */
   accent: Accent
   setAccent: (a: Accent) => void
@@ -159,6 +162,7 @@ function nameFromEmail(email: string): string {
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [needsPlan, setNeedsPlan] = useState(false)
+  const [justSignedUp, setJustSignedUp] = useState(false)
   const [accent, setAccent] = useState<Accent>('blue')
   const [mode, setMode] = useState<Mode>('light')
   const [reduceMotion, setReduceMotionState] = useState<boolean>(() => {
@@ -295,6 +299,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     signup: (name, email, opts) => {
       setNeedsPlan(true)
+      setJustSignedUp(true)
       if (apiEnabled && opts?.password) {
         api
           .signup({ name, email, password: opts.password, phone: opts.phone, gender: opts.gender, address: opts.address })
@@ -312,6 +317,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (apiEnabled) api.logout().catch(() => {})
       clearSession()
       setUser(null)
+      setJustSignedUp(false)
       setAccent('blue')
       setMode('light')
       setActivePlan(null)
@@ -335,6 +341,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     referralCode,
     needsPlan,
     clearNeedsPlan: () => setNeedsPlan(false),
+    justSignedUp,
+    acknowledgeSignup: () => setJustSignedUp(false),
     accent,
     setAccent,
     mode,
