@@ -4,12 +4,13 @@ import { useI18n } from '../i18n'
 import { planName, planPrice } from '../data/plans'
 import { PaymentSheet, PaymentValue } from '../components/Payment'
 import { ExtraKgBanner, ExtraKgSheet, useAllowance } from '../components/ExtraKg'
-import { Cards, Chevron, Clock, Gift, Globe, Leaf, Logout, Pin, Receipt, Star, Sun, User } from '../components/Icons'
+import { Cards, Chevron, Clock, Gift, Globe, Leaf, Lock, Logout, Pin, Receipt, Star, Sun, User } from '../components/Icons'
 import { ReferSheet, FreezeSheet } from '../components/AccountSheets'
 import History from './History'
 import Display from './Display'
 import Personal from './Personal'
 import Addresses from './Addresses'
+import Privacy from './Privacy'
 
 export default function Account({
   onSeePlans,
@@ -26,7 +27,7 @@ export default function Account({
   const [extraOpen, setExtraOpen] = useState(false)
   const [referOpen, setReferOpen] = useState(false)
   const [freezeOpen, setFreezeOpen] = useState(false)
-  const [view, setView] = useState<'main' | 'history' | 'display' | 'personal' | 'addresses'>('main')
+  const [view, setView] = useState<'main' | 'history' | 'display' | 'personal' | 'addresses' | 'privacy'>('main')
   const { usedKg, allowance, atLimit, pct } = useAllowance()
 
   if (view === 'history')
@@ -51,6 +52,12 @@ export default function Account({
     return (
       <div className="anim-in" key="addresses">
         <Addresses onBack={() => setView('main')} />
+      </div>
+    )
+  if (view === 'privacy')
+    return (
+      <div className="anim-in" key="privacy">
+        <Privacy onBack={() => setView('main')} />
       </div>
     )
   const initial = (user?.name || 'A').trim().charAt(0).toUpperCase()
@@ -149,6 +156,7 @@ export default function Account({
         <div className="card-group">
           <AcctRow icon={<User />} label={t('account.personal')} onClick={() => setView('personal')} />
           <AcctRow icon={<Leaf />} label={t('account.refer')} onClick={() => setReferOpen(true)} />
+          <AcctRow icon={<Lock />} label={t('account.privacy')} onClick={() => setView('privacy')} />
         </div>
 
         <div className="card-group">

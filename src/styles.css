@@ -5202,3 +5202,50 @@ button {
 /* Five tabs now — shrink the staff segmented control so nothing clips. */
 .staff-seg .seg { font-size: 11.5px; gap: 4px; padding: 10px 3px; }
 .staff-seg .seg svg { width: 15px; height: 15px; }
+
+/* ===== Privacy Policy page ===== */
+.privacy-updated {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.privacy-intro { margin-bottom: 8px; }
+.privacy-section { margin-top: 18px; }
+.privacy-h {
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.privacy-p {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+.privacy-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.privacy-list li {
+  position: relative;
+  padding-inline-start: 18px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.privacy-list li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 4px;
+  top: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
