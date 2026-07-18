@@ -4,6 +4,7 @@ import { useI18n } from '../i18n'
 import LocationPicker from '../components/LocationPicker'
 import Reveal from '../components/Reveal'
 import { Apple, Check, Close, Female, Globe, Lock, Mail, Male, Phone, Pin, User as UserIcon } from '../components/Icons'
+import { GmailCard, SmsDelivery, gen4 } from '../components/OtpDelivery'
 
 type Step = 'gender' | 'name' | 'email' | 'phone' | 'password' | 'emailOtp' | 'phoneOtp' | 'location'
 const STEPS: Step[] = ['gender', 'name', 'email', 'phone', 'password', 'emailOtp', 'phoneOtp', 'location']
@@ -63,6 +64,9 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
   const [phone, setPhoneVal] = useState('')
   const [emailCode, setEmailCode] = useState('')
   const [phoneCode, setPhoneCode] = useState('')
+  // The codes actually "sent" this session (regenerated on resend).
+  const [emailSent, setEmailSent] = useState(gen4)
+  const [phoneSent, setPhoneSent] = useState(gen4)
   const [locAddress, setLocAddress] = useState('')
   const [showMap, setShowMap] = useState(false)
   const [celebrate, setCelebrate] = useState(false)
@@ -314,11 +318,14 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
             <h2 className="auth-title">{t('auth.email.otp.title')}</h2>
             <p className="auth-sub">{t('auth.email.otp.sub', { email })}</p>
             <Otp value={emailCode} onChange={setEmailCode} />
-            <p className="otp-demo">{t('auth.otp.demo')}</p>
-            <button className="btn-primary" disabled={!/^\d{4}$/.test(emailCode)} onClick={goNext}>
+            {emailCode.length === 4 && emailCode !== emailSent && (
+              <p className="field-err">{t('auth.otp.wrong')}</p>
+            )}
+            <GmailCard email={email} code={emailSent} onFill={() => setEmailCode(emailSent)} />
+            <button className="btn-primary" disabled={emailCode !== emailSent} onClick={goNext} style={{ marginTop: 4 }}>
               {t('auth.verify')}
             </button>
-            <button className="link-btn" onClick={() => setEmailCode('')}>{t('auth.otp.resend')}</button>
+            <button className="link-btn" onClick={() => { setEmailCode(''); setEmailSent(gen4()) }}>{t('auth.otp.resend')}</button>
           </div>
         )}
 
@@ -328,11 +335,14 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
             <h2 className="auth-title">{t('auth.phone.otp.title')}</h2>
             <p className="auth-sub" dir="auto">{t('auth.phone.otp.sub', { phone })}</p>
             <Otp value={phoneCode} onChange={setPhoneCode} />
-            <p className="otp-demo">{t('auth.otp.demo')}</p>
-            <button className="btn-primary" disabled={!/^\d{4}$/.test(phoneCode)} onClick={goNext}>
+            {phoneCode.length === 4 && phoneCode !== phoneSent && (
+              <p className="field-err">{t('auth.otp.wrong')}</p>
+            )}
+            <SmsDelivery phone={phone} code={phoneSent} onFill={() => setPhoneCode(phoneSent)} />
+            <button className="btn-primary" disabled={phoneCode !== phoneSent} onClick={goNext} style={{ marginTop: 4 }}>
               {t('auth.verify')}
             </button>
-            <button className="link-btn" onClick={() => setPhoneCode('')}>{t('auth.otp.resend')}</button>
+            <button className="link-btn" onClick={() => { setPhoneCode(''); setPhoneSent(gen4()) }}>{t('auth.otp.resend')}</button>
           </div>
         )}
 
