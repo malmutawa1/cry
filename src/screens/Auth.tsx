@@ -39,7 +39,7 @@ function Otp({ value, onChange }: { value: string; onChange: (v: string) => void
 }
 
 export default function Auth({ onStaff }: { onStaff: () => void }) {
-  const { signup, login, loginWithApple, setPhone, setAddress, setAccent, setMode: setAppMode } = useStore()
+  const { signup, login, loginWithApple, setPhone, setAddress, setAccent, setMode: setAppMode, showToast } = useStore()
   const { t, toggle } = useI18n()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [step, setStep] = useState<Step>('gender')
@@ -70,7 +70,6 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
   // Supabase auth feedback
   const [authBusy, setAuthBusy] = useState(false)
   const [authErr, setAuthErr] = useState('')
-  const [confirmSent, setConfirmSent] = useState(false)
   const [locAddress, setLocAddress] = useState('')
   const [showMap, setShowMap] = useState(false)
   const [celebrate, setCelebrate] = useState(false)
@@ -101,7 +100,6 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
     setMode(m)
     setStep('gender')
     setAuthErr('')
-    setConfirmSent(false)
     setAuthBusy(false)
     if (m === 'login') {
       setGender(null)
@@ -136,8 +134,9 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
       setAuthErr(authErrText(res))
       return
     }
-    if (res.needsConfirmation) setConfirmSent(true)
-    // else: a session was created → the app switches to the main screens.
+    // On success the store sets the user + flags needsPlan, so the app switches
+    // to the main screens and opens the subscription screen automatically.
+    if (res.needsConfirmation) showToast(t('auth.confirm.toast'))
   }
   async function doLogin() {
     try {
@@ -159,38 +158,6 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
   }
 
   const firstName = name.trim().split(/\s+/)[0] || name.trim()
-
-  if (confirmSent) {
-    return (
-      <>
-        <div className="topbar" style={{ justifyContent: 'center' }}>
-          <div className="brand">
-            <span className="brand-mark">P</span>
-            {t('brand')}
-          </div>
-        </div>
-        <div className="success">
-          <div className="check-ring">
-            <Mail size={40} />
-          </div>
-          <h2>{t('auth.confirm.title')}</h2>
-          <p>{t('auth.confirm.sub', { email })}</p>
-        </div>
-        <div className="bottom-cta">
-          <button
-            className="btn-primary"
-            onClick={() => {
-              setConfirmSent(false)
-              setCelebrate(false)
-              switchMode('login')
-            }}
-          >
-            {t('auth.confirm.cta')}
-          </button>
-        </div>
-      </>
-    )
-  }
 
   if (celebrate) {
     return (
