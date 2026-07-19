@@ -2569,6 +2569,13 @@ button {
 .track-card,
 .extra-banner,
 .link-btn,
+.adm-subnav button,
+.adm-seg-btn,
+.adm-disc-toggle,
+.note-add-btn,
+.note-del,
+.otp-openapp,
+.otp-fill,
 .nav button {
   transition: transform 0.13s var(--ease-out), background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
 }
@@ -2592,11 +2599,18 @@ button {
 .track-card:active,
 .extra-banner:active,
 .link-btn:active,
+.adm-subnav button:active,
+.adm-seg-btn:active,
+.adm-disc-toggle:active,
+.note-add-btn:active,
+.otp-openapp:active,
+.otp-fill:active,
 .nav button:active {
   transform: scale(0.97);
 }
 .btn-primary:disabled:active,
-.btn-ghost:disabled:active {
+.btn-ghost:disabled:active,
+.note-add-btn:disabled:active {
   transform: none;
 }
 
@@ -5440,4 +5454,3 @@ button {
   font-size: 14px;
   cursor: pointer;
 }
-.otp-fill:active { transform: scale(0.98); }
