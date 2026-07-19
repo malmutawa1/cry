@@ -188,6 +188,23 @@ const en: Dict = {
 
   'home.track.title': 'Track your order',
 
+  // delivery rating pop-up
+  'rate.title': 'Rate your delivery',
+  'rate.sub': 'How was order {id}?',
+  'rate.pick': 'Tap a star to rate',
+  'rate.l1': 'Poor',
+  'rate.l2': 'Fair',
+  'rate.l3': 'Good',
+  'rate.l4': 'Great',
+  'rate.l5': 'Excellent',
+  'rate.comment.ph': 'Add a comment (optional)',
+  'rate.submit': 'Submit rating',
+  'rate.skip': 'Maybe later',
+  'rate.toast': 'Thanks for rating!',
+  'rate.thanks.title': 'Thanks for your feedback!',
+  'rate.thanks.sub': 'It helps us keep improving.',
+  'rate.aria': 'Rate {n} stars',
+
   'account.title': 'Account',
   'account.name': 'Abdullah',
   'account.renews': 'Renews 1 Aug · {price}.000 KWD / month',
@@ -759,6 +776,23 @@ const ar: Dict = {
   'st.5.d': 'استمتع! تم توصيل غسيلك.',
 
   'home.track.title': 'تتبّع طلبك',
+
+  // delivery rating pop-up
+  'rate.title': 'قيّم توصيلك',
+  'rate.sub': 'كيف كان الطلب {id}؟',
+  'rate.pick': 'اضغط نجمة للتقييم',
+  'rate.l1': 'سيئ',
+  'rate.l2': 'مقبول',
+  'rate.l3': 'جيد',
+  'rate.l4': 'رائع',
+  'rate.l5': 'ممتاز',
+  'rate.comment.ph': 'أضف تعليقاً (اختياري)',
+  'rate.submit': 'إرسال التقييم',
+  'rate.skip': 'لاحقاً',
+  'rate.toast': 'شكراً لتقييمك!',
+  'rate.thanks.title': 'شكراً لملاحظاتك!',
+  'rate.thanks.sub': 'تساعدنا على التحسّن دائماً.',
+  'rate.aria': 'قيّم {n} نجوم',
 
   'account.title': 'حسابي',
   'account.name': 'عبدالله',

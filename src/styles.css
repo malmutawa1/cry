@@ -5454,3 +5454,82 @@ button {
   font-size: 14px;
   cursor: pointer;
 }
+
+/* ===== Delivery rating pop-up ===== */
+.rate-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(10, 12, 20, 0.5);
+  backdrop-filter: blur(2px);
+  animation: terms-fade 0.2s ease;
+}
+.rate-card {
+  width: 100%;
+  max-width: 340px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  padding: 26px 22px 20px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  animation: terms-pop 0.24s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.rate-title { font-size: 21px; font-weight: 800; margin: 0 0 6px; }
+.rate-sub { font-size: 14px; color: var(--muted); margin: 0 0 16px; }
+.rate-stars {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.rate-star {
+  border: none;
+  background: none;
+  padding: 2px;
+  cursor: pointer;
+  color: var(--line);
+  transition: transform 0.13s var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.rate-star.on { color: #f5b301; }
+.rate-star:active { transform: scale(0.88); }
+@media (hover: hover) and (pointer: fine) {
+  .rate-star:hover { transform: scale(1.12); }
+}
+.rate-label {
+  font-size: 15px;
+  font-weight: 800;
+  min-height: 22px;
+  margin-bottom: 14px;
+  color: #e0980a;
+}
+.rate-comment { margin-bottom: 12px; resize: none; }
+.rate-skip {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px;
+}
+.rate-thanks { padding: 12px 0 6px; }
+.rate-thanks-ic {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 14px;
+}
