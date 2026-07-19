@@ -2292,11 +2292,13 @@ textarea.field {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 18px 24px;
-  /* Theme-adaptive scrim so the title/controls stay legible on both the light
-     (Voyager) and dark basemaps. */
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 90%, transparent), transparent);
+  padding: 12px 16px;
   pointer-events: none;
+  /* Own compositing layer — iOS Safari otherwise fails to paint overlays that
+     sit above Leaflet's translate3d map layer (backgrounds vanish). */
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 .lp-top .round-btn {
   pointer-events: auto;
@@ -2305,19 +2307,26 @@ textarea.field {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
 }
 .lp-top h1 {
-  font-size: 20px;
+  pointer-events: auto;
+  font-size: 17px;
   font-weight: 800;
   color: var(--text);
-  text-shadow: 0 1px 10px var(--bg);
+  /* Solid pill so the title is always legible over any basemap. */
+  background: var(--surface);
+  padding: 8px 16px;
+  border-radius: 999px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.16);
 }
 .lp-pin {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -100%);
+  transform: translate(-50%, -100%) translateZ(0);
   z-index: 15;
   pointer-events: none;
   filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.5));
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 .lp-pin-shadow {
   position: absolute;
@@ -2343,6 +2352,9 @@ textarea.field {
   display: grid;
   place-items: center;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 [dir='rtl'] .lp-locate {
   right: auto;
@@ -2358,6 +2370,10 @@ textarea.field {
   background: var(--surface-2);
   border-radius: 22px 22px 0 0;
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+  /* Own compositing layer so the card background doesn't drop out on iOS. */
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 .lp-addr {
   display: flex;
