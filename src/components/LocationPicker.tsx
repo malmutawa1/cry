@@ -79,7 +79,15 @@ export default function LocationPicker({ onClose, onSelect }: Props) {
       reverseGeocode(c.lat, c.lng)
     })
     mapRef.current = map
-    window.setTimeout(() => map.invalidateSize(), 120)
+    window.setTimeout(() => {
+      map.invalidateSize()
+      // Attribution links otherwise navigate the whole app away to leafletjs.com
+      // etc. — open them in a new tab instead.
+      mapEl.current?.querySelectorAll('.leaflet-control-attribution a').forEach((a) => {
+        a.setAttribute('target', '_blank')
+        a.setAttribute('rel', 'noopener noreferrer')
+      })
+    }, 120)
     reverseGeocode(KUWAIT.lat, KUWAIT.lng)
     return () => {
       window.clearTimeout(timer.current)
