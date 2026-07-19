@@ -2124,3 +2124,21 @@ table.tbl tbody tr:hover td {
 }
 .notif-send:disabled { opacity: 0.45; cursor: default; }
 .notif-sent { font-size: 12px; color: var(--green); font-weight: 700; margin-top: 6px; padding-inline-start: 2px; }
+
+/* ===== Polish: notifications dropdown press feedback + origin-aware entrance ===== */
+.notif-send { transition: transform 0.13s cubic-bezier(0.23, 1, 0.32, 1), background 0.15s ease; }
+.notif-send:active:not(:disabled) { transform: scale(0.97); }
+.notif-pop-del { transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease; }
+.notif-pop-del:active { transform: scale(0.9); }
+.notif-pop {
+  transform-origin: top right;
+  animation: notif-pop-in 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+@keyframes notif-pop-in {
+  from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .notif-pop { animation: notif-pop-fade 0.12s ease; }
+  @keyframes notif-pop-fade { from { opacity: 0; } to { opacity: 1; } }
+}
