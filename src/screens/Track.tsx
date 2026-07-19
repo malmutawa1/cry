@@ -1,8 +1,11 @@
+import { useEffect, useState } from 'react'
 import { useStore, orderStage, STAGE_SECONDS, STAGE_COUNT } from '../store'
 import { useI18n } from '../i18n'
 import { useNow } from '../useNow'
 import { slotLabel } from '../data/slots'
+import { hasSeenRating, markSeenRating } from '../data/ratings'
 import TrackMap from '../components/TrackMap'
+import RatingSheet from '../components/RatingSheet'
 import { CalendarIn, CalendarOut, Car, Check, Phone, Pin, Route } from '../components/Icons'
 
 function formatClock(ts: number, lang: string): string {
@@ -26,6 +29,18 @@ export default function Track({ onSchedule }: { onSchedule: () => void }) {
   const { activeOrder } = useStore()
   const { t, lang } = useI18n()
   const now = useNow(250)
+  const [showRate, setShowRate] = useState(false)
+
+  const orderId = activeOrder?.id
+  const isDelivered = !!activeOrder && orderStage(activeOrder, now) >= STAGE_COUNT - 1
+
+  // Prompt for a rating once, the moment an order completes.
+  useEffect(() => {
+    if (isDelivered && orderId && !hasSeenRating(orderId)) {
+      markSeenRating(orderId)
+      setShowRate(true)
+    }
+  }, [isDelivered, orderId])
 
   if (!activeOrder) {
     return (
@@ -150,6 +165,8 @@ export default function Track({ onSchedule }: { onSchedule: () => void }) {
 
         <div style={{ height: 12 }} />
       </div>
+
+      {showRate && <RatingSheet orderId={activeOrder.id} onClose={() => setShowRate(false)} />}
     </>
   )
 }
