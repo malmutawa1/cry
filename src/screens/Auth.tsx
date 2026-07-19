@@ -67,17 +67,42 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
   // The codes actually "sent" this session (regenerated on resend).
   const [emailSent, setEmailSent] = useState(gen4)
   const [phoneSent, setPhoneSent] = useState(gen4)
+  // Supabase auth feedback
+  const [authBusy, setAuthBusy] = useState(false)
+  const [authErr, setAuthErr] = useState('')
+  const [confirmSent, setConfirmSent] = useState(false)
   const [locAddress, setLocAddress] = useState('')
   const [showMap, setShowMap] = useState(false)
   const [celebrate, setCelebrate] = useState(false)
 
   const emailOk = /.+@.+\..+/.test(email)
   const phoneOk = phone.replace(/\D/g, '').length >= 8
-  const passwordOk = password.length >= 4 && password === confirm
+  // Supabase requires a minimum of 6 characters.
+  const passwordOk = password.length >= 6 && password === confirm
+
+  function authErrText(res: { error?: string; code?: string }): string {
+    if (!res.code && /fail|fetch|network/i.test(res.error || '')) return t('auth.err.network')
+    switch (res.code) {
+      case 'invalid_credentials':
+        return t('auth.err.credentials')
+      case 'email_not_confirmed':
+        return t('auth.err.unconfirmed')
+      case 'user_already_exists':
+      case 'email_exists':
+        return t('auth.err.exists')
+      case 'weak_password':
+        return t('auth.err.weakpw')
+      default:
+        return res.error || t('auth.err.generic')
+    }
+  }
 
   function switchMode(m: 'login' | 'signup') {
     setMode(m)
     setStep('gender')
+    setAuthErr('')
+    setConfirmSent(false)
+    setAuthBusy(false)
     if (m === 'login') {
       setGender(null)
       setAccent('blue')
@@ -98,13 +123,23 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
     if (i > 0) setStep(STEPS[i - 1])
     else switchMode('login')
   }
-  function completeSignup() {
+  async function completeSignup() {
     setPhone(phone)
     if (locAddress) setAddress(locAddress)
-    // sets user + flags needsPlan → plans screen opens (also persists to backend when enabled)
-    signup(name, email, { password, phone, gender: gender ?? undefined, address: locAddress || undefined })
+    setAuthErr('')
+    setAuthBusy(true)
+    // Creates the Supabase account; on success either a session opens the app
+    // or (if the project requires it) we prompt to confirm the email.
+    const res = await signup(name, email, { password, phone, gender: gender ?? undefined, address: locAddress || undefined })
+    setAuthBusy(false)
+    if (!res.ok) {
+      setAuthErr(authErrText(res))
+      return
+    }
+    if (res.needsConfirmation) setConfirmSent(true)
+    // else: a session was created → the app switches to the main screens.
   }
-  function doLogin() {
+  async function doLogin() {
     try {
       if (remember) {
         localStorage.setItem('pressd.remember', '1')
@@ -116,10 +151,46 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
     } catch {
       /* storage unavailable — ignore */
     }
-    login(email, password)
+    setAuthErr('')
+    setAuthBusy(true)
+    const res = await login(email, password)
+    setAuthBusy(false)
+    if (!res.ok) setAuthErr(authErrText(res))
   }
 
   const firstName = name.trim().split(/\s+/)[0] || name.trim()
+
+  if (confirmSent) {
+    return (
+      <>
+        <div className="topbar" style={{ justifyContent: 'center' }}>
+          <div className="brand">
+            <span className="brand-mark">P</span>
+            {t('brand')}
+          </div>
+        </div>
+        <div className="success">
+          <div className="check-ring">
+            <Mail size={40} />
+          </div>
+          <h2>{t('auth.confirm.title')}</h2>
+          <p>{t('auth.confirm.sub', { email })}</p>
+        </div>
+        <div className="bottom-cta">
+          <button
+            className="btn-primary"
+            onClick={() => {
+              setConfirmSent(false)
+              setCelebrate(false)
+              switchMode('login')
+            }}
+          >
+            {t('auth.confirm.cta')}
+          </button>
+        </div>
+      </>
+    )
+  }
 
   if (celebrate) {
     return (
@@ -138,8 +209,9 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
           <p>{t('done.sub', { name: firstName })}</p>
         </div>
         <div className="bottom-cta">
-          <button className="btn-primary" onClick={completeSignup}>
-            {t('done.cta')}
+          {authErr && <p className="field-err" style={{ textAlign: 'center', marginBottom: 8 }}>{authErr}</p>}
+          <button className="btn-primary" disabled={authBusy} onClick={completeSignup}>
+            {authBusy ? t('auth.busy') : t('done.cta')}
           </button>
         </div>
       </>
@@ -197,11 +269,11 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
 
             <label className="input">
               <Mail className="in-ic" size={20} />
-              <input type="email" inputMode="email" placeholder={t('auth.email')} value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input type="email" inputMode="email" placeholder={t('auth.email')} value={email} onChange={(e) => { setEmail(e.target.value); setAuthErr('') }} />
             </label>
             <label className="input">
               <Lock className="in-ic" size={20} />
-              <input type="password" placeholder={t('auth.password')} value={password} onChange={(e) => setPassword(e.target.value)} />
+              <input type="password" placeholder={t('auth.password')} value={password} onChange={(e) => { setPassword(e.target.value); setAuthErr('') }} />
             </label>
 
             <label className="remember">
@@ -210,8 +282,9 @@ export default function Auth({ onStaff }: { onStaff: () => void }) {
               <span>{t('auth.remember')}</span>
             </label>
 
-            <button className="btn-primary" disabled={!(emailOk && password.length >= 4)} onClick={doLogin} style={{ marginTop: 6 }}>
-              {t('auth.login.cta')}
+            {authErr && <p className="field-err">{authErr}</p>}
+            <button className="btn-primary" disabled={!(emailOk && password.length >= 4) || authBusy} onClick={doLogin} style={{ marginTop: 6 }}>
+              {authBusy ? t('auth.busy') : t('auth.login.cta')}
             </button>
 
             <div className="divider"><span>{t('auth.or')}</span></div>
