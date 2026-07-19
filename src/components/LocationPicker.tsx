@@ -58,7 +58,14 @@ export default function LocationPicker({ onClose, onSelect }: Props) {
       zoomControl: false,
       attributionControl: true,
     })
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    // Match the map style to the app theme: a crisp, legible colour basemap
+    // (CARTO Voyager) in light mode, a proper dark basemap in dark mode —
+    // instead of the near-black dark tiles that were used in every theme.
+    const dark = document.querySelector('.app-shell')?.getAttribute('data-mode') === 'dark'
+    const tileUrl = dark
+      ? 'https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+    L.tileLayer(tileUrl, {
       subdomains: 'abcd',
       maxZoom: 20,
       attribution: '&copy; OpenStreetMap &copy; CARTO',
