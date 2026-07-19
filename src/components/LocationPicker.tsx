@@ -110,27 +110,32 @@ export default function LocationPicker({ onClose, onSelect }: Props) {
 
   return (
     <div className="locpicker">
-      <div className="lp-map" ref={mapEl} />
-
-      {/* fixed center pin */}
-      <div className="lp-pin" aria-hidden>
-        <svg width="40" height="52" viewBox="0 0 40 52">
-          <path d="M20 2C11 2 4 9 4 18c0 11 16 30 16 30s16-19 16-30C36 9 29 2 20 2Z" fill="var(--accent)" stroke="#05243a" strokeWidth="1.5" />
-          <circle cx="20" cy="18" r="6" fill="#05243a" />
-        </svg>
-        <span className="lp-pin-shadow" />
-      </div>
-
+      {/* Solid header — kept in normal flow (not floated over the map) so iOS
+          Safari always paints it. */}
       <div className="lp-top">
-        <button className="round-btn" onClick={onClose} aria-label="Back"><Close /></button>
+        <button className="round-btn" onClick={onClose} aria-label={t('common.back')}><Close /></button>
         <h1>{t('loc.title')}</h1>
         <span style={{ width: 42 }} />
       </div>
 
-      <button className="lp-locate" onClick={useCurrentLocation} aria-label={t('loc.current')}>
-        <Locate size={20} />
-      </button>
+      <div className="lp-mapwrap">
+        <div className="lp-map" ref={mapEl} />
 
+        {/* fixed center pin */}
+        <div className="lp-pin" aria-hidden>
+          <svg width="40" height="52" viewBox="0 0 40 52">
+            <path d="M20 2C11 2 4 9 4 18c0 11 16 30 16 30s16-19 16-30C36 9 29 2 20 2Z" fill="var(--accent)" stroke="#05243a" strokeWidth="1.5" />
+            <circle cx="20" cy="18" r="6" fill="#05243a" />
+          </svg>
+          <span className="lp-pin-shadow" />
+        </div>
+
+        <button className="lp-locate" onClick={useCurrentLocation} aria-label={t('loc.current')}>
+          <Locate size={20} />
+        </button>
+      </div>
+
+      {/* Solid footer — also in normal flow. */}
       <div className="lp-panel">
         <div className="lp-addr">
           <span className="lp-ic"><Pin size={20} /></span>

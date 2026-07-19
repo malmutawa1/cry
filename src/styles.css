@@ -2260,12 +2260,38 @@ textarea.field {
 }
 
 /* ---------- Location picker (Leaflet) ---------- */
+/* A solid header + map + solid footer laid out as a flex column. The chrome is
+   in normal flow (not floated over the map), which sidesteps the iOS Safari bug
+   where overlays above Leaflet's GPU map layer lose their backgrounds. */
 .locpicker {
   position: absolute;
   inset: 0;
   z-index: 60;
   background: var(--bg);
   animation: fade 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+.lp-top {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding-top: calc(12px + env(safe-area-inset-top));
+}
+.lp-top h1 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+}
+.lp-mapwrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 .lp-map {
   position: absolute;
@@ -2276,57 +2302,21 @@ textarea.field {
   font-family: inherit;
 }
 .leaflet-control-attribution {
-  background: rgba(0, 0, 0, 0.5) !important;
-  color: #8a8a90 !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  color: #5a5a62 !important;
   font-size: 10px;
 }
 .leaflet-control-attribution a {
-  color: #aab !important;
-}
-.lp-top {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  pointer-events: none;
-  /* Own compositing layer — iOS Safari otherwise fails to paint overlays that
-     sit above Leaflet's translate3d map layer (backgrounds vanish). */
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-.lp-top .round-btn {
-  pointer-events: auto;
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
-}
-.lp-top h1 {
-  pointer-events: auto;
-  font-size: 17px;
-  font-weight: 800;
-  color: var(--text);
-  /* Solid pill so the title is always legible over any basemap. */
-  background: var(--surface);
-  padding: 8px 16px;
-  border-radius: 999px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.16);
+  color: #3a3a44 !important;
 }
 .lp-pin {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -100%) translateZ(0);
-  z-index: 15;
+  transform: translate(-50%, -100%);
+  z-index: 5;
   pointer-events: none;
-  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.5));
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.4));
 }
 .lp-pin-shadow {
   position: absolute;
@@ -2341,8 +2331,8 @@ textarea.field {
 .lp-locate {
   position: absolute;
   right: 16px;
-  bottom: 190px;
-  z-index: 20;
+  bottom: 16px;
+  z-index: 5;
   width: 46px;
   height: 46px;
   border-radius: 50%;
@@ -2351,29 +2341,18 @@ textarea.field {
   border: 1px solid var(--line);
   display: grid;
   place-items: center;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 [dir='rtl'] .lp-locate {
   right: auto;
   left: 16px;
 }
 .lp-panel {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 20;
+  flex: none;
   padding: 16px 18px calc(18px + env(safe-area-inset-bottom));
   background: var(--surface-2);
-  border-radius: 22px 22px 0 0;
-  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
-  /* Own compositing layer so the card background doesn't drop out on iOS. */
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.12);
 }
 .lp-addr {
   display: flex;
