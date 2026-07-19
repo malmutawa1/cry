@@ -279,8 +279,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session?.user) setUser(userFromSupabase(data.session.user))
     })
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ? userFromSupabase(session.user) : null)
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) setUser(userFromSupabase(session.user))
+      else if (event === 'SIGNED_OUT') setUser(null) // don't clear an optimistic sign-up user on token events
     })
     return () => sub.subscription.unsubscribe()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -339,13 +340,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           options: { data: { name: name.trim() || undefined, phone: opts?.phone, gender: opts?.gender, address: opts?.address } },
         })
         if (error) return { ok: false, error: error.message, code: (error as { code?: string }).code }
-        if (data.session && data.user) {
+        // Sign-up succeeded: take the customer straight into the app and open the
+        // subscription screen. If the project requires email confirmation the
+        // confirmation email still goes out, but we don't block the flow on it.
+        if (data.user) {
           setNeedsPlan(true)
           setJustSignedUp(true)
           setUser(userFromSupabase(data.user))
-          return { ok: true }
         }
-        return { ok: true, needsConfirmation: true }
+        return { ok: true, needsConfirmation: !data.session }
       }
       setNeedsPlan(true)
       setJustSignedUp(true)
