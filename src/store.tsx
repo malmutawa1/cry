@@ -3,6 +3,16 @@ import { plans, type Billing, type Plan } from './data/plans'
 import { defaultDelivery, defaultPickup, type Slot } from './data/slots'
 import { isRush, recordRush, type RushTier } from './data/rush'
 import { api, apiEnabled, getToken, setSession, clearSession, type ApiLoyalty, type Snapshot } from './api'
+import { supabase, supabaseEnabled, userFromSupabase } from './supabase'
+
+/** Result of an email/password auth attempt. */
+export interface AuthResult {
+  ok: boolean
+  error?: string
+  code?: string
+  /** true when sign-up succeeded but the email must be confirmed before login */
+  needsConfirmation?: boolean
+}
 
 export interface User {
   name: string
@@ -53,8 +63,8 @@ export type PayMethod = string
 interface Store {
   // auth
   user: User | null
-  login: (email: string, password?: string) => void
-  signup: (name: string, email: string, opts?: SignupOpts) => void
+  login: (email: string, password?: string) => Promise<AuthResult>
+  signup: (name: string, email: string, opts?: SignupOpts) => Promise<AuthResult>
   loginWithApple: () => void
   logout: () => void
   /** edit the signed-in user's profile fields */
@@ -263,6 +273,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Supabase auth: restore the session on load and follow sign-in/out changes.
+  useEffect(() => {
+    if (!supabaseEnabled) return
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user) setUser(userFromSupabase(data.session.user))
+    })
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ? userFromSupabase(session.user) : null)
+    })
+    return () => sub.subscription.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   function addCard(number: string) {
     const digits = number.replace(/\D/g, '')
     const last4 = digits.slice(-4) || '0000'
@@ -284,36 +307,64 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const value: Store = {
     user,
-    login: (email, password) => {
-      if (apiEnabled && password) {
-        api
-          .login({ email, password })
-          .then((r) => {
-            setSession(r.token, r.refreshToken)
-            hydrate(r)
-          })
-          .catch(() => setUser({ name: nameFromEmail(email), email })) // graceful offline fallback
-      } else {
-        setUser({ name: nameFromEmail(email), email })
+    login: async (email, password) => {
+      // Supabase email/password sign-in (primary auth).
+      if (supabaseEnabled) {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password: password ?? '' })
+        if (error) return { ok: false, error: error.message, code: (error as { code?: string }).code }
+        if (data.user) setUser(userFromSupabase(data.user))
+        return { ok: true }
       }
+      if (apiEnabled && password) {
+        try {
+          const r = await api.login({ email, password })
+          setSession(r.token, r.refreshToken)
+          hydrate(r)
+        } catch {
+          setUser({ name: nameFromEmail(email), email }) // graceful offline fallback
+        }
+        return { ok: true }
+      }
+      setUser({ name: nameFromEmail(email), email })
+      return { ok: true }
     },
-    signup: (name, email, opts) => {
+    signup: async (name, email, opts) => {
+      // Supabase email/password sign-up (primary auth). Extra profile fields go
+      // into user metadata. If the project requires email confirmation, no
+      // session is returned until the user confirms.
+      if (supabaseEnabled) {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password: opts?.password ?? '',
+          options: { data: { name: name.trim() || undefined, phone: opts?.phone, gender: opts?.gender, address: opts?.address } },
+        })
+        if (error) return { ok: false, error: error.message, code: (error as { code?: string }).code }
+        if (data.session && data.user) {
+          setNeedsPlan(true)
+          setJustSignedUp(true)
+          setUser(userFromSupabase(data.user))
+          return { ok: true }
+        }
+        return { ok: true, needsConfirmation: true }
+      }
       setNeedsPlan(true)
       setJustSignedUp(true)
       if (apiEnabled && opts?.password) {
-        api
-          .signup({ name, email, password: opts.password, phone: opts.phone, gender: opts.gender, address: opts.address })
-          .then((r) => {
-            setSession(r.token, r.refreshToken)
-            hydrate(r)
-          })
-          .catch(() => setUser({ name: name.trim() || nameFromEmail(email), email }))
-      } else {
-        setUser({ name: name.trim() || nameFromEmail(email), email })
+        try {
+          const r = await api.signup({ name, email, password: opts.password, phone: opts.phone, gender: opts.gender, address: opts.address })
+          setSession(r.token, r.refreshToken)
+          hydrate(r)
+        } catch {
+          setUser({ name: name.trim() || nameFromEmail(email), email })
+        }
+        return { ok: true }
       }
+      setUser({ name: name.trim() || nameFromEmail(email), email })
+      return { ok: true }
     },
     loginWithApple: () => setUser(APPLE_RELAY),
     logout: () => {
+      if (supabaseEnabled) supabase.auth.signOut().catch(() => {})
       if (apiEnabled) api.logout().catch(() => {})
       clearSession()
       setUser(null)
