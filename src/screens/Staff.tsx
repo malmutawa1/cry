@@ -1219,7 +1219,7 @@ function useAlerts(): Alert[] {
       list.push({ id: 'late', sev: 'critical', audience: 'pos', title: t('alerts.late.title', { n: late.length }), detail: t('alerts.late.detail') })
     }
     if (over.length) {
-      // Nudge the customer to buy extra kg; POS bills the overflow.
+      // Nudge the customer about extra items; POS bills the overage.
       list.push({ id: 'over', sev: 'warning', audience: 'both', title: t('alerts.over.title', { n: over.length }), detail: over.map((c) => c.name).slice(0, 3).join(', ') })
     }
     if (frozen.length) {

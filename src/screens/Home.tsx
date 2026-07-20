@@ -7,7 +7,7 @@ import { Bag, CalendarIn, Chevron, Gift, Globe, Hanger, Route } from '../compone
 import Reveal from '../components/Reveal'
 import { useCountUp } from '../useCountUp'
 import { ExtraKgSheet, useAllowance } from '../components/ExtraKg'
-import { useItemsConfig, categoryName } from '../data/items'
+import { useItemsConfig, categoryName, categoryExamples } from '../data/items'
 import { tierInfo } from '../data/rewards'
 import { useAppConfig } from '../useAppConfig'
 import { Info } from '../components/Icons'
@@ -125,12 +125,18 @@ export default function Home({
             <div className="cr-rows">
               {itemsCfg.categories.map((c) => (
                 <div key={c.id} className="cr-row">
-                  <span className="cr-name">{categoryName(c, lang)}</span>
+                  <span className="cr-info">
+                    <span className="cr-name">{categoryName(c, lang)}</span>
+                    <span className="cr-eg">{categoryExamples(c, lang).split(',').slice(0, 3).map((s) => s.trim()).join(', ')}</span>
+                  </span>
                   <span className="cr-mult">{t('count.eq', { n: c.multiplier })}</span>
                 </div>
               ))}
               <div className="cr-row">
-                <span className="cr-name">{t('count.bedding')}</span>
+                <span className="cr-info">
+                  <span className="cr-name">{t('count.bedding')}</span>
+                  <span className="cr-eg">{t('count.beddingEg')}</span>
+                </span>
                 <span className="cr-mult cr-addon">{t('count.addon')}</span>
               </div>
             </div>
