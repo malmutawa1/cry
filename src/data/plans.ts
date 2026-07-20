@@ -26,7 +26,7 @@ export const plans: Plan[] = [
     id: 'solo',
     name: 'Solo',
     nameAr: 'فردي',
-    priceKwd: 22,
+    priceKwd: 25,
     items: 70,
     tagline: 'For singles & couples',
     taglineAr: 'للأفراد والأزواج',
