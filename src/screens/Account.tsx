@@ -29,7 +29,7 @@ export default function Account({
   const [referOpen, setReferOpen] = useState(false)
   const [freezeOpen, setFreezeOpen] = useState(false)
   const [view, setView] = useState<'main' | 'history' | 'display' | 'personal' | 'addresses' | 'privacy' | 'terms'>('main')
-  const { usedKg, allowance, atLimit, pct } = useAllowance()
+  const { usedItems, allowance, atLimit, pct } = useAllowance()
 
   if (view === 'history')
     return (
@@ -100,10 +100,10 @@ export default function Account({
             </div>
             <div className="u-legend">
               <span>
-                {t('account.used', { kg: usedKg })}
+                {t('account.used', { n: usedItems })}
                 {atLimit && <span className="limit-tag">{t('usage.limit')}</span>}
               </span>
-              <span>{t('account.allow', { kg: allowance })}</span>
+              <span>{t('account.allow', { n: allowance })}</span>
             </div>
           </div>
         ) : (

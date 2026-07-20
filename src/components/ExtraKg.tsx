@@ -1,119 +1,89 @@
-import { useState } from 'react'
 import { useStore } from '../store'
 import { useI18n } from '../i18n'
-import { extras, type Extra } from '../data/extras'
-import { PaymentSheet, PaymentValue } from './Payment'
+import { useItemsConfig, addOnName, type AddOn } from '../data/items'
 import { Sheet } from './Sheet'
-import { Chevron, Plus } from './Icons'
+import { Plus } from './Icons'
 
-/** Shared allowance math: usage sits at the plan cap until extra kg are bought. */
+/** Shared allowance math, now in *items* (weighted). Overage is auto-billed
+ *  per item at the admin-configured rate; bedding is a separate add-on. */
 export function useAllowance() {
-  const { activePlan, extraKg } = useStore()
-  const baseCap = activePlan?.capKg ?? 0
-  const allowance = baseCap + extraKg
-  const usedKg = baseCap
-  const remaining = allowance - usedKg
+  const { activePlan, itemsUsed } = useStore()
+  const cfg = useItemsConfig()
+  const allowance = activePlan?.items ?? 0
+  const usedItems = itemsUsed
+  const remaining = allowance - usedItems
+  const over = Math.max(0, usedItems - allowance)
   const atLimit = activePlan != null && remaining <= 0
-  const pct = allowance ? Math.min(100, (usedKg / allowance) * 100) : 0
-  return { baseCap, allowance, usedKg, remaining, atLimit, pct }
+  const overagePerItem = cfg.overagePerItem
+  const overageFee = over * overagePerItem
+  const pct = allowance ? Math.min(100, (usedItems / allowance) * 100) : 0
+  return { allowance, usedItems, remaining, over, atLimit, overagePerItem, overageFee, pct }
 }
 
-/** Tappable banner shown at the allowance limit; opens the top-up popup. */
+/** Tappable banner shown at the allowance limit; opens the add-ons popup. */
 export function ExtraKgBanner({ onClick }: { onClick: () => void }) {
   const { t } = useI18n()
+  const { over, overagePerItem } = useAllowance()
   return (
     <button className="extra-banner" onClick={onClick}>
       <span className="eb-ic"><Plus size={20} /></span>
       <span className="eb-body">
-        <span className="eb-title">{t('extra.limit')}</span>
-        <span className="eb-sub">{t('extra.sub')}</span>
+        <span className="eb-title">{over > 0 ? t('extra.overCount', { n: over }) : t('extra.limit')}</span>
+        <span className="eb-sub">{t('extra.overRule', { fee: overagePerItem.toFixed(3) })}</span>
       </span>
       <span className="eb-cta">{t('extra.manage')} ›</span>
     </button>
   )
 }
 
-/** Bottom-sheet: pick a +5 kg / +8 kg top-up, then confirm on a payment step. */
+/** Bottom-sheet: shows the overage rule and lets the customer add bedding
+ *  add-ons (billed on top of the subscription, never against the item count). */
 export function ExtraKgSheet({ onClose }: { onClose: () => void }) {
-  const { addExtraKg, showToast } = useStore()
-  const { t } = useI18n()
-  const [sel, setSel] = useState<Extra | null>(null)
-  const [payOpen, setPayOpen] = useState(false)
+  const { addBedding, showToast } = useStore()
+  const { t, lang } = useI18n()
+  const cfg = useItemsConfig()
+  const { over, overageFee, overagePerItem } = useAllowance()
+
+  function add(a: AddOn, close: () => void) {
+    addBedding(a.id)
+    showToast(t('toast.beddingAdded', { name: addOnName(a, lang) }))
+    close()
+  }
 
   return (
-    <>
-      <Sheet onClose={onClose}>
-        {(close) => (
-          <>
-            <div className="grabber" />
-
-            {sel ? (
-              /* ---------- Payment step ---------- */
-              <>
-                <h3>{t('checkout.title')}</h3>
-                <div className="sheet-scroll anim-in" key="pay">
-                  <div className="checkout-card">
-                    <div className="co-top">
-                      <div>
-                        <div className="co-plan">+{sel.kg} kg</div>
-                        <div className="co-period">{t('extra.oneTime')}</div>
-                      </div>
-                      <span className="plan-cap">{t('extra.thisMonth')}</span>
-                    </div>
-                    <div className="co-total">
-                      <span>{t('checkout.total')}</span>
-                      <strong>{sel.priceKwd}.000 KWD</strong>
-                    </div>
-                  </div>
-
-                  <div className="section-title" style={{ fontSize: 18 }}>{t('checkout.method')}</div>
-                  <div className="card-group">
-                    <button className="row" onClick={() => setPayOpen(true)}>
-                      <span className="pay-current"><PaymentValue /></span>
-                      <Chevron className="chev" />
-                    </button>
-                  </div>
-
-                  <button
-                    className="btn-primary"
-                    style={{ marginTop: 6 }}
-                    onClick={() => {
-                      addExtraKg(sel.kg)
-                      showToast(t('toast.extraAdded', { kg: sel.kg }))
-                      close()
-                    }}
-                  >
-                    {t('checkout.pay', { price: sel.priceKwd })}
-                  </button>
-                  <button className="link-btn" onClick={() => setSel(null)}>{t('extra.back')}</button>
+    <Sheet onClose={onClose}>
+      {(close) => (
+        <>
+          <div className="grabber" />
+          <h3>{t('extra.title')}</h3>
+          <div className="sheet-scroll anim-in">
+            {over > 0 && (
+              <div className="overage-card">
+                <div className="ov-row">
+                  <span>{t('extra.overCount', { n: over })}</span>
+                  <strong>{overageFee.toFixed(3)} KWD</strong>
                 </div>
-              </>
-            ) : (
-              /* ---------- Pick a top-up ---------- */
-              <>
-                <h3>{t('extra.title')}</h3>
-                <div className="sheet-scroll anim-in" key="pick">
-                  <p className="extra-sheet-sub">{t('extra.limit')} · {t('extra.sub')}</p>
-                  <div className="extra-grid">
-                    {extras.map((e) => (
-                      <div key={e.kg} className="extra-card">
-                        <div className="ex-kg">+{e.kg} kg</div>
-                        <div className="ex-price">{e.priceKwd}.000 KWD</div>
-                        <button className="ex-add" onClick={() => setSel(e)}>
-                          <Plus size={16} />
-                          {t('extra.add')}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
+                <p className="ov-note">{t('extra.overRule', { fee: overagePerItem.toFixed(3) })}</p>
+              </div>
             )}
-          </>
-        )}
-      </Sheet>
 
-      {payOpen && <PaymentSheet onClose={() => setPayOpen(false)} />}
-    </>
+            <div className="section-title" style={{ fontSize: 18 }}>{t('extra.beddingTitle')}</div>
+            <p className="extra-sheet-sub">{t('extra.beddingSub')}</p>
+            <div className="card-group">
+              {cfg.addOns.map((a) => (
+                <div key={a.id} className="row addon-row">
+                  <span className="addon-name">{addOnName(a, lang)}</span>
+                  <span className="addon-price">{a.priceKwd.toFixed(3)} KWD</span>
+                  <button className="ex-add" onClick={() => add(a, close)}>
+                    <Plus size={16} />
+                    {t('extra.add')}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </Sheet>
   )
 }

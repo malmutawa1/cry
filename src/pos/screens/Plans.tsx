@@ -1,14 +1,16 @@
 import { useMemo, useState } from 'react'
-import { money, type ExtraBlock, type Plan } from '../data'
+import { money, type Plan } from '../data'
 import { usePos } from '../store'
 import { setRushSettings, TIERS } from '../../data/rush'
 import { useRush } from '../../useRush'
+import { useItemsConfig } from '../../data/items'
 import { Pencil, Trash, Close } from '../../components/Icons'
 
-const EMPTY: Omit<Plan, 'id'> = { name: '', priceKwd: 15, capKg: 20, tagline: '' }
+const EMPTY: Omit<Plan, 'id'> = { name: '', priceKwd: 22, items: 70, tagline: '' }
 
 export function Plans() {
-  const { plans, extras, members, addPlan, updatePlan, deletePlan, updateExtra } = usePos()
+  const { plans, members, addPlan, updatePlan, deletePlan } = usePos()
+  const itemsCfg = useItemsConfig()
   const [editing, setEditing] = useState<Plan | 'new' | null>(null)
 
   const counts = useMemo(() => {
@@ -52,7 +54,7 @@ export function Plans() {
                 <td className="right">
                   <span className="tprice">{money(p.priceKwd)} <small>/mo</small></span>
                 </td>
-                <td className="right tprice">{p.capKg} kg</td>
+                <td className="right tprice">{p.items} items</td>
                 <td className="right tprice">{counts.get(p.id) ?? 0}</td>
                 <td>
                   <div className="row-actions">
@@ -81,13 +83,42 @@ export function Plans() {
       </div>
 
       <div className="section-head">
-        <h2>Extra-capacity blocks</h2>
-        <p>Sold at intake when a batch runs past the monthly allowance</p>
+        <h2>Item weighting &amp; add-ons</h2>
+        <p>How pieces count against the allowance. Edit these in the staff app settings.</p>
       </div>
-      <div className="extra-grid">
-        {extras.map((e) => (
-          <ExtraCard key={e.id} extra={e} onSave={updateExtra} />
-        ))}
+      <div className="table-wrap">
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th className="right">Counts as</th>
+              <th className="right">Est. kg</th>
+              <th className="right">Est. cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            {itemsCfg.categories.map((c) => (
+              <tr key={c.id}>
+                <td>{c.name}</td>
+                <td className="right tprice">×{c.multiplier}</td>
+                <td className="right tprice">{c.kgEst} kg</td>
+                <td className="right tprice">{money(c.costKwd)}</td>
+              </tr>
+            ))}
+            {itemsCfg.addOns.map((a) => (
+              <tr key={a.id}>
+                <td>{a.name} <span className="muted" style={{ fontSize: 12 }}>· add-on</span></td>
+                <td className="right tprice">—</td>
+                <td className="right tprice">{a.kgEst} kg</td>
+                <td className="right tprice">{money(a.priceKwd)}</td>
+              </tr>
+            ))}
+            <tr>
+              <td>Over-allowance fee</td>
+              <td className="right tprice" colSpan={3}>{money(itemsCfg.overagePerItem)} / extra item</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <div className="section-head">
@@ -151,33 +182,6 @@ function RushSettingsCard() {
   )
 }
 
-function ExtraCard({ extra, onSave }: { extra: ExtraBlock; onSave: (e: ExtraBlock) => void }) {
-  const [price, setPrice] = useState(String(extra.priceKwd))
-  const changed = Number(price) !== extra.priceKwd && Number(price) > 0
-  return (
-    <div className="card extra-card">
-      <div className="extra-kg">+{extra.kg} kg</div>
-      <div className="field" style={{ marginBottom: 8 }}>
-        <label>Price (KWD)</label>
-        <input
-          type="number"
-          inputMode="decimal"
-          min={0}
-          step={0.25}
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
-      </div>
-      <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>
-        {(Number(price) / extra.kg || 0).toFixed(3)} KD / kg
-      </div>
-      <button className="btn ghost wide" disabled={!changed} onClick={() => onSave({ ...extra, priceKwd: Number(price) })}>
-        {changed ? 'Save price' : 'Saved'}
-      </button>
-    </div>
-  )
-}
-
 function PlanEditor({
   initial,
   onSave,
@@ -190,10 +194,10 @@ function PlanEditor({
   const [name, setName] = useState(initial.name)
   const [tagline, setTagline] = useState(initial.tagline)
   const [priceKwd, setPriceKwd] = useState(String(initial.priceKwd))
-  const [capKg, setCapKg] = useState(String(initial.capKg))
+  const [items, setItems] = useState(String(initial.items))
   const [popular, setPopular] = useState(!!initial.popular)
 
-  const valid = name.trim().length > 0 && Number(priceKwd) > 0 && Number(capKg) > 0
+  const valid = name.trim().length > 0 && Number(priceKwd) > 0 && Number(items) > 0
 
   return (
     <div className="scrim" onClick={onCancel}>
@@ -207,7 +211,7 @@ function PlanEditor({
         <div className="modal-body">
           <div className="field">
             <label>Plan name</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Standard" autoFocus />
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Family" autoFocus />
           </div>
           <div className="field">
             <label>Tagline</label>
@@ -219,8 +223,8 @@ function PlanEditor({
               <input type="number" inputMode="decimal" min={0} step={1} value={priceKwd} onChange={(e) => setPriceKwd(e.target.value)} />
             </div>
             <div>
-              <label>Allowance (kg / month)</label>
-              <input type="number" inputMode="numeric" min={0} step={5} value={capKg} onChange={(e) => setCapKg(e.target.value)} />
+              <label>Allowance (items / month)</label>
+              <input type="number" inputMode="numeric" min={0} step={10} value={items} onChange={(e) => setItems(e.target.value)} />
             </div>
           </div>
           <div className="field row2" style={{ alignItems: 'center' }}>
@@ -241,7 +245,7 @@ function PlanEditor({
               style={{ flex: 1 }}
               disabled={!valid}
               onClick={() =>
-                onSave({ name: name.trim(), tagline: tagline.trim(), priceKwd: Number(priceKwd), capKg: Number(capKg), popular })
+                onSave({ name: name.trim(), tagline: tagline.trim(), priceKwd: Number(priceKwd), items: Number(items), popular })
               }
             >
               Save plan

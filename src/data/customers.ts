@@ -9,24 +9,24 @@ export interface Customer {
   name: string
   area: string
   planId: string
-  /** Kilograms used in the current billing cycle. */
-  kgUsed: number
+  /** Weighted items used in the current billing cycle. */
+  itemsUsed: number
   /** KWD account credit granted by staff. */
   credit: number
   /** Membership paused by staff. */
   frozen: boolean
 }
 
-const CUSTOMERS_KEY = 'pressd:customers'
+const CUSTOMERS_KEY = 'pressd:customers:v2'
 const EVENT = 'pressd:customers:changed'
 
 const SEED: Customer[] = [
-  { id: 'm-1001', name: 'Noura Al-Sabah', area: 'Salmiya', planId: 'standard', kgUsed: 31, credit: 0, frozen: false },
-  { id: 'm-1002', name: 'Yousef Al-Ajmi', area: 'Jabriya', planId: 'premium', kgUsed: 52, credit: 0, frozen: false },
-  { id: 'm-1003', name: 'Dana Khalid', area: 'Mishref', planId: 'basic', kgUsed: 17, credit: 0, frozen: false },
-  { id: 'm-1004', name: 'Abdullah Al-Rashed', area: 'Rumaithiya', planId: 'family-plus', kgUsed: 74, credit: 0, frozen: false },
-  { id: 'm-1005', name: 'Fatima Al-Enezi', area: 'Bayan', planId: 'standard', kgUsed: 39, credit: 0, frozen: false },
-  { id: 'm-1006', name: 'Mishari Al-Otaibi', area: 'Salwa', planId: 'basic', kgUsed: 8, credit: 0, frozen: false },
+  { id: 'm-1001', name: 'Noura Al-Sabah', area: 'Salmiya', planId: 'family', itemsUsed: 96, credit: 0, frozen: false },
+  { id: 'm-1002', name: 'Yousef Al-Ajmi', area: 'Jabriya', planId: 'family-plus', itemsUsed: 180, credit: 0, frozen: false },
+  { id: 'm-1003', name: 'Dana Khalid', area: 'Mishref', planId: 'solo', itemsUsed: 58, credit: 0, frozen: false },
+  { id: 'm-1004', name: 'Abdullah Al-Rashed', area: 'Rumaithiya', planId: 'max', itemsUsed: 300, credit: 0, frozen: false },
+  { id: 'm-1005', name: 'Fatima Al-Enezi', area: 'Bayan', planId: 'family', itemsUsed: 148, credit: 0, frozen: false },
+  { id: 'm-1006', name: 'Mishari Al-Otaibi', area: 'Salwa', planId: 'solo', itemsUsed: 24, credit: 0, frozen: false },
 ]
 
 function emit() {

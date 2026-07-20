@@ -10,11 +10,22 @@ import { useDiscounts } from '../useDiscounts'
 import { setPlanOverride, setAnnouncement, type AnnouncementTone } from '../data/config'
 import { addDiscount, toggleDiscount, removeDiscount, type Discount, type DiscountKind, type DiscountScope } from '../data/discounts'
 import { getCustomers, toggleFreeze, grantCustomerCredit, subscribeCustomers, type Customer } from '../data/customers'
+import {
+  useItemsConfig,
+  setCategory,
+  setAddOn,
+  setOveragePerItem,
+  categoryName,
+  addOnName,
+  type ItemCategory,
+  type AddOn,
+} from '../data/items'
+import type { Intake } from '../pos/data'
 import { getShiftNotes, addShiftNote, removeShiftNote, subscribeShiftNotes } from '../data/shiftnotes'
 import { sendNotification, removeNotification, markSeen as markNotifSeen, type NotifAudience } from '../data/notifications'
 import { useNotifications, useAllNotifications } from '../useNotifications'
 import NotificationsBell from '../components/NotificationsBell'
-import { planName, type Plan } from '../data/plans'
+import { planName, planPrice, type Plan } from '../data/plans'
 import { Toggle } from '../components/Common'
 import {
   bi,
@@ -572,13 +583,13 @@ function useCustomers() {
 function PlanConfigCard({ plan }: { plan: Plan }) {
   const { t, lang } = useI18n()
   const [price, setPrice] = useState(String(plan.priceKwd))
-  const [cap, setCap] = useState(String(plan.capKg))
+  const [cap, setCap] = useState(String(plan.items))
   // keep inputs in sync if the resolved plan changes elsewhere
   useEffect(() => {
     setPrice(String(plan.priceKwd))
-    setCap(String(plan.capKg))
-  }, [plan.priceKwd, plan.capKg])
-  const dirty = Number(price) !== plan.priceKwd || Math.round(Number(cap)) !== plan.capKg
+    setCap(String(plan.items))
+  }, [plan.priceKwd, plan.items])
+  const dirty = Number(price) !== plan.priceKwd || Math.round(Number(cap)) !== plan.items
 
   return (
     <div className="adm-plan">
@@ -599,7 +610,7 @@ function PlanConfigCard({ plan }: { plan: Plan }) {
       <button
         className="btn-ghost adm-save"
         disabled={!dirty}
-        onClick={() => setPlanOverride(plan.id, { priceKwd: Number(price), capKg: Math.round(Number(cap)) })}
+        onClick={() => setPlanOverride(plan.id, { priceKwd: Number(price), items: Math.round(Number(cap)) })}
       >
         {dirty ? t('admin.save') : t('admin.saved')}
       </button>
@@ -801,7 +812,7 @@ function CustomerCard({ cust, plans, onToast }: { cust: Customer; plans: Plan[];
       </div>
       <div className="adm-cust-stats">
         <div><b>{plan ? planName(plan, lang) : cust.planId}</b><span>{t('admin.cust.plan')}</span></div>
-        <div><b>{cust.kgUsed}</b><span>{t('admin.cust.kg')}</span></div>
+        <div><b>{cust.itemsUsed}</b><span>{t('admin.cust.items')}</span></div>
         <div><b>{cust.credit.toFixed(3)}</b><span>{t('admin.cust.credit')}</span></div>
       </div>
       <div className="adm-cust-actions">
@@ -869,15 +880,262 @@ function CustomersSection({ plans }: { plans: Plan[] }) {
   )
 }
 
+/* ---------- Item pricing config (categories, add-ons, overage) ---------- */
+
+function ItemCategoryCard({ cat }: { cat: ItemCategory }) {
+  const { t, lang } = useI18n()
+  const [mult, setMult] = useState(String(cat.multiplier))
+  const [kg, setKg] = useState(String(cat.kgEst))
+  const [cost, setCost] = useState(String(cat.costKwd))
+  useEffect(() => {
+    setMult(String(cat.multiplier))
+    setKg(String(cat.kgEst))
+    setCost(String(cat.costKwd))
+  }, [cat.multiplier, cat.kgEst, cat.costKwd])
+  const dirty = Number(mult) !== cat.multiplier || Number(kg) !== cat.kgEst || Number(cost) !== cat.costKwd
+
+  return (
+    <div className="adm-plan">
+      <div className="adm-plan-name">{categoryName(cat, lang)}</div>
+      <div className="adm-three">
+        <label className="adm-field">
+          <span>{t('admin.items.mult')}</span>
+          <input type="number" inputMode="numeric" min={1} step={1} value={mult} onChange={(e) => setMult(e.target.value)} />
+        </label>
+        <label className="adm-field">
+          <span>{t('admin.items.kg')}</span>
+          <input type="number" inputMode="decimal" min={0} step={0.1} value={kg} onChange={(e) => setKg(e.target.value)} />
+        </label>
+        <label className="adm-field">
+          <span>{t('admin.items.cost')}</span>
+          <input type="number" inputMode="decimal" min={0} step={0.05} value={cost} onChange={(e) => setCost(e.target.value)} />
+        </label>
+      </div>
+      <button
+        className="btn-ghost adm-save"
+        disabled={!dirty}
+        onClick={() => setCategory(cat.id, { multiplier: Number(mult), kgEst: Number(kg), costKwd: Number(cost) })}
+      >
+        {dirty ? t('admin.save') : t('admin.saved')}
+      </button>
+    </div>
+  )
+}
+
+function AddOnCard({ addon }: { addon: AddOn }) {
+  const { t, lang } = useI18n()
+  const [price, setPrice] = useState(String(addon.priceKwd))
+  const [kg, setKg] = useState(String(addon.kgEst))
+  const [cost, setCost] = useState(String(addon.costKwd))
+  useEffect(() => {
+    setPrice(String(addon.priceKwd))
+    setKg(String(addon.kgEst))
+    setCost(String(addon.costKwd))
+  }, [addon.priceKwd, addon.kgEst, addon.costKwd])
+  const dirty = Number(price) !== addon.priceKwd || Number(kg) !== addon.kgEst || Number(cost) !== addon.costKwd
+
+  return (
+    <div className="adm-plan">
+      <div className="adm-plan-name">{addOnName(addon, lang)}</div>
+      <div className="adm-three">
+        <label className="adm-field">
+          <span>{t('admin.items.price')}</span>
+          <input type="number" inputMode="decimal" min={0} step={0.5} value={price} onChange={(e) => setPrice(e.target.value)} />
+        </label>
+        <label className="adm-field">
+          <span>{t('admin.items.kg')}</span>
+          <input type="number" inputMode="decimal" min={0} step={0.1} value={kg} onChange={(e) => setKg(e.target.value)} />
+        </label>
+        <label className="adm-field">
+          <span>{t('admin.items.cost')}</span>
+          <input type="number" inputMode="decimal" min={0} step={0.05} value={cost} onChange={(e) => setCost(e.target.value)} />
+        </label>
+      </div>
+      <button
+        className="btn-ghost adm-save"
+        disabled={!dirty}
+        onClick={() => setAddOn(addon.id, { priceKwd: Number(price), kgEst: Number(kg), costKwd: Number(cost) })}
+      >
+        {dirty ? t('admin.save') : t('admin.saved')}
+      </button>
+    </div>
+  )
+}
+
+function OverageCard() {
+  const { t } = useI18n()
+  const cfg = useItemsConfig()
+  const [fee, setFee] = useState(String(cfg.overagePerItem))
+  useEffect(() => setFee(String(cfg.overagePerItem)), [cfg.overagePerItem])
+  const dirty = Number(fee) !== cfg.overagePerItem
+  return (
+    <div className="staff-card">
+      <label className="adm-field">
+        <span>{t('admin.items.overage')}</span>
+        <input type="number" inputMode="decimal" min={0} step={0.05} value={fee} onChange={(e) => setFee(e.target.value)} />
+      </label>
+      <button className="btn-ghost adm-save" disabled={!dirty} onClick={() => setOveragePerItem(Number(fee))}>
+        {dirty ? t('admin.save') : t('admin.saved')}
+      </button>
+    </div>
+  )
+}
+
+function ItemsConfigSection() {
+  const { t } = useI18n()
+  const cfg = useItemsConfig()
+  return (
+    <>
+      <div className="section-title staff-sec">{t('admin.items.categories')}</div>
+      <div className="adm-plan-list">
+        {cfg.categories.map((c) => <ItemCategoryCard key={c.id} cat={c} />)}
+      </div>
+      <div className="section-title staff-sec">{t('admin.items.overageTitle')}</div>
+      <OverageCard />
+      <div className="section-title staff-sec">{t('admin.items.addons')}</div>
+      <div className="adm-plan-list">
+        {cfg.addOns.map((a) => <AddOnCard key={a.id} addon={a} />)}
+      </div>
+      <div style={{ height: 12 }} />
+    </>
+  )
+}
+
+/* ---------- Margin report (internal costing) ---------- */
+
+const INTAKES_KEY = 'pressd-pos:intakes:v4'
+
+function readIntakes(): Intake[] {
+  try {
+    const raw = localStorage.getItem(INTAKES_KEY)
+    const a = raw ? JSON.parse(raw) : []
+    return Array.isArray(a) ? a : []
+  } catch {
+    return []
+  }
+}
+
+interface Agg {
+  items: number
+  kg: number
+  cost: number
+  addOnRev: number
+  overageRev: number
+  rushRev: number
+  members: Set<string>
+}
+
+function emptyAgg(): Agg {
+  return { items: 0, kg: 0, cost: 0, addOnRev: 0, overageRev: 0, rushRev: 0, members: new Set() }
+}
+
+function MarginReport({ plans }: { plans: Plan[] }) {
+  const { t, lang } = useI18n()
+  useItemsConfig() // re-render if costing config changes
+  useNow(4000) // refresh so newly logged POS intakes show up
+  const intakes = readIntakes()
+
+  const byPlan = new Map<string, Agg>()
+  const byMember = new Map<string, { name: string; planId: string; agg: Agg }>()
+  for (const i of intakes) {
+    const pa = byPlan.get(i.planId) ?? emptyAgg()
+    pa.items += i.items || 0
+    pa.kg += i.estKg || 0
+    pa.cost += i.estCost || 0
+    pa.addOnRev += i.addOnCharge || 0
+    pa.overageRev += i.overageCharge || 0
+    pa.rushRev += i.rushFee || 0
+    pa.members.add(i.memberId)
+    byPlan.set(i.planId, pa)
+
+    const me = byMember.get(i.memberId) ?? { name: i.memberName, planId: i.planId, agg: emptyAgg() }
+    me.agg.items += i.items || 0
+    me.agg.kg += i.estKg || 0
+    me.agg.cost += i.estCost || 0
+    me.agg.addOnRev += i.addOnCharge || 0
+    me.agg.overageRev += i.overageCharge || 0
+    me.agg.rushRev += i.rushFee || 0
+    byMember.set(i.memberId, me)
+  }
+
+  const priceOf = (id: string) => {
+    const p = plans.find((x) => x.id === id)
+    return p ? planPrice(p, 'monthly') : 0
+  }
+  // Revenue for a plan row = one month's subscription per active member + extras.
+  const planRevenue = (id: string, a: Agg) => a.members.size * priceOf(id) + a.addOnRev + a.overageRev + a.rushRev
+  const memberRevenue = (planId: string, a: Agg) => priceOf(planId) + a.addOnRev + a.overageRev + a.rushRev
+
+  const planRows = plans
+    .map((p) => ({ p, a: byPlan.get(p.id) }))
+    .filter((r) => r.a && r.a.members.size > 0) as { p: Plan; a: Agg }[]
+
+  if (intakes.length === 0) {
+    return <div className="staff-card center" style={{ padding: 20 }}>{t('admin.report.empty')}</div>
+  }
+
+  return (
+    <>
+      <div className="section-title staff-sec">{t('admin.report.byPlan')}</div>
+      <div className="adm-plan-list">
+        {planRows.map(({ p, a }) => {
+          const rev = planRevenue(p.id, a)
+          const margin = rev - a.cost
+          const marginPct = rev > 0 ? Math.round((margin / rev) * 100) : 0
+          return (
+            <div key={p.id} className="staff-card rep-card">
+              <div className="rep-head">
+                <span className="rep-name"><span className={`dot-plan ${p.id}`} /> {planName(p, lang)}</span>
+                <span className={`rep-margin ${margin >= 0 ? 'pos' : 'neg'}`}>{margin.toFixed(3)} KWD · {marginPct}%</span>
+              </div>
+              <div className="rep-grid">
+                <div><b>{a.members.size}</b><span>{t('admin.report.members')}</span></div>
+                <div><b>{a.items}</b><span>{t('admin.report.items')}</span></div>
+                <div><b>{a.kg.toFixed(1)}</b><span>{t('admin.report.kg')}</span></div>
+                <div><b>{rev.toFixed(1)}</b><span>{t('admin.report.rev')}</span></div>
+                <div><b>{a.cost.toFixed(1)}</b><span>{t('admin.report.cost')}</span></div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="section-title staff-sec">{t('admin.report.byCustomer')}</div>
+      <div className="adm-plan-list">
+        {[...byMember.entries()].map(([id, m]) => {
+          const rev = memberRevenue(m.planId, m.agg)
+          const margin = rev - m.agg.cost
+          return (
+            <div key={id} className="staff-card rep-card">
+              <div className="rep-head">
+                <span className="rep-name">{m.name}</span>
+                <span className={`rep-margin ${margin >= 0 ? 'pos' : 'neg'}`}>{margin.toFixed(3)} KWD</span>
+              </div>
+              <div className="rep-grid">
+                <div><b>{m.agg.items}</b><span>{t('admin.report.items')}</span></div>
+                <div><b>{m.agg.kg.toFixed(1)}</b><span>{t('admin.report.kg')}</span></div>
+                <div><b>{m.agg.cost.toFixed(1)}</b><span>{t('admin.report.cost')}</span></div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <div style={{ height: 12 }} />
+    </>
+  )
+}
+
 function AdminView() {
   const { t } = useI18n()
   const { plans } = useAppConfig()
-  const [sub, setSub] = useState<'config' | 'discounts' | 'customers'>('config')
+  const [sub, setSub] = useState<'config' | 'items' | 'report' | 'discounts' | 'customers'>('config')
 
   return (
     <>
       <div className="adm-subnav">
         <button className={sub === 'config' ? 'on' : ''} onClick={() => setSub('config')}>{t('admin.sub.config')}</button>
+        <button className={sub === 'items' ? 'on' : ''} onClick={() => setSub('items')}>{t('admin.sub.items')}</button>
+        <button className={sub === 'report' ? 'on' : ''} onClick={() => setSub('report')}>{t('admin.sub.report')}</button>
         <button className={sub === 'discounts' ? 'on' : ''} onClick={() => setSub('discounts')}>{t('admin.sub.discounts')}</button>
         <button className={sub === 'customers' ? 'on' : ''} onClick={() => setSub('customers')}>{t('admin.sub.customers')}</button>
       </div>
@@ -896,6 +1154,8 @@ function AdminView() {
             <div style={{ height: 12 }} />
           </>
         )}
+        {sub === 'items' && <ItemsConfigSection />}
+        {sub === 'report' && <MarginReport plans={plans} />}
         {sub === 'discounts' && <DiscountsSection />}
         {sub === 'customers' && <CustomersSection plans={plans} />}
       </div>
@@ -939,8 +1199,8 @@ function useAlerts(): Alert[] {
   const { discounts } = useDiscounts()
 
   return useMemo(() => {
-    const capOf = (id: string) => plans.find((p) => p.id === id)?.capKg ?? Infinity
-    const over = customers.filter((c) => c.kgUsed > capOf(c.planId))
+    const capOf = (id: string) => plans.find((p) => p.id === id)?.items ?? Infinity
+    const over = customers.filter((c) => c.itemsUsed > capOf(c.planId))
     const frozen = customers.filter((c) => c.frozen)
     const todayStart = startOfTodayMs()
     const late = ledger.filter((e) => e.ts >= todayStart && readyBy(e.tier, e.ts) < now)

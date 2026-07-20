@@ -8,18 +8,19 @@ import {
   type ReactNode,
 } from 'react'
 import {
-  seedExtras,
+  costIntake,
+  round3,
   seedMembers,
   seedPlans,
   staff as staffList,
-  suggestBlocks,
-  type ExtraBlock,
+  type AddOnCounts,
   type Intake,
   type Member,
-  type OrderBlocks,
   type Plan,
   type Staff,
 } from './data'
+import { getItemsConfig, type ItemCounts } from '../data/items'
+import { sendNotification } from '../data/notifications'
 import {
   RUSH_DEFAULTS,
   tierFee,
@@ -28,10 +29,9 @@ import {
   type RushTier,
 } from '../data/rush'
 
-const PLANS_KEY = 'pressd-pos:plans:v2'
-const EXTRAS_KEY = 'pressd-pos:extras:v2'
-const MEMBERS_KEY = 'pressd-pos:members:v2'
-const INTAKES_KEY = 'pressd-pos:intakes:v3'
+const PLANS_KEY = 'pressd-pos:plans:v3'
+const MEMBERS_KEY = 'pressd-pos:members:v3'
+const INTAKES_KEY = 'pressd-pos:intakes:v4'
 const OCCUPIED_KEY = 'pressd-pos:occupied:v1'
 
 function load<T>(key: string, fallback: T): T {
@@ -50,10 +50,6 @@ function save<T>(key: string, value: T) {
   }
 }
 
-export function round3(n: number): number {
-  return Math.round(n * 1000) / 1000
-}
-
 /** Deterministic PRNG so the seeded intake history is stable across reloads. */
 function mulberry32(seed: number) {
   let a = seed
@@ -67,7 +63,8 @@ function mulberry32(seed: number) {
 }
 
 /** A week of past intakes so the operations dashboard is populated on launch. */
-function seedIntakes(plans: Plan[], extras: ExtraBlock[], members: Member[]): Intake[] {
+function seedIntakes(plans: Plan[], members: Member[]): Intake[] {
+  const cfg = getItemsConfig()
   const rng = mulberry32(20260715)
   const out: Intake[] = []
   const now = Date.now()
@@ -76,10 +73,15 @@ function seedIntakes(plans: Plan[], extras: ExtraBlock[], members: Member[]): In
     for (let i = 0; i < count; i++) {
       const member = members[Math.floor(rng() * members.length)]
       const plan = plans.find((p) => p.id === member.planId) ?? plans[0]
-      const kg = round3(3 + rng() * 9)
-      const remainingBefore = Math.max(0, plan.capKg - Math.floor(rng() * plan.capKg))
-      const overflowKg = Math.max(0, round3(kg - remainingBefore))
-      const s = suggestBlocks(overflowKg, extras)
+      // A plausible batch: mostly regular pieces, a few large, rarely XL.
+      const counts: ItemCounts = {
+        regular: 4 + Math.floor(rng() * 16),
+        large: Math.floor(rng() * 4),
+        xl: rng() > 0.85 ? 1 : 0,
+      }
+      const addOnCounts: AddOnCounts = rng() > 0.8 ? { duvet: 1 } : {}
+      const remainingBefore = Math.max(0, plan.items - Math.floor(rng() * plan.items))
+      const c = costIntake(counts, addOnCounts, remainingBefore, cfg)
       const d = new Date(now - day * 86400000)
       d.setHours(9 + Math.floor(rng() * 11), Math.floor(rng() * 60), 0, 0)
       const clerk = staffList[Math.floor(rng() * staffList.length)]
@@ -91,13 +93,17 @@ function seedIntakes(plans: Plan[], extras: ExtraBlock[], members: Member[]): In
         memberName: member.name,
         planId: plan.id,
         planName: plan.name,
-        kg,
+        counts,
+        addOnCounts,
+        items: c.items,
+        pieces: c.pieces,
+        estKg: c.estKg,
+        estCost: c.estCost,
+        kg: c.estKg,
         remainingBefore,
-        coveredKg: round3(Math.min(kg, remainingBefore)),
-        overflowKg,
-        blocks: { k5: s.k5, k8: s.k8 },
-        extraKgAdded: s.kg,
-        extraCharge: round3(s.price),
+        overageItems: c.overageItems,
+        overageCharge: c.overageCharge,
+        addOnCharge: c.addOnCharge,
         hangers: rng() > 0.4,
         tier,
         rushFee: tierFee(tier, RUSH_DEFAULTS),
@@ -113,13 +119,8 @@ function seedIntakes(plans: Plan[], extras: ExtraBlock[], members: Member[]): In
 
 export interface IntakeDraft {
   memberId: string
-  kg: number
-  remainingBefore: number
-  coveredKg: number
-  overflowKg: number
-  blocks: OrderBlocks
-  extraKgAdded: number
-  extraCharge: number
+  counts: ItemCounts
+  addOnCounts: AddOnCounts
   hangers: boolean
   tier: RushTier
   rushFee: number
@@ -129,7 +130,6 @@ interface PosState {
   staff: Staff[]
   currentStaff: Staff | null
   plans: Plan[]
-  extras: ExtraBlock[]
   members: Member[]
   intakes: Intake[]
   /** Composite slotKey()s the driver is marked occupied for (pickup/delivery). */
@@ -139,7 +139,6 @@ interface PosState {
   addPlan: (p: Omit<Plan, 'id'>) => void
   updatePlan: (p: Plan) => void
   deletePlan: (id: string) => void
-  updateExtra: (e: ExtraBlock) => void
   recordIntake: (draft: IntakeDraft) => Intake | null
   toggleOccupied: (key: string) => void
   /** Bulk mark/clear a set of slot keys (e.g. a whole day). */
@@ -151,12 +150,11 @@ const Ctx = createContext<PosState | null>(null)
 export function PosProvider({ children }: { children: ReactNode }) {
   const [currentStaff, setCurrentStaff] = useState<Staff | null>(null)
   const [plans, setPlans] = useState<Plan[]>(() => load(PLANS_KEY, seedPlans))
-  const [extras, setExtras] = useState<ExtraBlock[]>(() => load(EXTRAS_KEY, seedExtras))
   const [members, setMembers] = useState<Member[]>(() => load(MEMBERS_KEY, seedMembers))
   const [intakes, setIntakes] = useState<Intake[]>(() => {
     const existing = load<Intake[] | null>(INTAKES_KEY, null)
     if (existing) return existing
-    const seeded = seedIntakes(seedPlans, seedExtras, seedMembers)
+    const seeded = seedIntakes(seedPlans, seedMembers)
     save(INTAKES_KEY, seeded)
     // Seed today's rush intakes into the shared cap ledger so the live counter
     // matches the day's accepted rush orders (recordRush de-dupes by id).
@@ -169,7 +167,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const [occupied, setOccupiedState] = useState<string[]>(() => load(OCCUPIED_KEY, []))
 
   useEffect(() => save(PLANS_KEY, plans), [plans])
-  useEffect(() => save(EXTRAS_KEY, extras), [extras])
   useEffect(() => save(MEMBERS_KEY, members), [members])
   useEffect(() => save(INTAKES_KEY, intakes), [intakes])
   useEffect(() => save(OCCUPIED_KEY, occupied), [occupied])
@@ -190,9 +187,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const deletePlan = useCallback((id: string) => {
     setPlans((prev) => prev.filter((x) => x.id !== id))
   }, [])
-  const updateExtra = useCallback((e: ExtraBlock) => {
-    setExtras((prev) => prev.map((x) => (x.id === e.id ? e : x)))
-  }, [])
 
   const recordIntake = useCallback<PosState['recordIntake']>(
     (draft) => {
@@ -200,6 +194,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
       const member = members.find((m) => m.id === draft.memberId)
       if (!member) return null
       const plan = plans.find((p) => p.id === member.planId)
+      const remainingBefore = Math.max(0, (plan?.items ?? 0) - member.itemsUsed)
+      const c = costIntake(draft.counts, draft.addOnCounts, remainingBefore)
       const intake: Intake = {
         id: `PRS-${9000 + Math.floor(Math.random() * 999)}`,
         ts: Date.now(),
@@ -207,13 +203,17 @@ export function PosProvider({ children }: { children: ReactNode }) {
         memberName: member.name,
         planId: member.planId,
         planName: plan?.name ?? '—',
-        kg: draft.kg,
-        remainingBefore: draft.remainingBefore,
-        coveredKg: draft.coveredKg,
-        overflowKg: draft.overflowKg,
-        blocks: draft.blocks,
-        extraKgAdded: draft.extraKgAdded,
-        extraCharge: draft.extraCharge,
+        counts: draft.counts,
+        addOnCounts: draft.addOnCounts,
+        items: c.items,
+        pieces: c.pieces,
+        estKg: c.estKg,
+        estCost: c.estCost,
+        kg: c.estKg,
+        remainingBefore,
+        overageItems: c.overageItems,
+        overageCharge: c.overageCharge,
+        addOnCharge: c.addOnCharge,
         hangers: draft.hangers,
         tier: draft.tier,
         rushFee: draft.rushFee,
@@ -225,10 +225,15 @@ export function PosProvider({ children }: { children: ReactNode }) {
       setIntakes((prev) => [...prev, intake])
       // Rush intakes count toward the shared daily cap + reporting ledger.
       if (draft.tier !== 'standard') recordRush(draft.tier, draft.rushFee, intake.id)
-      // Deduct the batch from the member's monthly allowance usage.
+      // Deduct the weighted items from the member's monthly allowance.
       setMembers((prev) =>
-        prev.map((m) => (m.id === member.id ? { ...m, kgUsed: round3(m.kgUsed + draft.kg) } : m)),
+        prev.map((m) => (m.id === member.id ? { ...m, itemsUsed: m.itemsUsed + c.items } : m)),
       )
+      // Instant "items received" confirmation to the customer app.
+      sendNotification({
+        text: `We've collected your laundry: ${c.pieces} items ✓`,
+        audience: 'customer',
+      })
       return intake
     },
     [currentStaff, members, plans],
@@ -252,7 +257,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
       staff: staffList,
       currentStaff,
       plans,
-      extras,
       members,
       intakes,
       occupied,
@@ -261,12 +265,11 @@ export function PosProvider({ children }: { children: ReactNode }) {
       addPlan,
       updatePlan,
       deletePlan,
-      updateExtra,
       recordIntake,
       toggleOccupied,
       setOccupied,
     }),
-    [currentStaff, plans, extras, members, intakes, occupied, login, logout, addPlan, updatePlan, deletePlan, updateExtra, recordIntake, toggleOccupied, setOccupied],
+    [currentStaff, plans, members, intakes, occupied, login, logout, addPlan, updatePlan, deletePlan, recordIntake, toggleOccupied, setOccupied],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
@@ -277,3 +280,5 @@ export function usePos(): PosState {
   if (!ctx) throw new Error('usePos must be used inside <PosProvider>')
   return ctx
 }
+
+export { round3 }
