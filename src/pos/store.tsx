@@ -29,7 +29,7 @@ import {
   type RushTier,
 } from '../data/rush'
 
-const PLANS_KEY = 'pressd-pos:plans:v3'
+const PLANS_KEY = 'pressd-pos:plans:v4'
 const MEMBERS_KEY = 'pressd-pos:members:v3'
 const INTAKES_KEY = 'pressd-pos:intakes:v4'
 const OCCUPIED_KEY = 'pressd-pos:occupied:v1'

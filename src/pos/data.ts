@@ -103,7 +103,7 @@ export function money(kwd: number): string {
 
 // Subscription tiers — mirror the customer app's item-based plans.
 export const seedPlans: Plan[] = [
-  { id: 'solo', name: 'Solo', priceKwd: 22, items: 70, tagline: 'Singles & couples' },
+  { id: 'solo', name: 'Solo', priceKwd: 25, items: 70, tagline: 'Singles & couples' },
   { id: 'family', name: 'Family', priceKwd: 40, items: 140, tagline: 'Small families', popular: true },
   { id: 'family-plus', name: 'Family Plus', priceKwd: 65, items: 240, tagline: 'Larger families' },
   { id: 'max', name: 'Max', priceKwd: 85, items: 350, tagline: 'Heavy-use households' },
