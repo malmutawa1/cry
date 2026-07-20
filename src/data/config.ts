@@ -10,7 +10,8 @@ import { plans as basePlans, type Plan } from './plans'
 /** Per-plan price / allowance overrides. Absent fields fall back to defaults. */
 export interface PlanOverride {
   priceKwd?: number
-  capKg?: number
+  /** Monthly item allowance. */
+  items?: number
 }
 
 export type AnnouncementTone = 'info' | 'promo'
@@ -80,7 +81,7 @@ export function setPlanOverride(planId: string, patch: PlanOverride | null): App
     const merged: PlanOverride = { ...overrides[planId], ...patch }
     // Clamp to sane, positive values; drop empty fields.
     if (merged.priceKwd != null) merged.priceKwd = Math.max(0, Number(merged.priceKwd) || 0)
-    if (merged.capKg != null) merged.capKg = Math.max(0, Math.round(Number(merged.capKg) || 0))
+    if (merged.items != null) merged.items = Math.max(0, Math.round(Number(merged.items) || 0))
     overrides[planId] = merged
   }
   const next = { ...cfg, planOverrides: overrides }
@@ -103,7 +104,7 @@ export function resolvePlans(cfg: AppConfig = getAppConfig()): Plan[] {
     return {
       ...p,
       priceKwd: o.priceKwd != null ? o.priceKwd : p.priceKwd,
-      capKg: o.capKg != null ? o.capKg : p.capKg,
+      items: o.items != null ? o.items : p.items,
     }
   })
 }

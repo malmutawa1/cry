@@ -7,6 +7,7 @@ import { Bag, CalendarIn, Chevron, Gift, Globe, Hanger, Route } from '../compone
 import Reveal from '../components/Reveal'
 import { useCountUp } from '../useCountUp'
 import { ExtraKgSheet, useAllowance } from '../components/ExtraKg'
+import { useItemsConfig, categoryName } from '../data/items'
 import { tierInfo } from '../data/rewards'
 import { useAppConfig } from '../useAppConfig'
 import { Info } from '../components/Icons'
@@ -29,7 +30,8 @@ export default function Home({
   const { announcement } = useAppConfig()
   const annText = lang === 'ar' ? announcement.ar : announcement.en
   const now = useNow(1000)
-  const { usedKg: used, allowance, atLimit } = useAllowance()
+  const { usedItems: used, allowance, atLimit } = useAllowance()
+  const itemsCfg = useItemsConfig()
   const tier = tierInfo(lifetimePoints).current
   const [extraOpen, setExtraOpen] = useState(false)
   const firstName = user?.name?.trim().split(/\s+/)[0]
@@ -99,6 +101,7 @@ export default function Home({
             <div className={`bar ${atLimit ? 'full' : ''}`}>
               <span style={{ width: `${allowance ? (used / allowance) * 100 : 0}%` }} />
             </div>
+            <div className="hc-remain">{t('home.plan.remain', { n: Math.max(0, allowance - used) })}</div>
             {atLimit && (
               <button className="hc-limit" onClick={() => setExtraOpen(true)}>
                 <span>{t('extra.limit')}</span>
@@ -113,6 +116,24 @@ export default function Home({
             <button className="btn-ghost" onClick={onSeePlans}>
               {t('home.plan.none.cta')}
             </button>
+          </div>
+        )}
+
+        {activePlan && (
+          <div className="count-rule">
+            <div className="cr-title">{t('count.title')}</div>
+            <div className="cr-rows">
+              {itemsCfg.categories.map((c) => (
+                <div key={c.id} className="cr-row">
+                  <span className="cr-name">{categoryName(c, lang)}</span>
+                  <span className="cr-mult">{t('count.eq', { n: c.multiplier })}</span>
+                </div>
+              ))}
+              <div className="cr-row">
+                <span className="cr-name">{t('count.bedding')}</span>
+                <span className="cr-mult cr-addon">{t('count.addon')}</span>
+              </div>
+            </div>
           </div>
         )}
 

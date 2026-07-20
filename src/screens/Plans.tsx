@@ -123,7 +123,7 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
                 <div className="co-plan">{planName(intent.plan, lang)}</div>
                 <div className="co-period">{t(isAnnual ? 'checkout.period.annual' : 'checkout.period.monthly')}</div>
               </div>
-              <span className="plan-cap">{t('plans.cap', { kg: intent.plan.capKg })}</span>
+              <span className="plan-cap">{t('plans.cap', { n: intent.plan.items })}</span>
             </div>
             <div className="co-total">
               <span>{t('checkout.total')}</span>
@@ -214,7 +214,7 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
             <div className="per">{t(annual ? 'plans.perYear' : 'plans.per')}</div>
           </div>
         </div>
-        <span className="plan-cap">{t('plans.cap', { kg: p.capKg })}</span>
+        <span className="plan-cap">{t('plans.cap', { n: p.items })}</span>
         <ul className="perks">
           {planPerks(p, lang).map((perk) => (
             <li key={perk}>
@@ -274,7 +274,7 @@ export default function Plans({ onSubscribed }: { onSubscribed: () => void }) {
                   <span>{t(annual ? 'plans.perYear' : 'plans.per')}</span>
                 </div>
               </div>
-              <span className="plan-cap">{t('plans.cap', { kg: activePlan.capKg })}</span>
+              <span className="plan-cap">{t('plans.cap', { n: activePlan.items })}</span>
 
               <div className="mem-expiry">
                 <CalendarIn size={15} />

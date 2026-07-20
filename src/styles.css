@@ -2424,6 +2424,48 @@ textarea.field {
   white-space: nowrap;
   flex-shrink: 0;
 }
+.hc-remain {
+  margin-top: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Counting-rule card (how items are counted) */
+.count-rule {
+  margin: 14px 18px 0;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.cr-title { font-size: 13.5px; font-weight: 800; margin-bottom: 10px; }
+.cr-rows { display: flex; flex-direction: column; gap: 8px; }
+.cr-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cr-name { font-size: 13.5px; font-weight: 600; }
+.cr-mult {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.cr-mult.cr-addon { color: var(--muted); background: var(--surface-2); }
+
+/* Overage + bedding add-on sheet */
+.overage-card {
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(240, 89, 93, 0.1);
+  margin-bottom: 14px;
+}
+.overage-card .ov-row { display: flex; align-items: center; justify-content: space-between; font-weight: 800; font-size: 15px; }
+.overage-card .ov-note { margin-top: 6px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.addon-row { display: flex; align-items: center; gap: 10px; }
+.addon-name { font-weight: 700; font-size: 14.5px; flex: 1; }
+.addon-price { font-weight: 700; font-size: 14px; color: var(--muted); }
 .extra-block {
   margin: 0 18px 16px;
 }
@@ -4669,6 +4711,97 @@ button {
   .mem-family-plus .mem-fx::before { animation: none; }
 }
 
+/* ---- New item-plan ids reuse the existing tier treatments ----
+   solo → Basic look · family → Standard look · max → Premium look.
+   (family-plus keeps its own gold theme; its id is unchanged.) */
+.mem-solo, .mem-family { --annual-ink: var(--accent, #1f5c96); }
+.mem-max { --annual-ink: #4b41be; }
+
+.plan-solo .plan-fx {
+  background: radial-gradient(130% 90% at 100% 0%, rgba(90, 170, 235, 0.1), transparent 55%);
+  animation: fx-breathe 6s ease-in-out infinite;
+}
+.plan-family .plan-fx {
+  background: radial-gradient(120% 85% at 0% 100%, rgba(76, 196, 255, 0.12), transparent 55%);
+}
+.plan-family .plan-fx::before {
+  content: '';
+  position: absolute;
+  inset: -12%;
+  background-image:
+    radial-gradient(circle at 15% 30%, rgba(120, 195, 245, 0.22) 0 6px, transparent 7px),
+    radial-gradient(circle at 80% 20%, rgba(120, 195, 245, 0.16) 0 9px, transparent 10px),
+    radial-gradient(circle at 62% 74%, rgba(120, 195, 245, 0.14) 0 5px, transparent 6px),
+    radial-gradient(circle at 35% 60%, rgba(120, 195, 245, 0.12) 0 4px, transparent 5px);
+  animation: fx-bubbles 11s ease-in-out infinite alternate;
+}
+.plan-family .plan-fx::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -60%;
+  width: 42%;
+  height: 160%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transform: skewX(-18deg);
+  animation: fx-shine 6.5s ease-in-out infinite;
+}
+.plan-max .plan-fx {
+  background:
+    radial-gradient(115% 90% at 85% 0%, rgba(139, 122, 246, 0.18), transparent 60%),
+    radial-gradient(95% 85% at 0% 100%, rgba(99, 102, 241, 0.13), transparent 62%);
+}
+.plan-max .plan-fx::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 45% at 78% 12%, rgba(167, 139, 250, 0.16), transparent 70%);
+}
+.plan-max .plan-fx::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -60%;
+  width: 44%;
+  height: 160%;
+  background: linear-gradient(100deg, transparent, rgba(185, 195, 255, 0.34), transparent);
+  transform: skewX(-18deg);
+  animation: fx-shine 5s ease-in-out infinite;
+}
+
+.mem-solo { animation-duration: 14s; }
+.mem-solo::before { display: none; }
+.mem-solo::after { opacity: 0.5; animation-duration: 20s; }
+.mem-family .mem-fx {
+  background-image:
+    radial-gradient(circle at 16% 34%, rgba(255, 255, 255, 0.28) 0 10px, transparent 11px),
+    radial-gradient(circle at 84% 24%, rgba(255, 255, 255, 0.2) 0 15px, transparent 16px),
+    radial-gradient(circle at 60% 70%, rgba(255, 255, 255, 0.18) 0 8px, transparent 9px),
+    radial-gradient(circle at 38% 84%, rgba(255, 255, 255, 0.16) 0 6px, transparent 7px);
+  animation: mem-bubbles 12s ease-in-out infinite alternate-reverse;
+}
+.mem-max {
+  background:
+    radial-gradient(120% 95% at 82% 8%, rgba(167, 139, 250, 0.55), transparent 58%),
+    radial-gradient(90% 80% at 12% 100%, rgba(99, 91, 214, 0.5), transparent 62%),
+    linear-gradient(150deg, #6f63e8 0%, #4b3fb5 50%, #241d5c 100%);
+  background-size: 200% 200%;
+  box-shadow:
+    0 20px 44px rgba(60, 50, 160, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+.mem-max .mem-fx {
+  background: radial-gradient(70% 55% at 78% 0%, rgba(255, 255, 255, 0.16), transparent 70%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-solo .plan-fx,
+  .plan-family .plan-fx::before,
+  .plan-family .plan-fx::after,
+  .plan-max .plan-fx::after,
+  .mem-family .mem-fx { animation: none; }
+}
+
 /* ===================== Text reveal animations (ui-ux-pro-max motion) ===================== */
 /* Word-by-word heading entrance — transform + opacity only, ease-out. */
 .reveal { display: block; }
@@ -4881,12 +5014,26 @@ button {
   margin-bottom: 10px;
 }
 .dot-plan { width: 12px; height: 12px; border-radius: 50%; flex: none; background: var(--muted); }
-.dot-plan.basic { background: #DBD3F5; }
-.dot-plan.standard { background: #877FC1; }
+.dot-plan.basic, .dot-plan.solo { background: #DBD3F5; }
+.dot-plan.standard, .dot-plan.family { background: #877FC1; }
 .dot-plan.premium { background: #6b6478; }
-.dot-plan.family-plus { background: #34B37A; }
+.dot-plan.family-plus { background: #222026; }
+.dot-plan.max { background: #34B37A; }
 .rs-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-inline-end: 5px; vertical-align: middle; }
 .adm-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.adm-three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+/* Margin report cards */
+.rep-card { margin: 0; padding: 14px; }
+.rep-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.rep-name { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; }
+.rep-margin { font-weight: 800; font-size: 13px; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.rep-margin.pos { color: #148f5b; background: rgba(52, 179, 122, 0.14); }
+.rep-margin.neg { color: #e5484d; background: rgba(229, 72, 77, 0.14); }
+.rep-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(52px, 1fr)); gap: 8px; }
+.rep-grid > div { display: flex; flex-direction: column; gap: 2px; text-align: center; }
+.rep-grid b { font-size: 15px; font-weight: 800; }
+.rep-grid span { font-size: 10.5px; color: var(--muted); font-weight: 600; }
 .adm-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
 .adm-field > span { font-size: 12.5px; font-weight: 700; color: var(--muted); }
 .adm-field input {

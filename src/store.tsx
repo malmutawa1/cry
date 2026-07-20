@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { plans, type Billing, type Plan } from './data/plans'
+import { weightedItems, type ItemCounts } from './data/items'
 import { defaultDelivery, defaultPickup, type Slot } from './data/slots'
 import { isRush, recordRush, type RushTier } from './data/rush'
 import { api, apiEnabled, getToken, setSession, clearSession, type ApiLoyalty, type Snapshot } from './api'
@@ -99,7 +100,15 @@ interface Store {
   subscribe: (plan: Plan, billing: Billing) => void
   /** cancel the active membership */
   cancelSubscription: () => void
-  /** extra kg bought on top of the plan's monthly cap */
+  /** weighted allowance items collected this billing cycle (drives the counter) */
+  itemsUsed: number
+  /** bedding add-ons collected this cycle: { [addOnId]: count } (paid separately) */
+  beddingAddOns: Record<string, number>
+  /** log a batch of collected pieces (adds their weighted items to the counter) */
+  logItems: (counts: ItemCounts) => void
+  /** add one bedding add-on (billed on top of the subscription) */
+  addBedding: (addOnId: string) => void
+  /** extra kg bought on top of the plan's monthly cap (legacy backend field) */
   extraKg: number
   addExtraKg: (kg: number) => void
   /** membership paused */
@@ -198,6 +207,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [billing, setBilling] = useState<Billing>('monthly')
   const [subscribedAt, setSubscribedAt] = useState<number | null>(null)
   const [extraKg, setExtraKg] = useState(0)
+  // Item usage this cycle. Seeded to a mid-cycle figure so the live counter and
+  // the demo have something to show ("15 of 70 items").
+  const [itemsUsed, setItemsUsed] = useState(15)
+  const [beddingAddOns, setBeddingAddOns] = useState<Record<string, number>>({})
   const [hangers, setHangers] = useState(true)
   const [note, setNote] = useState('')
   const [address, setAddress] = useState('Zahra, Hawalli Governorate, Kuwait')
@@ -385,6 +398,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setCredit(0)
       setFreeMonths(0)
       setExtraKg(0)
+      setItemsUsed(15)
+      setBeddingAddOns({})
     },
     updateProfile: (p) => {
       setUser((u) => (u ? { name: p.name?.trim() || u.name, email: p.email?.trim() || u.email } : u))
@@ -425,6 +440,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setSubscribedAt(null)
       if (authed()) api.cancelSubscription().catch(() => {})
     },
+    itemsUsed,
+    beddingAddOns,
+    logItems: (counts) => setItemsUsed((n) => n + weightedItems(counts)),
+    addBedding: (addOnId) => setBeddingAddOns((prev) => ({ ...prev, [addOnId]: (prev[addOnId] || 0) + 1 })),
     extraKg,
     addExtraKg: (kg) => {
       setExtraKg((n) => n + kg)

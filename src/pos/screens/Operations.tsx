@@ -47,7 +47,7 @@ export function Operations() {
   )
   const activeMembers = members.length
   const ordersProcessed = inRange.length
-  const extraRevenue = round3(inRange.reduce((s, i) => s + i.extraCharge, 0))
+  const extraRevenue = round3(inRange.reduce((s, i) => s + (i.overageCharge ?? 0) + (i.addOnCharge ?? 0), 0))
   const kgProcessed = round3(inRange.reduce((s, i) => s + i.kg, 0))
 
   // Plan mix (members per plan) for the donut.
@@ -269,7 +269,7 @@ function IntakeRow({ rec, now }: { rec: Intake; now: number }) {
   const date = new Date(rec.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   const rush = rec.tier === 'express' || rec.tier === 'urgent'
   const late = isLate(rec, now)
-  const total = round3((rec.extraCharge ?? 0) + (rec.rushFee ?? 0))
+  const total = round3((rec.overageCharge ?? 0) + (rec.addOnCharge ?? 0) + (rec.rushFee ?? 0))
   return (
     <div className={`rrow${rush ? ' rush' : ''}${rec.tier === 'urgent' ? ' urgent' : ''}`}>
       <span className="rid">{rec.id}</span>

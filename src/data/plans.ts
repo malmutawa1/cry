@@ -1,5 +1,9 @@
-// Subscription tiers — taken from the feasibility study (Section 5).
-// Monthly membership model is the core differentiator vs. pay-per-order competitors.
+// Subscription tiers — piece-based (item) model.
+//
+// The customer sees each plan as a number of *items per month*. Every physical
+// piece counts as one or more allowance items based on its size (a suit = 3);
+// the weighting lives in data/items.ts. Kilograms are tracked internally for
+// costing only and never shown to the customer.
 
 import type { Lang } from '../i18n'
 
@@ -8,7 +12,8 @@ export interface Plan {
   name: string
   nameAr: string
   priceKwd: number
-  capKg: number
+  /** Monthly allowance in items (weighted). Admin-editable. */
+  items: number
   tagline: string
   taglineAr: string
   popular?: boolean
@@ -18,22 +23,22 @@ export interface Plan {
 
 export const plans: Plan[] = [
   {
-    id: 'basic',
-    name: 'Basic',
-    nameAr: 'أساسي',
-    priceKwd: 15,
-    capKg: 20,
+    id: 'solo',
+    name: 'Solo',
+    nameAr: 'فردي',
+    priceKwd: 22,
+    items: 70,
     tagline: 'For singles & couples',
     taglineAr: 'للأفراد والأزواج',
     perks: ['Free pickup & delivery', 'Next-day turnaround', 'Delivered on hangers', 'Pause anytime'],
     perksAr: ['استلام وتوصيل مجاني', 'تسليم في اليوم التالي', 'التوصيل على علاقات', 'إيقاف مؤقت في أي وقت'],
   },
   {
-    id: 'standard',
-    name: 'Standard',
-    nameAr: 'قياسي',
-    priceKwd: 28,
-    capKg: 40,
+    id: 'family',
+    name: 'Family',
+    nameAr: 'عائلي',
+    priceKwd: 40,
+    items: 140,
     tagline: 'For small families',
     taglineAr: 'للعائلات الصغيرة',
     popular: true,
@@ -41,22 +46,22 @@ export const plans: Plan[] = [
     perksAr: ['استلام وتوصيل مجاني', 'تسليم في اليوم التالي', 'التوصيل على علاقات', 'أولوية في المواعيد'],
   },
   {
-    id: 'premium',
-    name: 'Premium',
-    nameAr: 'بريميوم',
-    priceKwd: 45,
-    capKg: 70,
+    id: 'family-plus',
+    name: 'Family Plus',
+    nameAr: 'عائلي بلس',
+    priceKwd: 65,
+    items: 240,
     tagline: 'Larger families',
     taglineAr: 'للعائلات الكبيرة',
     perks: ['Dry-clean-grade care included', 'Free pickup & delivery', 'Same-day slots available', 'Delivered on hangers'],
     perksAr: ['عناية بمستوى التنظيف الجاف', 'استلام وتوصيل مجاني', 'مواعيد في نفس اليوم', 'التوصيل على علاقات'],
   },
   {
-    id: 'family-plus',
-    name: 'Family Plus',
-    nameAr: 'عائلي بلس',
-    priceKwd: 65,
-    capKg: 100,
+    id: 'max',
+    name: 'Max',
+    nameAr: 'ماكس',
+    priceKwd: 85,
+    items: 350,
     tagline: 'Heavy-use households',
     taglineAr: 'للاستخدام الكثيف',
     perks: ['Dry-clean-grade care included', 'Free pickup & delivery', 'Same-day slots available', 'Freeze anytime while travelling'],

@@ -542,10 +542,10 @@ select {
   background: var(--surface-3);
   color: var(--muted);
 }
-.pill.plan.basic { background: #f0eef9; color: #7a72b4; }
-.pill.plan.standard { background: #e7e3f7; color: #6f66b3; }
-.pill.plan.premium { background: #e8e8ec; color: #222026; }
-.pill.plan.family-plus { background: var(--green-tint); color: #2e9e6b; }
+.pill.plan.basic, .pill.plan.solo { background: #f0eef9; color: #7a72b4; }
+.pill.plan.standard, .pill.plan.family { background: #e7e3f7; color: #6f66b3; }
+.pill.plan.premium, .pill.plan.family-plus { background: #e8e8ec; color: #222026; }
+.pill.plan.max { background: var(--green-tint); color: #2e9e6b; }
 .dot-plan {
   width: 12px;
   height: 12px;
@@ -553,10 +553,10 @@ select {
   flex-shrink: 0;
   background: var(--surface-3);
 }
-.dot-plan.basic { background: #dbd3f5; }
-.dot-plan.standard { background: #877fc1; }
-.dot-plan.premium { background: #222026; }
-.dot-plan.family-plus { background: #34b37a; }
+.dot-plan.basic, .dot-plan.solo { background: #dbd3f5; }
+.dot-plan.standard, .dot-plan.family { background: #877fc1; }
+.dot-plan.premium, .dot-plan.family-plus { background: #222026; }
+.dot-plan.max { background: #34b37a; }
 
 /* Intake panel (right pane) */
 .cart {
@@ -696,6 +696,59 @@ select {
   color: #d9822b;
   font-weight: 700;
 }
+/* Itemized intake — category & add-on pickers */
+.item-cats {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 6px 14px;
+  margin-top: 10px;
+}
+.item-cats.addon-cats { margin-top: 10px; }
+.ic-head {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--faint);
+  padding: 8px 0 4px;
+}
+.item-cat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.item-cat-row:last-child { border-bottom: none; }
+.icr-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.icr-name { font-weight: 700; font-size: 14px; }
+.icr-eg {
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+.live-count {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  border: 1px solid var(--line);
+}
+.lc-main { font-size: 13px; color: var(--muted); font-weight: 600; }
+.lc-main b { font-size: 22px; color: var(--text); margin-inline-end: 4px; }
+.lc-pieces { display: block; font-size: 11.5px; margin-top: 2px; }
+.lc-remain { font-weight: 800; font-size: 13px; color: #2e9e6b; white-space: nowrap; }
+.lc-remain.over { color: #e5484d; }
+
 .blocks {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -1493,10 +1546,10 @@ table.tbl tbody tr:hover td {
   background: var(--surface-3);
   color: var(--muted);
 }
-.rm-pill.plan.basic { background: #f0eef9; color: #7a72b4; }
-.rm-pill.plan.standard { background: #e7e3f7; color: #6f66b3; }
-.rm-pill.plan.premium { background: #e8e8ec; color: #222026; }
-.rm-pill.plan.family-plus { background: var(--green-tint); color: #2e9e6b; }
+.rm-pill.plan.basic, .rm-pill.plan.solo { background: #f0eef9; color: #7a72b4; }
+.rm-pill.plan.standard, .rm-pill.plan.family { background: #e7e3f7; color: #6f66b3; }
+.rm-pill.plan.premium, .rm-pill.plan.family-plus { background: #e8e8ec; color: #222026; }
+.rm-pill.plan.max { background: var(--green-tint); color: #2e9e6b; }
 .recent .rtotal {
   font-weight: 700;
   text-align: right;
