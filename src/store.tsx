@@ -508,7 +508,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (points < cost) return false
       setPoints((p) => p - cost)
       // apply the actual perk so redeeming a reward really does something
-      if (id === 'extra5') setExtraKg((n) => n + 5)
+      if (id === 'extra5') setItemsUsed((n) => Math.max(0, n - 10)) // 10 free items
       else if (id === 'credit5') setCredit((c) => c + 5)
       else if (id === 'freemonth') setFreeMonths((n) => n + 1)
       if (authed()) api.redeem(id).then((r) => reconcileLoyalty(r.loyalty)).catch(() => {})
