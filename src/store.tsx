@@ -106,6 +106,8 @@ interface Store {
   beddingAddOns: Record<string, number>
   /** log a batch of collected pieces (adds their weighted items to the counter) */
   logItems: (counts: ItemCounts) => void
+  /** add a raw number of weighted items to the cycle counter (garment pickup) */
+  addItemsUsed: (n: number) => void
   /** add one bedding add-on (billed on top of the subscription) */
   addBedding: (addOnId: string) => void
   /** extra kg bought on top of the plan's monthly cap (legacy backend field) */
@@ -443,6 +445,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     itemsUsed,
     beddingAddOns,
     logItems: (counts) => setItemsUsed((n) => n + weightedItems(counts)),
+    addItemsUsed: (n) => setItemsUsed((v) => v + Math.max(0, n)),
     addBedding: (addOnId) => setBeddingAddOns((prev) => ({ ...prev, [addOnId]: (prev[addOnId] || 0) + 1 })),
     extraKg,
     addExtraKg: (kg) => {

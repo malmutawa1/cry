@@ -5690,3 +5690,182 @@ button {
   place-items: center;
   margin: 0 auto 14px;
 }
+
+/* ===================== Garment picker + counting guide ===================== */
+.gsheet {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  background: var(--bg);
+  animation: fade 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+.gsheet-top {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  padding-top: calc(12px + env(safe-area-inset-top));
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.gsheet-top h1 { font-size: 18px; font-weight: 800; color: var(--text); }
+.gsheet-search {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 16px 4px;
+  padding: 11px 13px;
+  border-radius: 13px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.gsheet-search .g { color: var(--muted); display: grid; place-items: center; }
+.gsheet-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+}
+.gsheet-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 16px 16px;
+}
+.gsheet-scroll::-webkit-scrollbar { width: 0; }
+.gsheet-hint { color: var(--muted); font-size: 13px; margin: 6px 2px 12px; line-height: 1.4; }
+.gs-rule {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+.gs-group { margin-bottom: 16px; }
+.gs-group-h {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+  margin: 0 2px 8px;
+}
+.gs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 13px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  margin-bottom: 8px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.gs-row.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+.gs-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gs-name { font-size: 14.5px; font-weight: 700; color: var(--text); }
+.gs-count { font-size: 12px; color: var(--muted); font-weight: 600; }
+.gs-stepper { display: flex; align-items: center; gap: 6px; flex: none; }
+.gs-stepper button {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+.gs-stepper button:disabled { opacity: 0.4; }
+.gs-stepper > span {
+  min-width: 22px;
+  text-align: center;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.gs-guide-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--line);
+}
+.gs-guide-row:last-child { border-bottom: none; }
+.gs-badge {
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.gs-badge.addon { color: var(--muted); background: var(--surface-2); }
+.gs-empty { text-align: center; color: var(--muted); padding: 30px 12px; font-weight: 600; }
+.gsheet-foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+.gs-total { display: flex; flex-direction: column; gap: 1px; flex: none; }
+.gs-total-main { font-size: 16px; font-weight: 800; color: var(--text); }
+.gs-total-sub { font-size: 12px; color: var(--muted); font-weight: 600; }
+.gsheet-foot .btn-primary { flex: 1; font-size: 16px; padding: 15px; }
+
+/* Pickup "what are you sending?" card */
+.items-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 36px);
+  margin: 0 18px 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  text-align: start;
+}
+.items-card .ic-ic {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-tint);
+  color: var(--accent);
+  flex: none;
+}
+.ic-body { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ic-title { font-size: 16px; font-weight: 800; color: var(--text); }
+.ic-sub { font-size: 13px; color: var(--muted); font-weight: 600; }
+.ic-cta { color: var(--accent); font-weight: 800; font-size: 13px; white-space: nowrap; flex: none; }
+.cta-note { text-align: center; color: var(--muted); font-size: 12.5px; font-weight: 600; margin-bottom: 8px; }
+
+/* "View full item list" link on the counting-rule card */
+.cr-more {
+  margin-top: 12px;
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 13.5px;
+  background: none;
+  padding: 0;
+}

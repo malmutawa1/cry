@@ -8,8 +8,11 @@ import { DateTimeSheet, RushCheckoutSheet } from '../components/DateTimeSheet'
 import { tierFee, type RushTier } from '../data/rush'
 import { useRush } from '../useRush'
 import LocationPicker from '../components/LocationPicker'
+import GarmentPicker from '../components/GarmentPicker'
 import { ExtraKgBanner, ExtraKgSheet, useAllowance } from '../components/ExtraKg'
+import { selectionPieces, selectionUnits, type GarmentSelection } from '../data/garments'
 import {
+  Basket,
   CalendarIn,
   CalendarOut,
   Chevron,
@@ -38,7 +41,16 @@ export default function Pickup({
   const { settings } = useRush()
   const [sheet, setSheet] = useState<Sheet>(null)
   const [extraOpen, setExtraOpen] = useState(false)
+  const [garmentsOpen, setGarmentsOpen] = useState(false)
+  const [garments, setGarments] = useState<GarmentSelection>({})
   const [rush, setRush] = useState<{ tier: 'express' | 'urgent'; fee: number } | null>(null)
+  const gUnits = selectionUnits(garments)
+  const gPieces = selectionPieces(garments)
+
+  function confirm(opts?: { tier?: RushTier; rushFee?: number }) {
+    if (gPieces > 0) s.addItemsUsed(gPieces)
+    onConfirm(opts)
+  }
 
   if (!s.activePlan) {
     return (
@@ -109,6 +121,17 @@ export default function Pickup({
           </button>
         </div>
 
+        <button className="items-card" onClick={() => setGarmentsOpen(true)}>
+          <span className="ic-ic"><Basket /></span>
+          <span className="ic-body">
+            <span className="ic-title">{t('garment.card.title')}</span>
+            <span className="ic-sub">
+              {gUnits > 0 ? t('garment.card.summary', { units: gUnits, pieces: gPieces }) : t('garment.card.empty')}
+            </span>
+          </span>
+          <span className="ic-cta">{gUnits > 0 ? t('garment.card.edit') : t('garment.card.add')} ›</span>
+        </button>
+
         <div className="card-group">
           <div className="feature">
             <span className="row-ic">
@@ -144,7 +167,8 @@ export default function Pickup({
       </div>
 
       <div className="bottom-cta">
-        <button className="btn-primary" onClick={() => onConfirm()}>
+        {gUnits === 0 && <div className="cta-note">{t('garment.card.required')}</div>}
+        <button className="btn-primary" disabled={gUnits === 0} onClick={() => confirm()}>
           {t('pickup.confirm')}
         </button>
       </div>
@@ -170,7 +194,7 @@ export default function Pickup({
         <RushCheckoutSheet
           tier={rush.tier}
           fee={rush.fee}
-          onPaid={() => { onConfirm({ tier: rush.tier, rushFee: rush.fee }); setRush(null) }}
+          onPaid={() => { confirm({ tier: rush.tier, rushFee: rush.fee }); setRush(null) }}
           onClose={() => setRush(null)}
         />
       )}
@@ -182,6 +206,13 @@ export default function Pickup({
         />
       )}
       {extraOpen && <ExtraKgSheet onClose={() => setExtraOpen(false)} />}
+      {garmentsOpen && (
+        <GarmentPicker
+          initial={garments}
+          onClose={() => setGarmentsOpen(false)}
+          onDone={(sel) => { setGarments(sel); setGarmentsOpen(false) }}
+        />
+      )}
       {sheet === 'phone' && (
         <EditSheet title={t('sheet.phone')} value={s.phone} onSave={(v) => { s.setPhone(v); setSheet(null) }} onClose={() => setSheet(null)} />
       )}
