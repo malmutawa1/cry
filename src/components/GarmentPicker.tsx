@@ -80,7 +80,7 @@ export default function GarmentPicker({ initial, onClose, onDone }: Props) {
                   </div>
                   <div className="gs-stepper">
                     <button onClick={() => bump(it.id, -1)} disabled={qty === 0} aria-label="−"><Minus size={16} /></button>
-                    <span>{qty}</span>
+                    <span key={qty} className="gs-qty gs-bounce">{qty}</span>
                     <button onClick={() => bump(it.id, 1)} aria-label="+"><Plus size={16} /></button>
                   </div>
                 </div>
@@ -93,7 +93,10 @@ export default function GarmentPicker({ initial, onClose, onDone }: Props) {
 
       <div className="gsheet-foot">
         <div className="gs-total">
-          <span className="gs-total-main">{t('garment.counted', { n: pieces })}</span>
+          <span className="gs-total-row">
+            <b key={pieces} className="gs-total-num gs-bounce">{pieces}</b>
+            <span className="gs-total-lbl">{t('garment.totalPieces')}</span>
+          </span>
           <span className="gs-total-sub">{t('garment.units', { n: units })}</span>
         </div>
         <button className="btn-primary" disabled={units === 0} onClick={() => onDone(sel)}>
