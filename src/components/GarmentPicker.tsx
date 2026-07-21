@@ -84,7 +84,7 @@ export default function GarmentPicker({ initial, onClose, onDone }: Props) {
                 const sub = it.pieces * qty
                 return (
                   <div key={it.id} className="gr-line">
-                    <span className={`gs-thumb g-${g.id}`}>{garmentEmoji(it)}</span>
+                    <span className={`gs-thumb g-${g.id}`}>{garmentEmoji(it) || groupEmoji(g)}</span>
                     <span className="gr-qty">{qty}×</span>
                     <span className="gr-name">{garmentName(it, lang)}</span>
                     <span className="gr-sub">
@@ -132,7 +132,7 @@ export default function GarmentPicker({ initial, onClose, onDone }: Props) {
               const qty = sel[it.id] || 0
               return (
                 <div key={it.id} className={`gs-row${qty > 0 ? ' on' : ''}`}>
-                  <span className={`gs-thumb g-${g.id}${qty > 0 ? ' on' : ''}`}>{garmentEmoji(it)}</span>
+                  <span className={`gs-thumb g-${g.id}${qty > 0 ? ' on' : ''}`}>{garmentEmoji(it) || groupEmoji(g)}</span>
                   <div className="gs-info">
                     <span className="gs-name">{garmentName(it, lang)}</span>
                     <span className="gs-count">

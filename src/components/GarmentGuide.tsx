@@ -43,7 +43,7 @@ export default function GarmentGuide({ onClose }: { onClose: () => void }) {
             <div className="gs-group-h"><span className="gs-gh-emoji">{groupEmoji(g)}</span>{groupName(g, lang)}</div>
             {g.items.map((it) => (
               <div key={it.id} className="gs-guide-row">
-                <span className={`gs-thumb g-${g.id}`}>{garmentEmoji(it)}</span>
+                <span className={`gs-thumb g-${g.id}`}>{garmentEmoji(it) || groupEmoji(g)}</span>
                 <span className="gs-name">{garmentName(it, lang)}</span>
                 <span className={`gs-badge${it.addon ? ' addon' : ''}`}>
                   {it.addon ? t('garment.addon') : it.pieces === 1 ? t('garment.piece1') : t('garment.pieces', { n: it.pieces })}
