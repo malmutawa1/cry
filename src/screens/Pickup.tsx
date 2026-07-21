@@ -47,8 +47,9 @@ export default function Pickup({
   const gUnits = selectionUnits(garments)
   const gPieces = selectionPieces(garments)
 
-  function confirm(opts?: { tier?: RushTier; rushFee?: number }) {
-    if (gPieces > 0) s.addItemsUsed(gPieces)
+  function confirm(opts?: { tier?: RushTier; rushFee?: number }, selOverride?: GarmentSelection) {
+    const pieces = selectionPieces(selOverride ?? garments)
+    if (pieces > 0) s.addItemsUsed(pieces)
     onConfirm(opts)
   }
 
@@ -210,7 +211,7 @@ export default function Pickup({
         <GarmentPicker
           initial={garments}
           onClose={() => setGarmentsOpen(false)}
-          onDone={(sel) => { setGarments(sel); setGarmentsOpen(false) }}
+          onDone={(sel) => { setGarments(sel); setGarmentsOpen(false); confirm(undefined, sel) }}
         />
       )}
       {sheet === 'phone' && (

@@ -5905,3 +5905,60 @@ button {
   background: none;
   padding: 0;
 }
+
+/* ---- Garment review step ---- */
+.chev-back { transform: rotate(180deg); }
+[dir='rtl'] .chev-back { transform: rotate(0deg); }
+.gr-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 22px 20px;
+  margin: 10px 0 18px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border: 1px solid var(--line);
+}
+.gr-hero-num {
+  font-size: 60px;
+  font-weight: 900;
+  color: var(--accent);
+  line-height: 0.9;
+  letter-spacing: -2.5px;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 5px 24px color-mix(in srgb, var(--accent) 38%, transparent);
+  animation: gs-pop-big 0.5s cubic-bezier(0.34, 1.6, 0.5, 1);
+}
+.gr-hero-lbl { font-size: 14px; font-weight: 800; color: var(--text); margin-top: 6px; }
+.gr-hero-sub { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.gr-group { margin-bottom: 14px; }
+.gr-group-h {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+  margin: 0 2px 6px;
+}
+.gr-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--line);
+}
+.gr-line:last-child { border-bottom: none; }
+.gr-qty { font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; min-width: 30px; }
+.gr-name { flex: 1; font-weight: 600; font-size: 14.5px; color: var(--text); }
+.gr-sub { color: var(--muted); font-weight: 700; font-size: 12.5px; white-space: nowrap; }
+.gr-edit {
+  display: block;
+  margin: 10px auto 0;
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 14px;
+  background: none;
+  padding: 8px 12px;
+}
+.review-foot .btn-primary { flex: 1; }
