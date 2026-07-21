@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import {
-  garmentEmoji,
   garmentGroups,
   garmentName,
   groupEmoji,
@@ -10,6 +9,7 @@ import {
   selectionUnits,
   type GarmentSelection,
 } from '../data/garments'
+import GarmentIcon from './GarmentIcons'
 import { Chevron, Close, Minus, Plus, Search } from './Icons'
 
 interface Props {
@@ -84,7 +84,7 @@ export default function GarmentPicker({ initial, onClose, onDone }: Props) {
                 const sub = it.pieces * qty
                 return (
                   <div key={it.id} className="gr-line">
-                    <span className={`gs-thumb g-${g.id}`}>{garmentEmoji(it) || groupEmoji(g)}</span>
+                    <span className={`gs-thumb g-${g.id}`}><GarmentIcon g={it} size={22} /></span>
                     <span className="gr-qty">{qty}×</span>
                     <span className="gr-name">{garmentName(it, lang)}</span>
                     <span className="gr-sub">
@@ -132,7 +132,7 @@ export default function GarmentPicker({ initial, onClose, onDone }: Props) {
               const qty = sel[it.id] || 0
               return (
                 <div key={it.id} className={`gs-row${qty > 0 ? ' on' : ''}`}>
-                  <span className={`gs-thumb g-${g.id}${qty > 0 ? ' on' : ''}`}>{garmentEmoji(it) || groupEmoji(g)}</span>
+                  <span className={`gs-thumb g-${g.id}${qty > 0 ? ' on' : ''}`}><GarmentIcon g={it} /></span>
                   <div className="gs-info">
                     <span className="gs-name">{garmentName(it, lang)}</span>
                     <span className="gs-count">
