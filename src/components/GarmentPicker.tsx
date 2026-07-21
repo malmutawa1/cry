@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import {
+  garmentEmoji,
   garmentGroups,
   garmentName,
+  groupEmoji,
   groupName,
   selectionPieces,
   selectionUnits,
@@ -68,6 +70,7 @@ export default function GarmentPicker({ initial, onClose, onDone }: Props) {
 
         <div className="gsheet-scroll anim-in" key="review">
           <div className="gr-hero">
+            <span className="gr-hero-emoji">🧺</span>
             <b className="gr-hero-num">{pieces}</b>
             <span className="gr-hero-lbl">{t('garment.totalPieces')}</span>
             <span className="gr-hero-sub">{t('garment.units', { n: units })}</span>
@@ -75,12 +78,13 @@ export default function GarmentPicker({ initial, onClose, onDone }: Props) {
 
           {chosenGroups.map((g) => (
             <div key={g.id} className="gr-group">
-              <div className="gr-group-h">{groupName(g, lang)}</div>
+              <div className="gr-group-h"><span className="gs-gh-emoji">{groupEmoji(g)}</span>{groupName(g, lang)}</div>
               {g.items.map((it) => {
                 const qty = sel[it.id] || 0
                 const sub = it.pieces * qty
                 return (
                   <div key={it.id} className="gr-line">
+                    <span className={`gs-thumb g-${g.id}`}>{garmentEmoji(it)}</span>
                     <span className="gr-qty">{qty}×</span>
                     <span className="gr-name">{garmentName(it, lang)}</span>
                     <span className="gr-sub">
@@ -123,11 +127,12 @@ export default function GarmentPicker({ initial, onClose, onDone }: Props) {
         <p className="gsheet-hint">{t('garment.pick.hint')}</p>
         {groups.map((g) => (
           <div key={g.id} className="gs-group">
-            <div className="gs-group-h">{groupName(g, lang)}</div>
+            <div className="gs-group-h"><span className="gs-gh-emoji">{groupEmoji(g)}</span>{groupName(g, lang)}</div>
             {g.items.map((it) => {
               const qty = sel[it.id] || 0
               return (
                 <div key={it.id} className={`gs-row${qty > 0 ? ' on' : ''}`}>
+                  <span className={`gs-thumb g-${g.id}${qty > 0 ? ' on' : ''}`}>{garmentEmoji(it)}</span>
                   <div className="gs-info">
                     <span className="gs-name">{garmentName(it, lang)}</span>
                     <span className="gs-count">

@@ -272,6 +272,44 @@ export function groupName(g: GarmentGroup, lang: string): string {
   return lang === 'ar' ? g.nameAr : g.name
 }
 
+/** A representative emoji for a garment, derived from its name (offline-safe
+ *  "picture"). Order matters — specific matches win over generic tops. */
+export function garmentEmoji(g: Garment): string {
+  const n = g.name.toLowerCase()
+  const has = (...w: string[]) => w.some((x) => n.includes(x))
+  if (has('duvet', 'comforter', 'bedding', 'bed sheet', 'bed linen', 'fitted sheet', 'flat sheet', 'sheet', 'blanket', 'pillow', 'bolster', 'shozat', 'coverlet', 'quilt', 'bed cover')) return '🛏️'
+  if (has('towel', 'bath mat', 'bath')) return '🛁'
+  if (has('curtain')) return '🪟'
+  if (has('rug', 'prayer', 'jalsa', 'floor')) return '🧶'
+  if (has('tablecloth', 'napkin', 'placemat', 'runner', 'apron', 'kitchen', 'sofa', 'couch', 'cushion', 'low table', 'table')) return '🍽️'
+  if (has('ghutra', 'shemagh', 'shayla', 'hijab', 'milfa', 'boshiya', 'bukhnaq', 'shawl', 'esharb', 'scarf', 'kufiya', 'necktie', 'tie', 'veil', 'egal', 'wrap')) return '🧣'
+  if (has('taqiyah', 'cap', 'hat')) return '🧢'
+  if (has('sock')) return '🧦'
+  if (has('glove')) return '🧤'
+  if (has('belt')) return '🎗️'
+  if (has('underwear')) return '🩲'
+  if (has('undershirt', 'fanila')) return '🎽'
+  if (has('swim')) return '🩱'
+  if (has('bib', 'newborn', 'swaddle', 'baby')) return '🧸'
+  if (has('pyjama', 'pajama', 'nightgown')) return '🛌'
+  if (has('dress', 'maxi', 'gown', 'jumpsuit', 'overall')) return '👗'
+  if (has('dishdasha', 'abaya', 'daraa', 'deebaj', 'thob', 'jalabiya', 'kaftan', 'robe', 'bathrobe', 'ihram', 'wizar')) return '👘'
+  if (has('bisht', 'farwa', 'sidairi', 'jacket', 'blazer', 'coat', 'cardigan', 'hoodie', 'pullover', 'sweater', 'suit', 'tracksuit', 'vest', 'gilet', 'uniform', 'military')) return '🧥'
+  if (has('shorts', 'bermuda')) return '🩳'
+  if (has('trousers', 'jeans', 'chinos', 'pants', 'leggings')) return '👖'
+  if (has('silk', 'velvet', 'cashmere', 'fur', 'leather', 'suede', 'lace', 'chiffon', 'beaded', 'sequined', 'embroidered')) return '✨'
+  if (has('shirt', 't-shirt', 'polo', 'blouse', 'tunic', 'jersey', 'clothing')) return '👕'
+  return '👕'
+}
+
+const GROUP_EMOJI: Record<string, string> = {
+  mens: '👳', womens: '🧕', everyday: '👕', sport: '🏃', children: '🧒',
+  bedding: '🛏️', linen: '🧺', delicates: '✨', addons: '📦',
+}
+export function groupEmoji(g: GarmentGroup): string {
+  return GROUP_EMOJI[g.id] ?? '👕'
+}
+
 /** A selection is { [garmentId]: quantity }. */
 export type GarmentSelection = Record<string, number>
 
