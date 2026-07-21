@@ -8,7 +8,7 @@ import {
   selectionUnits,
   type GarmentSelection,
 } from '../data/garments'
-import { Close, Minus, Plus, Search } from './Icons'
+import { Chevron, Close, Minus, Plus, Search } from './Icons'
 
 interface Props {
   initial?: GarmentSelection
@@ -17,11 +17,13 @@ interface Props {
 }
 
 /** Full-screen sheet where the customer declares the garments they're sending.
- *  Each item counts as a set number of pieces; the total updates live. */
+ *  Step 1 picks garments (live piece count); step 2 reviews the order and
+ *  proceeds to checkout. */
 export default function GarmentPicker({ initial, onClose, onDone }: Props) {
   const { t, lang } = useI18n()
   const [sel, setSel] = useState<GarmentSelection>(initial ?? {})
   const [q, setQ] = useState('')
+  const [view, setView] = useState<'pick' | 'review'>('pick')
 
   const query = q.trim().toLowerCase()
   const groups = useMemo(
@@ -50,6 +52,60 @@ export default function GarmentPicker({ initial, onClose, onDone }: Props) {
     })
   }
 
+  // ---------------- Review step ----------------
+  if (view === 'review') {
+    const chosenGroups = garmentGroups
+      .map((g) => ({ ...g, items: g.items.filter((it) => (sel[it.id] || 0) > 0) }))
+      .filter((g) => g.items.length > 0)
+
+    return (
+      <div className="gsheet">
+        <div className="gsheet-top">
+          <button className="round-btn" onClick={() => setView('pick')} aria-label={t('common.back')}><Chevron className="chev-back" /></button>
+          <h1>{t('garment.review.title')}</h1>
+          <span style={{ width: 42 }} />
+        </div>
+
+        <div className="gsheet-scroll anim-in" key="review">
+          <div className="gr-hero">
+            <b className="gr-hero-num">{pieces}</b>
+            <span className="gr-hero-lbl">{t('garment.totalPieces')}</span>
+            <span className="gr-hero-sub">{t('garment.units', { n: units })}</span>
+          </div>
+
+          {chosenGroups.map((g) => (
+            <div key={g.id} className="gr-group">
+              <div className="gr-group-h">{groupName(g, lang)}</div>
+              {g.items.map((it) => {
+                const qty = sel[it.id] || 0
+                const sub = it.pieces * qty
+                return (
+                  <div key={it.id} className="gr-line">
+                    <span className="gr-qty">{qty}×</span>
+                    <span className="gr-name">{garmentName(it, lang)}</span>
+                    <span className="gr-sub">
+                      {it.addon ? t('garment.addon') : sub === 1 ? t('garment.piece1') : t('garment.pieces', { n: sub })}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          ))}
+
+          <button className="gr-edit" onClick={() => setView('pick')}>{t('garment.review.edit')}</button>
+          <div style={{ height: 8 }} />
+        </div>
+
+        <div className="gsheet-foot review-foot">
+          <button className="btn-primary" onClick={() => onDone(sel)}>
+            {t('garment.review.checkout')}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ---------------- Pick step ----------------
   return (
     <div className="gsheet">
       <div className="gsheet-top">
@@ -96,7 +152,7 @@ export default function GarmentPicker({ initial, onClose, onDone }: Props) {
           <b key={pieces} className="gs-total-num gs-bounce">{pieces}</b>
           <span className="gs-total-lbl">{t('garment.totalPieces')} · {t('garment.units', { n: units })}</span>
         </div>
-        <button className="btn-primary" disabled={units === 0} onClick={() => onDone(sel)}>
+        <button className="btn-primary" disabled={units === 0} onClick={() => setView('review')}>
           {t('garment.done')}
         </button>
       </div>
