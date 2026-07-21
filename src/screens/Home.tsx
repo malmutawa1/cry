@@ -8,6 +8,7 @@ import Reveal from '../components/Reveal'
 import { useCountUp } from '../useCountUp'
 import { ExtraKgSheet, useAllowance } from '../components/ExtraKg'
 import { useItemsConfig, categoryName, categoryExamples } from '../data/items'
+import GarmentGuide from '../components/GarmentGuide'
 import { tierInfo } from '../data/rewards'
 import { useAppConfig } from '../useAppConfig'
 import { Info } from '../components/Icons'
@@ -34,6 +35,7 @@ export default function Home({
   const itemsCfg = useItemsConfig()
   const tier = tierInfo(lifetimePoints).current
   const [extraOpen, setExtraOpen] = useState(false)
+  const [guideOpen, setGuideOpen] = useState(false)
   const firstName = user?.name?.trim().split(/\s+/)[0]
   const orderStageIdx = activeOrder ? orderStage(activeOrder, now) : -1
 
@@ -140,6 +142,7 @@ export default function Home({
                 <span className="cr-mult cr-addon">{t('count.addon')}</span>
               </div>
             </div>
+            <button className="cr-more" onClick={() => setGuideOpen(true)}>{t('count.viewAll')} ›</button>
           </div>
         )}
 
@@ -178,6 +181,7 @@ export default function Home({
       </div>
 
       {extraOpen && <ExtraKgSheet onClose={() => setExtraOpen(false)} />}
+      {guideOpen && <GarmentGuide onClose={() => setGuideOpen(false)} />}
     </>
   )
 }
