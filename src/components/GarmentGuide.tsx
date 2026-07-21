@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
-import { garmentEmoji, garmentGroups, garmentName, groupEmoji, groupName } from '../data/garments'
+import { garmentGroups, garmentName, groupEmoji, groupName } from '../data/garments'
+import GarmentIcon from './GarmentIcons'
 import { Close, Search } from './Icons'
 
 /** Read-only reference: every garment and how many pieces it counts as. */
@@ -43,7 +44,7 @@ export default function GarmentGuide({ onClose }: { onClose: () => void }) {
             <div className="gs-group-h"><span className="gs-gh-emoji">{groupEmoji(g)}</span>{groupName(g, lang)}</div>
             {g.items.map((it) => (
               <div key={it.id} className="gs-guide-row">
-                <span className={`gs-thumb g-${g.id}`}>{garmentEmoji(it) || groupEmoji(g)}</span>
+                <span className={`gs-thumb g-${g.id}`}><GarmentIcon g={it} size={22} /></span>
                 <span className="gs-name">{garmentName(it, lang)}</span>
                 <span className={`gs-badge${it.addon ? ' addon' : ''}`}>
                   {it.addon ? t('garment.addon') : it.pieces === 1 ? t('garment.piece1') : t('garment.pieces', { n: it.pieces })}
