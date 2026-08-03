@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../state.dart';
+import '../i18n.dart';
 import '../theme.dart';
 import '../data/items.dart';
 
@@ -12,7 +13,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
+    final l = context.watch<LocaleState>();
     final plan = s.activePlan;
+    final firstName = (s.user?.name ?? '').split(' ').first;
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
       children: [
@@ -23,25 +26,27 @@ class HomeScreen extends StatelessWidget {
             child: const Center(child: Text('P', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20))),
           ),
           const SizedBox(width: 10),
-          const Text('Pressd', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(l.t('brand'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          const Spacer(),
+          IconButton(onPressed: () => context.read<LocaleState>().toggle(), icon: const Icon(Icons.language)),
         ]),
-        const SizedBox(height: 18),
-        const Text('Hello, Abdullah', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
-        const Text('Your laundry, handled.', style: TextStyle(color: AppColors.muted, fontSize: 16)),
+        const SizedBox(height: 12),
+        Text(l.t('home.hello', {'name': firstName}), style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+        Text(l.t('home.subtitle'), style: const TextStyle(color: AppColors.muted, fontSize: 16)),
         const SizedBox(height: 18),
         if (plan != null) ...[
-          _heroCard(s),
+          _heroCard(context, s, l),
           const SizedBox(height: 14),
-          _countingCard(),
+          _countingCard(l),
           const SizedBox(height: 18),
-          _primary('Schedule a pickup', onSchedule),
+          _primary(l.t('home.schedule'), onSchedule),
         ] else
-          _noPlanCard(),
+          _noPlanCard(l),
       ],
     );
   }
 
-  Widget _heroCard(AppState s) {
+  Widget _heroCard(BuildContext context, AppState s, LocaleState l) {
     final plan = s.activePlan!;
     final used = s.itemsUsed;
     final pct = plan.items == 0 ? 0.0 : (used / plan.items).clamp(0.0, 1.0);
@@ -50,10 +55,12 @@ class HomeScreen extends StatelessWidget {
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.line)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('${plan.name} membership', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-            Text('$used of ${plan.items} items used this month', style: const TextStyle(color: AppColors.muted)),
-          ]),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(l.t('home.plan.active', {'name': l.isAr ? plan.nameAr : plan.name}), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+              Text(l.t('home.plan.allowance', {'used': used, 'cap': plan.items}), style: const TextStyle(color: AppColors.muted)),
+            ]),
+          ),
           Text('${plan.priceKwd.toInt()}', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: AppColors.accent)),
         ]),
         const SizedBox(height: 12),
@@ -62,12 +69,12 @@ class HomeScreen extends StatelessWidget {
           child: LinearProgressIndicator(value: pct.toDouble(), minHeight: 8, backgroundColor: AppColors.surface2, color: AppColors.accent),
         ),
         const SizedBox(height: 8),
-        Text('${s.remaining} items left this month', style: const TextStyle(color: AppColors.muted, fontSize: 12.5, fontWeight: FontWeight.w600)),
+        Text(l.t('home.plan.remain', {'n': s.remaining}), style: const TextStyle(color: AppColors.muted, fontSize: 12.5, fontWeight: FontWeight.w600)),
       ]),
     );
   }
 
-  Widget _countingCard() {
+  Widget _countingCard(LocaleState l) {
     Widget row(String name, String eg, String badge, {bool addon = false}) => Padding(
           padding: const EdgeInsets.symmetric(vertical: 6),
           child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -91,23 +98,23 @@ class HomeScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.line)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('How items are counted', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
+        Text(l.t('count.title'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
         const SizedBox(height: 8),
-        for (final c in itemCategories) row(c.name, c.examples.split(',').take(3).join(', '), '= ${c.multiplier}'),
-        row('Bedding', 'Duvets, comforters, large bedding', 'Paid add-on', addon: true),
+        for (final c in itemCategories) row(l.isAr ? c.nameAr : c.name, c.examples.split(',').take(3).join(', '), '= ${c.multiplier}'),
+        row(l.t('count.bedding'), l.t('count.beddingEg'), l.t('count.addon'), addon: true),
       ]),
     );
   }
 
-  Widget _noPlanCard() => Container(
+  Widget _noPlanCard(LocaleState l) => Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.line)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('No active membership', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          Text(l.t('home.plan.none.title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
-          const Text('Pick a monthly plan and stop counting items.', style: TextStyle(color: AppColors.muted)),
+          Text(l.t('home.plan.none.sub'), style: const TextStyle(color: AppColors.muted)),
           const SizedBox(height: 14),
-          _primary('Choose a plan', onSeePlans),
+          _primary(l.t('home.plan.none.cta'), onSeePlans),
         ]),
       );
 

@@ -19,31 +19,31 @@ environment, so this code has not been compiled/verified here — run
 
 ## What's ported (customer core)
 
+- **Bilingual i18n + RTL** (`lib/i18n.dart`) — `LocaleState` with EN/AR strings,
+  a language toggle, and full right-to-left mirroring (via a `Directionality`
+  wrapper in `main.dart`). Plan / garment / group names switch language too.
+- **Auth flow** — Welcome splash (`screens/welcome_screen.dart`) → Sign-in
+  (`screens/auth_screen.dart`, email/password + "Continue with Apple" demo) →
+  app shell. Gated in `main.dart`.
 - **Theme & palette** (`lib/theme.dart`) — accent, per-plan colours
   (Family Plus = teal, Max = green), per-group tile tints.
-- **Models** (`lib/models.dart`) — Plan, ItemCategory, AddOn, Garment,
-  GarmentGroup.
-- **Data** — the item-based plans (`data/plans.dart`), item categories +
-  add-ons + overage (`data/items.dart`), and the **full garment catalogue**
-  (`data/garments.dart`, ~180 items, EN/AR + piece counts).
+- **Models** (`lib/models.dart`) + **data** — item-based plans
+  (`data/plans.dart`), item categories/add-ons/overage (`data/items.dart`), and
+  the **full garment catalogue** (`data/garments.dart`, ~180 items, EN/AR +
+  piece counts).
 - **State** (`lib/state.dart`) — `AppState` (ChangeNotifier via `provider`):
-  active plan, monthly items used, add pickup selection.
+  user/sign-in, active plan, monthly items used, add pickup selection.
 - **Drawn garment icons** (`widgets/garment_icon.dart`) — a `CustomPainter`
   port of the SVG icon set (dishdasha, abaya, bisht, ghutra, cap, egal, …).
-- **Screens**
-  - Home (`screens/home_screen.dart`) — membership hero + "how items are
-    counted" card.
-  - Plans (`screens/plans_screen.dart`) — item-allowance plan cards with the
-    teal/green theming.
-  - Pickup (`screens/pickup_screen.dart`) — schedule details + the "what are
-    you sending?" card.
-  - Garment picker (`widgets/garment_picker.dart`) — searchable grouped
-    steppers → **review step** (itemised list + big total) → **Proceed to
-    checkout** (records the pieces against the monthly counter).
+- **Screens** — Home (membership hero + counting-rule card), Plans (item
+  allowance cards with teal/green theming), Pickup (schedule + "what are you
+  sending?"), Account (profile, usage, language toggle, sign out), and the
+  Garment picker → **review** → **Proceed to checkout** flow.
 
 ## Not yet ported
 
 - POS terminal and staff/admin portal.
-- Supabase auth, onboarding/welcome, rewards, tracking/map, notifications.
-- Full EN/AR i18n + RTL (Arabic strings are in the data; the UI is EN for now).
-- Admin-editable config (localStorage equivalents → shared_preferences / backend).
+- Supabase auth backend (the sign-in screen is a local demo), rewards,
+  order tracking/map, notifications, privacy/T&C consent.
+- Admin-editable config (localStorage → shared_preferences / backend).
+- Entrance/interaction animations (the web app's pops/floats).

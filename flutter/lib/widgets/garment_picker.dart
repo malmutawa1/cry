@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models.dart';
+import '../i18n.dart';
 import '../theme.dart';
 import '../data/garments.dart';
 import 'garment_icon.dart';
@@ -22,6 +24,11 @@ class _GarmentPickerState extends State<GarmentPicker> {
 
   int get pieces => selectionPieces(sel);
   int get units => selectionUnits(sel);
+
+  LocaleState get l => context.read<LocaleState>();
+  String gname(Garment g) => l.isAr ? g.nameAr : g.name;
+  String grp(GarmentGroup g) => l.isAr ? g.nameAr : g.name;
+  String pieceLabel(int n) => n == 1 ? l.t('garment.piece1') : l.t('garment.pieces', {'n': n});
 
   void bump(String id, int d) {
     setState(() {
@@ -57,7 +64,7 @@ class _GarmentPickerState extends State<GarmentPicker> {
     return Column(
       children: [
         _TopBar(
-          title: 'What are you sending?',
+          title: l.t('garment.pick.title'),
           leading: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
         ),
         Padding(
@@ -65,7 +72,7 @@ class _GarmentPickerState extends State<GarmentPicker> {
           child: TextField(
             onChanged: (v) => setState(() => q = v),
             decoration: InputDecoration(
-              hintText: 'Search garments…',
+              hintText: l.t('garment.search'),
               prefixIcon: const Icon(Icons.search, size: 20),
               filled: true,
               fillColor: AppColors.surface2,
@@ -78,15 +85,14 @@ class _GarmentPickerState extends State<GarmentPicker> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             children: [
-              const Padding(
-                padding: EdgeInsets.only(bottom: 12, top: 6, left: 2),
-                child: Text("Add each garment you're handing over — we count it live.",
-                    style: TextStyle(color: AppColors.muted, fontSize: 13)),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12, top: 6, left: 2),
+                child: Text(l.t('garment.pick.hint'), style: const TextStyle(color: AppColors.muted, fontSize: 13)),
               ),
               for (final g in filtered) ...[
                 Padding(
                   padding: const EdgeInsets.only(left: 2, bottom: 8, top: 4),
-                  child: Text(g.name.toUpperCase(),
+                  child: Text(grp(g).toUpperCase(),
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.muted, letterSpacing: 0.4)),
                 ),
                 for (final it in g.items) _pickRow(g, it),
@@ -97,7 +103,7 @@ class _GarmentPickerState extends State<GarmentPicker> {
         ),
         _footer(
           left: _totalBlock(),
-          button: _primary('Done', units == 0 ? null : () => setState(() => review = true)),
+          button: _primary(l.t('garment.doneBtn'), units == 0 ? null : () => setState(() => review = true)),
         ),
       ],
     );
@@ -121,8 +127,8 @@ class _GarmentPickerState extends State<GarmentPicker> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(it.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)),
-                Text(it.addon ? 'Add-on' : (it.pieces == 1 ? '1 piece' : '${it.pieces} pieces'),
+                Text(gname(it), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)),
+                Text(it.addon ? l.t('garment.addon') : pieceLabel(it.pieces),
                     style: const TextStyle(color: AppColors.muted, fontSize: 12, fontWeight: FontWeight.w600)),
               ],
             ),
@@ -144,7 +150,7 @@ class _GarmentPickerState extends State<GarmentPicker> {
     return Column(
       children: [
         _TopBar(
-          title: 'Review your items',
+          title: l.t('garment.review.title'),
           leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => setState(() => review = false)),
         ),
         Expanded(
@@ -159,18 +165,17 @@ class _GarmentPickerState extends State<GarmentPicker> {
                   border: Border.all(color: AppColors.line),
                 ),
                 child: Column(children: [
-                  Text('$pieces',
-                      style: const TextStyle(fontSize: 56, fontWeight: FontWeight.w900, color: AppColors.accent, height: 0.9)),
+                  Text('$pieces', style: const TextStyle(fontSize: 56, fontWeight: FontWeight.w900, color: AppColors.accent, height: 0.9)),
                   const SizedBox(height: 4),
-                  const Text('total pieces', style: TextStyle(fontWeight: FontWeight.w800)),
-                  Text('$units garments', style: const TextStyle(color: AppColors.muted, fontSize: 12.5, fontWeight: FontWeight.w600)),
+                  Text(l.t('garment.totalPieces'), style: const TextStyle(fontWeight: FontWeight.w800)),
+                  Text(l.t('garment.units', {'n': units}), style: const TextStyle(color: AppColors.muted, fontSize: 12.5, fontWeight: FontWeight.w600)),
                 ]),
               ),
               const SizedBox(height: 16),
               for (final g in chosen) ...[
                 Padding(
                   padding: const EdgeInsets.only(left: 2, bottom: 6),
-                  child: Text(g.name.toUpperCase(),
+                  child: Text(grp(g).toUpperCase(),
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.muted, letterSpacing: 0.4)),
                 ),
                 for (final it in g.items) _reviewLine(g, it),
@@ -179,7 +184,7 @@ class _GarmentPickerState extends State<GarmentPicker> {
             ],
           ),
         ),
-        _footer(button: _primary('Proceed to checkout', () => Navigator.pop(context, sel))),
+        _footer(button: _primary(l.t('garment.review.checkout'), () => Navigator.pop(context, sel))),
       ],
     );
   }
@@ -195,8 +200,8 @@ class _GarmentPickerState extends State<GarmentPicker> {
         const SizedBox(width: 10),
         Text('$qty×', style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.accent)),
         const SizedBox(width: 8),
-        Expanded(child: Text(it.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14.5))),
-        Text(it.addon ? 'Add-on' : (sub == 1 ? '1 piece' : '$sub pieces'),
+        Expanded(child: Text(gname(it), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14.5))),
+        Text(it.addon ? l.t('garment.addon') : pieceLabel(sub),
             style: const TextStyle(color: AppColors.muted, fontWeight: FontWeight.w700, fontSize: 12.5)),
       ]),
     );
@@ -224,9 +229,9 @@ class _GarmentPickerState extends State<GarmentPicker> {
         Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
           Text('$pieces', style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w900, color: AppColors.accent, height: 1)),
           const SizedBox(width: 6),
-          const Padding(padding: EdgeInsets.only(bottom: 4), child: Text('total pieces', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.muted, fontSize: 12.5))),
+          Padding(padding: const EdgeInsets.only(bottom: 4), child: Text(l.t('garment.totalPieces'), style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.muted, fontSize: 12.5))),
         ]),
-        Text('$units garments', style: const TextStyle(color: AppColors.muted, fontSize: 12, fontWeight: FontWeight.w600)),
+        Text(l.t('garment.units', {'n': units}), style: const TextStyle(color: AppColors.muted, fontSize: 12, fontWeight: FontWeight.w600)),
       ],
     );
   }
