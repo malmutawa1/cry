@@ -1,0 +1,50 @@
+import '../models.dart';
+
+/// Subscription tiers — piece-based (item) model. Mirrors src/data/plans.ts.
+const plans = <Plan>[
+  Plan(
+    id: 'solo',
+    name: 'Solo',
+    nameAr: 'فردي',
+    priceKwd: 25,
+    items: 70,
+    tagline: 'For singles & couples',
+    taglineAr: 'للأفراد والأزواج',
+    perks: ['Free pickup & delivery', 'Next-day turnaround', 'Delivered on hangers', 'Pause anytime'],
+    perksAr: ['استلام وتوصيل مجاني', 'تسليم في اليوم التالي', 'التوصيل على علاقات', 'إيقاف مؤقت في أي وقت'],
+  ),
+  Plan(
+    id: 'family',
+    name: 'Family',
+    nameAr: 'عائلي',
+    priceKwd: 40,
+    items: 140,
+    tagline: 'For small families',
+    taglineAr: 'للعائلات الصغيرة',
+    popular: true,
+    perks: ['Free pickup & delivery', 'Next-day turnaround', 'Delivered on hangers', 'Priority scheduling'],
+    perksAr: ['استلام وتوصيل مجاني', 'تسليم في اليوم التالي', 'التوصيل على علاقات', 'أولوية في المواعيد'],
+  ),
+  Plan(
+    id: 'family-plus',
+    name: 'Family Plus',
+    nameAr: 'عائلي بلس',
+    priceKwd: 65,
+    items: 240,
+    tagline: 'Larger families',
+    taglineAr: 'للعائلات الكبيرة',
+    perks: ['Dry-clean-grade care included', 'Free pickup & delivery', 'Same-day slots available', 'Delivered on hangers'],
+    perksAr: ['عناية بمستوى التنظيف الجاف', 'استلام وتوصيل مجاني', 'مواعيد في نفس اليوم', 'التوصيل على علاقات'],
+  ),
+  Plan(
+    id: 'max',
+    name: 'Max',
+    nameAr: 'ماكس',
+    priceKwd: 85,
+    items: 350,
+    tagline: 'Heavy-use households',
+    taglineAr: 'للاستخدام الكثيف',
+    perks: ['Dry-clean-grade care included', 'Free pickup & delivery', 'Same-day slots available', 'Freeze anytime while travelling'],
+    perksAr: ['عناية بمستوى التنظيف الجاف', 'استلام وتوصيل مجاني', 'مواعيد في نفس اليوم', 'إيقاف مؤقت عند السفر'],
+  ),
+];
