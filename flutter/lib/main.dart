@@ -3,14 +3,18 @@ import 'package:provider/provider.dart';
 import 'theme.dart';
 import 'state.dart';
 import 'i18n.dart';
+import 'supabase_config.dart';
 import 'screens/home_screen.dart';
 import 'screens/plans_screen.dart';
 import 'screens/pickup_screen.dart';
+import 'screens/track_screen.dart';
 import 'screens/account_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/auth_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initSupabase();
   runApp(
     MultiProvider(
       providers: [
@@ -72,9 +76,14 @@ class _RootShellState extends State<RootShell> {
   Widget build(BuildContext context) {
     final l = context.watch<LocaleState>();
     final pages = [
-      HomeScreen(onSeePlans: () => setState(() => tab = 1), onSchedule: () => setState(() => tab = 2)),
+      HomeScreen(
+        onSeePlans: () => setState(() => tab = 1),
+        onSchedule: () => setState(() => tab = 2),
+        onTrack: () => setState(() => tab = 3),
+      ),
       const PlansScreen(),
-      PickupScreen(onSeePlans: () => setState(() => tab = 1)),
+      PickupScreen(onSeePlans: () => setState(() => tab = 1), onTrack: () => setState(() => tab = 3)),
+      TrackScreen(onSchedule: () => setState(() => tab = 2)),
       AccountScreen(onSeePlans: () => setState(() => tab = 1)),
     ];
     return Scaffold(
@@ -86,6 +95,7 @@ class _RootShellState extends State<RootShell> {
           NavigationDestination(icon: const Icon(Icons.home_outlined), selectedIcon: const Icon(Icons.home), label: l.t('nav.home')),
           NavigationDestination(icon: const Icon(Icons.credit_card_outlined), selectedIcon: const Icon(Icons.credit_card), label: l.t('nav.plans')),
           NavigationDestination(icon: const Icon(Icons.shopping_bag_outlined), selectedIcon: const Icon(Icons.shopping_bag), label: l.t('nav.pickup')),
+          NavigationDestination(icon: const Icon(Icons.local_shipping_outlined), selectedIcon: const Icon(Icons.local_shipping), label: l.t('nav.track')),
           NavigationDestination(icon: const Icon(Icons.person_outline), selectedIcon: const Icon(Icons.person), label: l.t('nav.account')),
         ],
       ),

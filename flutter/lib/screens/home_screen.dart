@@ -4,11 +4,14 @@ import '../state.dart';
 import '../i18n.dart';
 import '../theme.dart';
 import '../data/items.dart';
+import '../data/rewards.dart';
+import 'rewards_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final VoidCallback onSeePlans;
   final VoidCallback onSchedule;
-  const HomeScreen({super.key, required this.onSeePlans, required this.onSchedule});
+  final VoidCallback onTrack;
+  const HomeScreen({super.key, required this.onSeePlans, required this.onSchedule, required this.onTrack});
 
   @override
   Widget build(BuildContext context) {
@@ -34,17 +37,67 @@ class HomeScreen extends StatelessWidget {
         Text(l.t('home.hello', {'name': firstName}), style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
         Text(l.t('home.subtitle'), style: const TextStyle(color: AppColors.muted, fontSize: 16)),
         const SizedBox(height: 18),
+        if (s.orderAt != null) ...[
+          _trackCard(l),
+          const SizedBox(height: 14),
+        ],
         if (plan != null) ...[
           _heroCard(context, s, l),
           const SizedBox(height: 14),
           _countingCard(l),
           const SizedBox(height: 18),
           _primary(l.t('home.schedule'), onSchedule),
+          const SizedBox(height: 14),
+          _rewardsCard(context, s, l),
         ] else
           _noPlanCard(l),
       ],
     );
   }
+
+  Widget _trackCard(LocaleState l) => InkWell(
+        onTap: onTrack,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.line)),
+          child: Row(children: [
+            Container(
+              width: 42, height: 42,
+              decoration: BoxDecoration(color: AppColors.accent.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
+              child: const Icon(Icons.local_shipping_outlined, color: AppColors.accent),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(l.t('home.track.title'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800))),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(color: AppColors.accent.withOpacity(0.12), borderRadius: BorderRadius.circular(999)),
+              child: Text(l.t('home.track.cta'), style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w800, fontSize: 12)),
+            ),
+          ]),
+        ),
+      );
+
+  Widget _rewardsCard(BuildContext context, AppState s, LocaleState l) => InkWell(
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RewardsScreen())),
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.line)),
+          child: Row(children: [
+            const CircleAvatar(radius: 21, backgroundColor: Color(0xFFF3E6C8), child: Icon(Icons.card_giftcard, color: Color(0xFF9A7526))),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(l.t('home.rewards.title'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                Text(currentTier(s.points).key, style: const TextStyle(color: AppColors.muted, fontSize: 13)),
+              ]),
+            ),
+            Text(l.t('home.rewards.pts', {'n': s.points}), style: const TextStyle(color: Color(0xFF9A7526), fontWeight: FontWeight.w800)),
+            const Icon(Icons.chevron_right, color: AppColors.muted),
+          ]),
+        ),
+      );
 
   Widget _heroCard(BuildContext context, AppState s, LocaleState l) {
     final plan = s.activePlan!;

@@ -8,7 +8,8 @@ import '../widgets/garment_picker.dart';
 
 class PickupScreen extends StatefulWidget {
   final VoidCallback onSeePlans;
-  const PickupScreen({super.key, required this.onSeePlans});
+  final VoidCallback onTrack;
+  const PickupScreen({super.key, required this.onSeePlans, required this.onTrack});
 
   @override
   State<PickupScreen> createState() => _PickupScreenState();
@@ -26,8 +27,8 @@ class _PickupScreenState extends State<PickupScreen> {
       MaterialPageRoute(fullscreenDialog: true, builder: (_) => GarmentPicker(initial: garments)),
     );
     if (result != null && mounted) {
-      // Proceeded to checkout: record the pieces and confirm.
-      context.read<AppState>().addPickupSelection(result);
+      // Proceeded to checkout: record the pieces, create the order, earn points.
+      context.read<AppState>().checkoutPickup(result);
       setState(() => garments = {});
       showDialog(
         context: context,
@@ -37,7 +38,15 @@ class _PickupScreenState extends State<PickupScreen> {
             const SizedBox(height: 12),
             Text(l.t('pickup.collected', {'n': selectionUnits(result)}), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700)),
           ]),
-          actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(l.t('pickup.done')))],
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                widget.onTrack();
+              },
+              child: Text(l.t('pickup.done')),
+            ),
+          ],
         ),
       );
     }
