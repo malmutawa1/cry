@@ -22,9 +22,15 @@ environment, so this code has not been compiled/verified here — run
 - **Bilingual i18n + RTL** (`lib/i18n.dart`) — `LocaleState` with EN/AR strings,
   a language toggle, and full right-to-left mirroring (via a `Directionality`
   wrapper in `main.dart`). Plan / garment / group names switch language too.
-- **Auth flow** — Welcome splash (`screens/welcome_screen.dart`) → Sign-in
-  (`screens/auth_screen.dart`, email/password + "Continue with Apple" demo) →
-  app shell. Gated in `main.dart`.
+- **Supabase auth** (`supabase_flutter`, `lib/supabase_config.dart`) — real
+  email/password **sign-in + sign-up** with session restore + auth-state
+  listening; Welcome splash → Auth → app shell. "Continue with Apple" is a
+  local demo relay (like the web app).
+- **Order tracking** (`screens/track_screen.dart`) — a live staged timeline
+  (Order received → … → Delivered) advancing on a timer, with ETA + driver
+  card. An order is created on pickup checkout.
+- **Rewards** (`screens/rewards_screen.dart`, `data/rewards.dart`) — points,
+  tier progress, ways to earn, redeemable rewards (earned on checkout).
 - **Theme & palette** (`lib/theme.dart`) — accent, per-plan colours
   (Family Plus = teal, Max = green), per-group tile tints.
 - **Models** (`lib/models.dart`) + **data** — item-based plans
@@ -43,7 +49,6 @@ environment, so this code has not been compiled/verified here — run
 ## Not yet ported
 
 - POS terminal and staff/admin portal.
-- Supabase auth backend (the sign-in screen is a local demo), rewards,
-  order tracking/map, notifications, privacy/T&C consent.
+- Live map on tracking, notifications bell, privacy/T&C consent, address picker.
 - Admin-editable config (localStorage → shared_preferences / backend).
 - Entrance/interaction animations (the web app's pops/floats).
